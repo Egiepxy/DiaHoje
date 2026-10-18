@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radar Egi — Próximas Fortes V10.5</title>
+<style>
+body{font-family:Arial,sans-serif;background:#07111f;color:#eef4ff;margin:0}
+.wrap{max-width:1180px;margin:auto;padding:14px}.card{background:#0e1a2d;border:1px solid #263a60;border-radius:14px;padding:14px;margin:10px 0}
+h1,h2,h3{margin:.3em 0}.muted{color:#9fb0ca}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+button,select,input{background:#172742;color:#fff;border:1px solid #38517c;border-radius:9px;padding:10px;font-size:14px}
+button{cursor:pointer;font-weight:700}.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px;border-bottom:1px solid #233652;text-align:right}th:first-child,td:first-child{text-align:left}
+.good{color:#55e08a}.warn{color:#ffd166}.bad{color:#ff6b7a}.hot{color:#ffb14a;font-weight:800}
+.bar{height:8px;background:#1d2b43;border-radius:8px;overflow:hidden}.fill{height:100%;background:#6ba5ff}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#172742;border:1px solid #38517c;margin:2px}
+.detail{display:none}.detail.open{display:block}.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.report{white-space:pre-wrap;line-height:1.5;background:#081423;border-radius:10px;padding:12px}
+
+.signalStrong{font-size:20px;font-weight:800}
+.mini{font-size:12px}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}table{font-size:11px}th,td{padding:7px 4px}.hideM{display:none}}
+@media print{body{background:#fff;color:#000}.noPrint{display:none!important}.card{border:1px solid #bbb;background:#fff;color:#000}.muted{color:#444}.report{background:#fff;color:#000}}
+</style></head>
+<body><div class="wrap">
+<h1>📡 Radar Egi — Próximas Fortes V10.5</h1>
+<p class="muted">Radar educacional de força, momentum, atividade e liquidez. Os sinais são filtros quantitativos, não garantia nem recomendação automática de compra.</p>
+
+<div class="card top noPrint">
+<label>Universo <select id="limit"><option>10</option><option selected>20</option><option>50</option><option>100</option></select></label>
+<label>Timeframe <select id="tf"><option value="1h">1H</option><option value="4h" selected>4H</option><option value="1d">1D</option></select></label>
+<label><input id="key" type="hidden" value=""></label>
+<button id="scan">🔎 Atualizar Radar</button>
+<button id="pre">🚀 Possível início LONG</button>
+<button id="preShort">🔻 Possível início SHORT</button>
+<button id="all">📊 Ranking geral</button>
+<button id="reportBtn">📄 Relatório</button>
+<button id="gptReportBtn">🤖 Relatório Inteligente GPT</button>
+<button id="myReportBtn">👤 Relatório Inteligente — Para mim</button>
+<button id="riskBtn">🏆 Potencial × Risco</button>
+<button id="topReportBtn">📑 Relatório Maiores Potenciais</button>
+<button id="watchBtn">👁️ Observação</button>
+<button id="histBtn">🧾 Histórico</button>
+<button id="perfBtn">📊 Desempenho</button>
+<button id="updHistBtn">🔄 Atualizar resultados</button>
+<button id="guideBtn">📘 Funcionalidades + Áudio</button>
+<button id="pdfBtn">🖨️ Salvar PDF</button>
+</div>
+
+<div id="modeStatus" class="card" style="padding:12px 16px;margin-top:12px">
+<b>Exibição:</b> <span id="modeLabel">Ranking geral</span>
+</div>
+<div class="card" id="confirmPanel">
+<h2>🧭 Painel de Confirmação</h2>
+<div id="confirmSummary" class="muted">Atualize o Radar para montar a leitura LONG/SHORT.</div>
+</div>
+<div class="grid">
+<div class="card"><div class="muted">BTC 24h</div><h2 id="btc">—</h2></div>
+<div class="card"><div class="muted">Mercado analisado</div><h2 id="count">—</h2></div>
+<div class="card"><div class="muted" id="strongLabel">Mais forte vs BTC</div><h2 id="strong">—</h2></div>
+<div class="card"><div class="muted">Maior atividade relativa (Vol/Cap)</div><h2 id="vol">—</h2></div>
+</div>
+
+<div class="card">
+<h2 id="activityTitle">📊 Onde há maior atividade de negociação?</h2>
+<div id="flow" class="muted">Clique em Atualizar Radar.</div>
+</div>
+
+<div class="card" style="overflow:auto">
+<table><thead><tr>
+<th># / Ativo</th><th>Final</th><th>Técnico</th><th>Atividade</th><th>Confirmação</th><th>Classe</th><th>Preço</th>
+<th>1h</th><th>24h</th><th>7d</th><th>vs BTC</th><th>Vol/Cap</th><th class="hideM">Detalhes</th>
+</tr></thead><tbody id="rows"></tbody></table>
+</div>
+
+<div id="detail" class="card detail">
+<h2>🔬 Análise completa</h2>
+<div id="detailBody"></div>
+</div>
+
+<div id="reportCard" class="card detail">
+<h2>📄 Relatórios — Radar Egi V10.1</h2>
+<div id="report" class="report"></div>
+</div>
+
+<div class="card">
+<h2>🚦 V8 — Tendência ≠ Momento de Entrada</h2>
+<p>O Radar agora separa a <b>direção técnica</b> (LONG/SHORT/AGUARDAR) da <b>qualidade do preço de execução</b>.</p>
+<p>Pode mostrar <b>LONG</b> e, ao mesmo tempo, <b>⚠️ NÃO PERSEGUIR PREÇO</b> ou <b>⏳ ESPERAR PULLBACK</b> quando o preço estiver afastado da EMA14/faixa de entrada em relação ao ATR.</p>
+</div>
+
+<div class="card">
+<h2>📊 V8 — Histórico e Desempenho do Radar</h2>
+<p>A V7 permite registrar um cenário técnico e acompanhar seu resultado: <b>em andamento, Alvo 1, Alvo 2, Alvo 3 ou Stop</b>.</p>
+<p class="muted">Os registros ficam salvos localmente no navegador do aparelho. Limpar dados/cache do navegador pode apagar esse histórico.</p>
+</div>
+
+<div class="card">
+<h2>🧠 V8 — Alinhamento Multi-Timeframe</h2>
+<p>A V6 compara <b>1H + 4H + 1D</b> usando candles Binance e mostra o alinhamento dos cenários. Ex.: <b>1H LONG · 4H LONG · 1D LONG → LONG 3/3</b>.</p>
+<p class="muted">Também calcula uma Convicção 0–100. Convicção mede alinhamento técnico; não é probabilidade garantida de acerto.</p>
+</div>
+
+<div class="card">
+<h2>🎯 Detecção + Plano Técnico V7.1</h2>
+<p>Ao abrir os detalhes, a V5 consulta candles reais do par <b>USDT na Binance Spot</b> e calcula RSI(14), MACD(12,26,9), EMA 14/200, ATR(14), volume/média 20 e suporte/resistência.</p>
+<p class="muted">Entrada, stop e alvos são cenários técnicos educacionais derivados do ATR e da estrutura recente. Se a Binance não fornecer candles suficientes, a V5 mostra “Dados insuficientes” e não inventa níveis.</p>
+</div>
+
+<div class="card">
+<h2>🧭 Confirmação Técnica V5</h2>
+<p>Além do ranking, a V3 cria uma confirmação técnica baseada nos dados disponíveis nesta fonte: alinhamento de momentum 1h/24h/7d, força relativa contra BTC e atividade relativa (Vol/Cap).</p>
+<p class="muted">RSI, MACD, médias 14/200 e candles 4H/1D reais continuam marcados como “aguardando histórico”. Eles não são estimados a partir de variação percentual.</p>
+</div>
+
+<div class="card">
+<h2>Como o Score V5 funciona</h2>
+<p><b>Score Técnico:</b> força relativa contra BTC + momentum 1h/24h/7d + consistência do movimento.</p>
+<p><b>Score de Atividade:</b> volume/market cap + liquidez + confirmação por desempenho recente. Volume alto mostra atividade, mas não determina sozinho entrada ou saída de dinheiro.</p>
+<p><b>Score Final:</b> combinação de Técnico (60%) e Fluxo (40%). A Confirmação 0/5 mede o alinhamento dos cinco sinais disponíveis. TVL, RSI/MACD real, médias e tendência por candles ficam para a próxima integração de histórico.</p>
+<p class="muted">O filtro 🚀 Possível início procura força vs BTC positiva, atividade Vol/Cap relevante e alta de 24h ainda não excessiva.</p>
+</div>
+</div>
+
+<script>
+let data=[], mode='all', ranked=[]; const tripleMap=new Map();
+const $=id=>document.getElementById(id);
+const pct=n=>Number.isFinite(n)?n.toFixed(2)+'%':'—';
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+function cls(score){return score>=80?['🔥 FORTE','hot']:score>=65?['🟢 BOA','good']:score>=50?['🟡 OBSERVAR','warn']:['🔴 EVITAR','bad']}
+
+function metrics(c,btc){
+ const p1=c.price_change_percentage_1h_in_currency||0;
+ const p24=c.price_change_percentage_24h_in_currency||0;
+ const p7=c.price_change_percentage_7d_in_currency||0;
+ const rel=p24-(btc.price_change_percentage_24h_in_currency||0);
+ const vrRaw=(Number(c.market_cap)>0 && Number.isFinite(Number(c.total_volume)))?Number(c.total_volume)/Number(c.market_cap)*100:0;
+ const vr=(Number.isFinite(vrRaw) && vrRaw>=0 && vrRaw<=100)?vrRaw:0;
+
+ let technical=50;
+ technical += clamp(rel*3,-18,18);
+ technical += clamp(p1*2,-8,8);
+ technical += clamp(p24*0.8,-10,10);
+ technical += clamp(p7/2,-12,12);
+ if(p1>0 && p24>0) technical+=5;
+ if(p24>0 && p7>0) technical+=5;
+ technical=clamp(Math.round(technical),0,100);
+
+ let flow=45;
+ flow += clamp((vr-3)*3,-15,25);
+ if(c.total_volume>=1000000000) flow+=15;
+ else if(c.total_volume>=250000000) flow+=10;
+ else if(c.total_volume>=50000000) flow+=5;
+ else if(c.total_volume<10000000) flow-=15;
+ flow += clamp(rel*1.5,-10,10);
+ flow=clamp(Math.round(flow),0,100);
+
+ const final=clamp(Math.round(technical*.60+flow*.40),0,100);
+ const early=rel>0 && vr>3 && p24>-2 && p24<8 && technical>=55 && flow>=55;
+ const earlyShort=rel<0 && vr>3 && p24<2 && p24>-12 && (p1<0 || p24<0) && technical<=55;
+ return {p1,p24,p7,rel,vr,technical,flow,final,early,earlyShort};
+}
+
+function why(c){
+ const r=[];
+ if(c.rel>0) r.push(`força vs BTC +${c.rel.toFixed(2)}%`);
+ else r.push(`força vs BTC ${c.rel.toFixed(2)}%`);
+ if(c.vr>5) r.push(`Vol/Cap forte em ${c.vr.toFixed(2)}%`);
+ else r.push(`Vol/Cap ${c.vr.toFixed(2)}%`);
+ if(c.p1>0 && c.p24>0) r.push('momentum 1h/24h alinhado');
+ if(c.p24>0 && c.p7>0) r.push('24h/7d positivos');
+ if(c.early) r.push('possível início de movimento LONG');
+ if(c.earlyShort) r.push('fraqueza relativa: possível início SHORT');
+ return r.join(' · ');
+}
+
+
+
+
+const BINANCE_BASES=['https://api.binance.com','https://data-api.binance.vision'];
+
+async function binanceJSON(path){
+ let last;
+ for(const base of BINANCE_BASES){
+   try{
+     const r=await fetch(base+path);
+     if(!r.ok) throw new Error('HTTP '+r.status);
+     return await r.json();
+   }catch(e){last=e}
+ }
+ throw last||new Error('Binance indisponível');
+}
+function ema(vals,n){
+ if(vals.length<n)return [];
+ const k=2/(n+1), out=new Array(vals.length).fill(null);
+ let seed=vals.slice(0,n).reduce((a,b)=>a+b,0)/n; out[n-1]=seed;
+ for(let i=n;i<vals.length;i++) out[i]=vals[i]*k+out[i-1]*(1-k);
+ return out;
+}
+function rsi(vals,n=14){
+ if(vals.length<n+1)return null;
+ let gains=0,losses=0;
+ for(let i=1;i<=n;i++){let d=vals[i]-vals[i-1]; if(d>=0)gains+=d; else losses-=d}
+ let ag=gains/n, al=losses/n, last=al===0?100:100-100/(1+ag/al);
+ for(let i=n+1;i<vals.length;i++){let d=vals[i]-vals[i-1],g=Math.max(d,0),l=Math.max(-d,0);ag=(ag*(n-1)+g)/n;al=(al*(n-1)+l)/n;last=al===0?100:100-100/(1+ag/al)}
+ return last;
+}
+function atr(candles,n=14){
+ if(candles.length<n+1)return null;
+ const tr=[];
+ for(let i=1;i<candles.length;i++){const h=candles[i].h,l=candles[i].l,pc=candles[i-1].c;tr.push(Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc)))}
+ let a=tr.slice(0,n).reduce((x,y)=>x+y,0)/n;
+ for(let i=n;i<tr.length;i++)a=(a*(n-1)+tr[i])/n;
+ return a;
+}
+function macd(vals){
+ const e12=ema(vals,12),e26=ema(vals,26), line=vals.map((_,i)=>e12[i]!=null&&e26[i]!=null?e12[i]-e26[i]:null);
+ const compact=line.filter(x=>x!=null), sigc=ema(compact,9), signal=sigc.at(-1), m=line.at(-1);
+ return {line:m,signal,hist:(m!=null&&signal!=null)?m-signal:null};
+}
+function fmt(n){return Number.isFinite(n)?n.toFixed(2):'—'}
+function money(n){if(!Number.isFinite(n))return '—';return '$'+n.toLocaleString('en-US',{maximumFractionDigits:n<1?8:4})}
+
+async function technicalPlan(c,forcedTf=null){
+ const tf=forcedTf||$('tf')?.value||'4h', symbol=c.symbol.toUpperCase()+'USDT';
+ const raw=await binanceJSON(`/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${tf}&limit=260`);
+ if(!Array.isArray(raw)||raw.length<210)throw new Error('Dados insuficientes na Binance');
+ const k=raw.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}));
+ const closes=k.map(x=>x.c), vols=k.map(x=>x.v), price=closes.at(-1);
+ const e14=ema(closes,14).at(-1), e200=ema(closes,200).at(-1), R=rsi(closes,14), A=atr(k,14), M=macd(closes);
+ const vavg=vols.slice(-20).reduce((a,b)=>a+b,0)/20, vr=vavg?vols.at(-1)/vavg:0;
+ const recent=k.slice(-30,-1), support=Math.min(...recent.map(x=>x.l)), resistance=Math.max(...recent.map(x=>x.h));
+ let bull=0,bear=0,reasons=[];
+ if(price>e14){bull++;reasons.push('preço acima EMA14')}else bear++;
+ if(price>e200){bull++;reasons.push('preço acima EMA200')}else bear++;
+ if(e14>e200){bull++;reasons.push('EMA14 acima EMA200')}else bear++;
+ if(R>=50&&R<70){bull++;reasons.push('RSI favorável')} else if(R<45)bear++;
+ if(M.hist>0){bull++;reasons.push('MACD positivo')}else bear++;
+ if(vr>=1){bull++;reasons.push('volume ≥ média20')}
+ const side=bull>=5?'LONG':bear>=5?'SHORT':'AGUARDAR';
+ let entry1=null,entry2=null,stop=null,t1=null,t2=null,t3=null,rr=null;
+ if(side==='LONG'){
+   entry1=Math.max(support,price-A*.35); entry2=price+A*.15;
+   stop=Math.min(support-A*.25,price-A*1.5);
+   const risk=price-stop; t1=Math.max(resistance,price+risk);t2=price+risk*2;t3=price+risk*3;rr='1:2';
+ }else if(side==='SHORT'){
+   entry1=price-A*.15; entry2=Math.min(resistance,price+A*.35);
+   stop=Math.max(resistance+A*.25,price+A*1.5);
+   const risk=stop-price;t1=Math.min(support,price-risk);t2=price-risk*2;t3=price-risk*3;rr='1:2';
+ }
+ const atrPct=A/price*100;
+ let riskScore=clamp(Math.round(atrPct*8 + (vr<.7?15:0) + (price<e200?10:0) + (R>72||R<28?10:0)),0,100);
+ const riskLabel=riskScore<30?'🟢 BAIXO':riskScore<50?'🟡 MODERADO':riskScore<70?'🟠 ALTO':'🔴 MUITO ALTO';
+ const potential=clamp(Math.round(c.final*.55+bull/6*45),0,100);
+ const adjusted=clamp(Math.round(potential*(1-riskScore/150)),0,100);
+ return {tf,symbol,price,e14,e200,R,A,atrPct,M,vnow:vols.at(-1),vavg,vr,support,resistance,bull,bear,side,entry1,entry2,stop,t1,t2,t3,rr,riskScore,riskLabel,potential,adjusted,reasons};
+}
+
+
+
+function executionQuality(p){
+  const atrVal=p && Number.isFinite(p.atr)?p.atr:(p&&Number.isFinite(p.A)?p.A:null);
+  const emaVal=p && Number.isFinite(p.ema14)?p.ema14:(p&&Number.isFinite(p.e14)?p.e14:null);
+  if(!p || !Number.isFinite(p.price) || !Number.isFinite(atrVal) || atrVal<=0)
+    return {label:'SEM DADOS',note:'ATR indisponível para avaliar o preço de execução.',score:0};
+
+  const px=p.price, atr=atrVal, ema=emaVal;
+  const dEma = Number.isFinite(ema) ? Math.abs(px-ema)/atr : 0;
+  let dZone=0;
+  if(Number.isFinite(p.entry1) && Number.isFinite(p.entry2)){
+    const lo=Math.min(p.entry1,p.entry2), hi=Math.max(p.entry1,p.entry2);
+    dZone = px<lo ? (lo-px)/atr : px>hi ? (px-hi)/atr : 0;
+  }
+
+  // Tendência e momento são separados do preço de execução.
+  if(p.side==='AGUARDAR')
+    return {label:'AGUARDAR CONFIRMAÇÃO',note:'O timeframe selecionado ainda não confirmou LONG/SHORT.',score:35,dEma,dZone};
+
+  if(dZone>0.75 || dEma>1.50)
+    return {label:'⚠️ NÃO PERSEGUIR PREÇO',note:'Preço afastado da região técnica. Preferir pullback/reteste ou nova confirmação antes de registrar entrada.',score:30,dEma,dZone};
+
+  if(dZone>0.25 || dEma>1.00)
+    return {label:'⏳ ESPERAR PULLBACK',note:'Tendência pode continuar favorável, mas a relação preço/estrutura melhoraria com aproximação da EMA14/faixa de entrada.',score:60,dEma,dZone};
+
+  return {label:'✅ ENTRADA FAVORÁVEL',note:'Preço próximo da faixa técnica e sem afastamento excessivo da EMA14 em unidades de ATR.',score:85,dEma,dZone};
+}
+
+async function multiTF(c){
+ const tfs=['1h','4h','1d'];
+ const plans=[];
+ for(const tf of tfs) plans.push(await technicalPlan(c,tf));
+ const longs=plans.filter(p=>p.side==='LONG').length;
+ const shorts=plans.filter(p=>p.side==='SHORT').length;
+ const waits=3-longs-shorts;
+ const direction=longs===3?'LONG':shorts===3?'SHORT':longs>=2?'LONG':shorts>=2?'SHORT':'MISTO';
+ const aligned=Math.max(longs,shorts);
+ const avgPotential=plans.reduce((a,p)=>a+p.potential,0)/3;
+ const avgRisk=plans.reduce((a,p)=>a+p.riskScore,0)/3;
+ let conviction=Math.round(avgPotential*.55 + (aligned/3)*35 + (100-avgRisk)*.10);
+ if(direction==='MISTO') conviction=Math.min(conviction,55);
+ conviction=clamp(conviction,0,100);
+ return {plans,longs,shorts,waits,direction,aligned,conviction};
+}
+
+
+function pfSma(a,p){if(a.length<p)return null;const x=a.slice(-p);return x.reduce((s,v)=>s+v,0)/p;}
+function pfEma(a,p){if(!a.length)return[];const k=2/(p+1),o=[];let e=a[0];o.push(e);for(let i=1;i<a.length;i++){e=a[i]*k+e*(1-k);o.push(e);}return o;}
+function pfStoch(k,p=8){if(k.length<p)return null;const x=k.slice(-p),hh=Math.max(...x.map(r=>r.h)),ll=Math.min(...x.map(r=>r.l)),c=x.at(-1).c;return hh===ll?50:100*(c-ll)/(hh-ll);}
+async function pfKlines(symbol,tf,limit){
+ const raw=await binanceJSON(`/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${tf}&limit=${limit}`);
+ return raw.map(x=>({o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}));
+}
+async function pfTriple(symbol){
+ try{
+  const pair=symbol.toUpperCase()+'USDT';
+  const [d,h,m5]=await Promise.all([pfKlines(pair,'1d',40),pfKlines(pair,'1h',60),pfKlines(pair,'5m',60)]);
+  const dc=d.map(x=>x.c),ma=pfSma(dc,21),map=pfSma(dc.slice(0,-3),21),trend=!!(ma&&map&&dc.at(-1)>ma&&ma>map);
+  const st=pfStoch(h,8),moment=st!=null&&st<20;
+  const c5=m5.map(x=>x.c),e9=pfEma(c5,9),e21=pfEma(c5,21),n=c5.length-1,p=n-1,trigger=n>1&&e9[p]<=e21[p]&&e9[n]>e21[n];
+  const score=(trend?40:0)+(moment?30:0)+(trigger?30:0);
+  const state=score===100?'✅ COMPLETO':trend&&moment?'🟡 PREPARAR':trend?'🔵 AGUARDAR CORREÇÃO':'⚪ FORA DO FUNIL';
+  return {score,state,trend,moment,trigger,stoch:st};
+ }catch(e){return {score:0,state:'⚪ SEM BINANCE',error:String(e?.message||e)}}
+}
+async function enrichTriple(list){
+ tripleMap.clear();
+ const targets=list.filter(x=>!['usdt','usdc'].includes((x.symbol||'').toLowerCase())).slice(0,20);
+ let idx=0;
+ async function worker(){while(idx<targets.length){const c=targets[idx++];tripleMap.set(c.symbol,await pfTriple(c.symbol));}}
+ await Promise.all(Array.from({length:3},worker));
+}
+
+function confirmation(c,side='long'){
+ let n=0, reasons=[];
+ if(side==='short'){
+   if(c.p1<0){n++;reasons.push('1h negativo')}
+   if(c.p24<0){n++;reasons.push('24h negativo')}
+   if(c.p7<0){n++;reasons.push('7d negativo')}
+   if(c.rel<0){n++;reasons.push('mais fraco que BTC')}
+   if(c.vr>3){n++;reasons.push('atividade Vol/Cap relevante')}
+ }else{
+   if(c.p1>0){n++;reasons.push('1h positivo')}
+   if(c.p24>0){n++;reasons.push('24h positivo')}
+   if(c.p7>0){n++;reasons.push('7d positivo')}
+   if(c.rel>0){n++;reasons.push('mais forte que BTC')}
+   if(c.vr>3){n++;reasons.push('atividade Vol/Cap relevante')}
+ }
+ let label=n>=5?'🟢 5/5':n>=4?'🟢 4/5':n>=3?'🟡 3/5':n>=2?'🟠 2/5':'🔴 '+n+'/5';
+ return {n,label,reasons};
+}
+
+
+// V10.1 — transparência do filtro: mostra quem está mais perto do gatilho LONG.
+function allRadarCandidates(){
+ const btc=data.find(x=>x.symbol==='btc')||data[0];
+ if(!btc)return [];
+ return data.filter(x=>!['usdt','usdc'].includes(x.symbol)).map(c=>{
+   const z={...c,...metrics(c,btc)};
+   return {...z,confirmLong:confirmation(z,'long'),confirmShort:confirmation(z,'short')};
+ });
+}
+
+function longTriggerProgress(c){
+ const checks=[
+   [c.rel>0,'força vs BTC > 0'],
+   [c.vr>3,'Vol/Cap > 3%'],
+   [c.p24>-2,'24h > -2%'],
+   [c.p24<8,'24h < 8%'],
+   [c.technical>=55,'Técnico ≥ 55'],
+   [c.flow>=55,'Atividade ≥ 55']
+ ];
+ const passed=checks.filter(x=>x[0]).length;
+ const missing=checks.filter(x=>!x[0]).map(x=>x[1]);
+ // desempate: mais confirmação, força vs BTC e score final.
+ const score=passed*100 + (c.confirmLong?.n||0)*10 + clamp(c.rel,-20,20) + c.final/100;
+ return {passed,total:checks.length,missing,score};
+}
+
+function nearestLongCandidates(limit=5){
+ return allRadarCandidates().map(c=>({c,p:longTriggerProgress(c)}))
+   .sort((a,b)=>b.p.score-a.p.score).slice(0,limit);
+}
+
+function smartReportControls(){
+ let box=document.getElementById('smartReportControls');
+ if(box)box.remove();
+ box=document.createElement('div'); box.id='smartReportControls'; box.className='top noPrint'; box.style.margin='10px 0';
+ box.innerHTML='<button id="copySmartReport">📋 Copiar relatório</button> <button id="speakSmartReport">🔊 Ouvir</button> <button id="stopSmartReport">⏹️ Parar áudio</button>';
+ $('report').parentNode.insertBefore(box,$('report'));
+ $('copySmartReport').onclick=async()=>{try{await navigator.clipboard.writeText($('report').textContent);alert('Relatório copiado.')}catch(_){alert('Não foi possível copiar automaticamente neste navegador.')}};
+ $('speakSmartReport').onclick=()=>{if(!('speechSynthesis' in window)){alert('Síntese de voz não disponível.');return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance($('report').textContent);u.lang='pt-BR';u.rate=.95;speechSynthesis.speak(u)};
+ $('stopSmartReport').onclick=()=>{if('speechSynthesis' in window)speechSynthesis.cancel()};
+}
+
+function showSmartReport(txt){
+ $('report').textContent=txt;
+ $('reportCard').classList.add('open');
+ smartReportControls();
+ $('reportCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function makeGPTSmartReport(){
+ const now=new Date().toLocaleString('pt-BR');
+ const btc=data.find(x=>x.symbol==='btc')||data[0];
+ if(!btc){alert('Atualize o Radar primeiro.');return;}
+ const universe=allRadarCandidates();
+ const passed=universe.filter(c=>c.early).sort((a,b)=>b.final-a.final);
+ const near=nearestLongCandidates(10);
+ let txt=`RELATÓRIO INTELIGENTE PARA CHATGPT — RADAR EGI PRÓXIMAS FORTES V10.5
+`;
+ txt+=`Gerado em: ${now}
+Timeframe técnico selecionado: ${($('tf')?.value||'4h').toUpperCase()}
+Universo analisado: ${universe.length} ativos
+BTC 24h: ${pct(btc.price_change_percentage_24h_in_currency)}
+
+`;
+ txt+=`OBJETIVO
+Encontrar moedas com força relativa superior ao BTC e identificar possíveis inícios de movimento LONG, sem confundir força com entrada automática.
+
+`;
+ txt+=`REGRA DO FILTRO “POSSÍVEL INÍCIO LONG”
+Força vs BTC > 0 | Vol/Cap > 3% | 24h entre -2% e +8% | Técnico ≥ 55 | Atividade ≥ 55.
+`;
+ txt+=`Resultado atual: ${passed.length} ativo(s) passaram por todos os critérios.
+
+`;
+ if(passed.length){
+   txt+=`ATIVOS QUE PASSARAM
+`;
+   passed.slice(0,10).forEach((c,i)=>{txt+=`${i+1}. ${c.symbol.toUpperCase()} — Final ${c.final}/100 | Técnico ${c.technical}/100 | Atividade ${c.flow}/100 | Confirmação LONG ${c.confirmLong.n}/5 | 1h ${pct(c.p1)} | 24h ${pct(c.p24)} | 7d ${pct(c.p7)} | vs BTC ${pct(c.rel)} | Vol/Cap ${pct(c.vr)}
+`;});
+   txt+=`\n`;
+ }else{
+   txt+=`NENHUM ATIVO PASSOU 100% DO FILTRO. Isso não significa ausência de força no mercado; abaixo estão os mais próximos do gatilho.
+
+`;
+ }
+ txt+=`MAIS PRÓXIMOS DO GATILHO LONG
+`;
+ near.forEach((x,i)=>{const c=x.c,p=x.p;txt+=`${i+1}. ${c.symbol.toUpperCase()} — ${p.passed}/${p.total} critérios | Final ${c.final}/100 | Técnico ${c.technical} | Atividade ${c.flow} | Confirmação ${c.confirmLong.n}/5 | 1h ${pct(c.p1)} | 24h ${pct(c.p24)} | 7d ${pct(c.p7)} | vs BTC ${pct(c.rel)} | Vol/Cap ${pct(c.vr)}
+   Falta: ${p.missing.length?p.missing.join(' · '):'nada; passou no filtro'}
+`;});
+ txt+=`\nDADOS TÉCNICOS REAIS DO TIMEFRAME SELECIONADO — TOP 5 MAIS PRÓXIMOS\n`;
+ for(const x of near.slice(0,5)){
+   const c=x.c;
+   try{
+     const p=await technicalPlan(c);
+     const ex=executionQuality(p);
+     txt+=`${c.symbol.toUpperCase()} — Cenário ${p.side} | Preço ${money(p.price)} | RSI ${fmt(p.R)} | EMA14 ${money(p.e14)} | EMA200 ${money(p.e200)} | MACD hist ${fmt(p.M.hist)} | Vol/Média20 ${fmt(p.vr)}x | Suporte ${money(p.support)} | Resistência ${money(p.resistance)} | Execução ${ex.label}
+`;
+   }catch(e){txt+=`${c.symbol.toUpperCase()} — dados técnicos Binance indisponíveis: ${e.message}
+`;}
+ }
+ txt+=`
+TAREFA PARA O CHATGPT
+Analise somente os dados acima e responda primeiro com um QUADRO EXECUTIVO. Separe: 🟢 possível início LONG confirmado pelo filtro; 🟡 próximo do gatilho; ⚪ apenas acompanhar; 🔴 perdeu força. Para cada ativo relevante, explique o que já confirmou e o que ainda falta. Dê atenção especial à força vs BTC, atividade, confirmação 1h/24h/7d, RSI, MACD, EMA14/EMA200, volume e suporte/resistência. Não invente dados ausentes e não trate o score como probabilidade garantida. Ao final, indique quais ativos merecem conferência visual no gráfico, sem executar operação.
+
+`;
+ txt+=`AVISO: relatório educacional de análise técnica e risco; não é ordem automática de compra ou venda.`;
+ showSmartReport(txt);
+}
+
+function makeMySmartReport(){
+ const now=new Date().toLocaleString('pt-BR');
+ const btc=data.find(x=>x.symbol==='btc')||data[0];
+ if(!btc){alert('Atualize o Radar primeiro.');return;}
+ const universe=allRadarCandidates();
+ const passed=universe.filter(c=>c.early).sort((a,b)=>b.final-a.final);
+ const strongest=[...universe].sort((a,b)=>b.rel-a.rel)[0];
+ const activity=[...universe].sort((a,b)=>b.vr-a.vr)[0];
+ const near=nearestLongCandidates(5);
+ let txt=`RELATÓRIO INTELIGENTE — PARA MIM
+Radar Egi — Próximas Fortes V10.5
+${now}
+
+`;
+ txt+=`📌 RESUMO RÁPIDO
+BTC 24h: ${pct(btc.price_change_percentage_24h_in_currency)}
+`;
+ txt+=`Mais forte vs BTC: ${strongest?strongest.symbol.toUpperCase()+' '+pct(strongest.rel):'—'}
+`;
+ txt+=`Maior atividade Vol/Cap: ${activity?activity.symbol.toUpperCase()+' '+pct(activity.vr):'—'}
+`;
+ txt+=`Possíveis inícios LONG que passaram em tudo: ${passed.length}
+
+`;
+ if(passed.length){
+   txt+=`🟢 PASSARAM NO FILTRO
+`;
+   passed.slice(0,5).forEach((c,i)=>{txt+=`${i+1}. ${c.symbol.toUpperCase()} — Final ${c.final}/100 | Confirmação ${c.confirmLong.n}/5 | vs BTC ${pct(c.rel)} | 24h ${pct(c.p24)}
+`;});
+ }else{
+   txt+=`🟡 NENHUM LONG COMPLETO AGORA
+O Radar não ficou “sem resposta”: abaixo estão as moedas mais próximas do gatilho e o que falta em cada uma.
+`;
+ }
+ txt+=`
+🎯 MAIS PRÓXIMAS DO GATILHO
+`;
+ near.forEach((x,i)=>{const c=x.c,p=x.p;txt+=`${i+1}. ${c.symbol.toUpperCase()} — ${p.passed}/${p.total} critérios | Final ${c.final}/100 | vs BTC ${pct(c.rel)} | Confirmação ${c.confirmLong.n}/5
+   Falta: ${p.missing.length?p.missing.join(' · '):'nenhum critério'}
+`;});
+ txt+=`
+🧭 COMO USAR
+4H identifica a oportunidade → 1H confirma → 15m refina a entrada. Se ninguém passou 100%, acompanhar as mais próximas é mais útil do que forçar uma entrada. Antes de qualquer operação, conferir gráfico, suporte/resistência, volume e qualidade da entrada.
+
+`;
+ txt+=`Este relatório resume o que o próprio Radar mediu; não é ordem de compra.`;
+ showSmartReport(txt);
+}
+
+function render(){
+ const btc=data.find(x=>x.symbol==='btc')||data[0]; if(!btc)return;
+ let a=data.filter(x=>!['usdt','usdc'].includes(x.symbol)).map(c=>{let z={...c,...metrics(c,btc),triple:tripleMap.get(c.symbol)||{score:0,state:'⚪ NÃO AVALIADO'}};z.qualityFinal=Math.round(z.final*.85+z.triple.score*.15);return {...z,confirm:confirmation(z,mode==='short'?'short':'long')}});
+ if(mode==='pre') a=a.filter(c=>c.early);
+ if(mode==='short') a=a.filter(c=>c.earlyShort);
+ a.sort((x,y)=>mode==='short'?x.qualityFinal-y.qualityFinal:y.qualityFinal-x.qualityFinal); ranked=a;
+ const ml=$('modeLabel');
+ if(ml) ml.textContent = mode==='pre'
+   ? `🚀 Possível início LONG — ${a.length} ativo(s) encontrado(s)`
+   : mode==='short' ? `🔻 Possível início SHORT — ${a.length} ativo(s) encontrado(s)`
+   : `📊 Ranking geral — ${a.length} ativo(s)`;
+
+ const side=mode==='short'?'SHORT':'LONG';
+ const top=a[0];
+ const summary=$('confirmSummary');
+ if(summary){
+   if(!top){
+     if(mode==='pre'){
+       const near=nearestLongCandidates(5);
+       summary.innerHTML=`<b>🟡 Nenhum ativo passou 100% do filtro LONG agora.</b><br><span class="muted">Isso pode ser um resultado válido. Para não deixar o Radar “cego”, veja os mais próximos do gatilho:</span><br><br>`+
+         near.map((x,i)=>{const c=x.c,p=x.p;return `${i+1}. <b>${c.symbol.toUpperCase()}</b> — ${p.passed}/${p.total} critérios · Final ${c.final}/100 · Qualidade ${c.qualityFinal}/100 · Triple ${c.triple?.state||'—'} · vs BTC ${pct(c.rel)} · Falta: ${p.missing.join(' · ')||'nenhum critério'}`}).join('<br>');
+     }else summary.innerHTML='Nenhum ativo passou pelos filtros atuais.';
+   } else {
+     const action=top.confirm.n>=4?'Condições favoráveis para estudo':top.confirm.n===3?'Aguardar mais confirmação':'Sem confirmação suficiente';
+     summary.innerHTML=`<b>${side} — ${top.symbol.toUpperCase()}</b> · Confirmação <b>${top.confirm.label}</b> · Final ${top.final}/100 · Técnico ${top.technical}/100 · Atividade ${top.flow}/100 · vs BTC ${pct(top.rel)}<br><b>${action}</b> · ${top.confirm.reasons.join(' · ')} <button onclick="openTV('${top.symbol}')">📈 TradingView</button><br><span class="muted">Regra: 4H identifica → 1H confirma → 15m refina. Alerta educacional, não ordem automática.</span>`;
+   }
+ }
+ const at=$('activityTitle'); if(at) at.textContent=mode==='short'?'📊 Onde há maior atividade com fraqueza relativa?':'📊 Onde há maior atividade de negociação?';
+
+ $('btc').textContent=pct(btc.price_change_percentage_24h_in_currency);
+ $('count').textContent=a.length+' ativos';
+ const relPick = mode==='short' ? [...a].sort((x,y)=>x.rel-y.rel)[0] : [...a].sort((x,y)=>y.rel-x.rel)[0];
+ $('strongLabel').textContent = mode==='short' ? 'Mais fraco vs BTC' : 'Mais forte vs BTC';
+ $('strong').textContent=relPick?relPick.symbol.toUpperCase()+' '+pct(relPick.rel):'—';
+ const validFlow=a.filter(x=>Number.isFinite(x.vr) && x.vr>=0 && x.vr<=100);
+ const mv=[...validFlow].sort((x,y)=>y.vr-x.vr)[0]; $('vol').textContent=mv?mv.symbol.toUpperCase()+' '+pct(mv.vr):'—';
+ const flowRows=(a.length?a.slice(0,3):(mode==='pre'?nearestLongCandidates(3).map(x=>x.c):[]));
+ $('flow').innerHTML=flowRows.map((c,i)=>`${i+1}. <b>${c.symbol.toUpperCase()}</b> — Final ${c.final}/100 · Técnico ${c.technical} · Atividade ${c.flow}<br><span class="muted">${why(c)}${mode==='pre'&&!c.early?' · próximo do gatilho':''}</span>`).join('<br><br>')||'Nenhuma candidata passou pelos filtros.';
+
+ $('rows').innerHTML=a.map((c,i)=>{
+   let [label,cc]=cls(c.final);
+   return `<tr>
+   <td><button onclick="showDetail(${i})" style="padding:5px 8px;text-align:left"><b>${i+1}. ${c.symbol.toUpperCase()}</b><br><span class="muted">${c.name}</span></button></td>
+   <td><b>${c.final}</b><div class="bar"><div class="fill" style="width:${c.final}%"></div></div></td>
+   <td>${c.technical}</td><td>${c.flow}</td><td><b>${c.confirm.label}</b></td><td class="${cc}">${label}${c.early?'<br>🚀 LONG?':''}${c.earlyShort?'<br>🔻 SHORT?':''}</td>
+   <td>$${c.current_price?.toLocaleString('en-US',{maximumFractionDigits:6})??'—'}</td>
+   <td>${pct(c.p1)}</td><td>${pct(c.p24)}</td><td>${pct(c.p7)}</td><td>${pct(c.rel)}</td><td>${pct(c.vr)}</td>
+   <td class="hideM"><button onclick="showDetail(${i})">ℹ️ Por quê?</button> <button onclick="openTV('${c.symbol}')">📈 TradingView</button></td></tr>`;
+ }).join('');
+}
+
+
+
+function getWatch(){try{return JSON.parse(localStorage.getItem('radarEgiWatchV6')||'[]')}catch(_){return []}}
+function addWatch(c){
+ let a=getWatch(); if(!a.some(x=>x.symbol===c.symbol))a.push({symbol:c.symbol,name:c.name,added:new Date().toISOString()});
+ localStorage.setItem('radarEgiWatchV6',JSON.stringify(a)); alert(c.symbol.toUpperCase()+' adicionado à observação.');
+}
+function removeWatch(symbol){
+ const w=getWatch().filter(x=>x.symbol!==symbol);
+ localStorage.setItem('radarEgiWatchV6',JSON.stringify(w));
+ showWatch();
+}
+
+async function showWatch(){
+ const w=getWatch();
+ $('reportCard').classList.add('open');
+ if(!w.length){
+   $('report').innerHTML='<b>LISTA DE OBSERVAÇÃO — RADAR EGI V8</b><br><br>Lista de observação vazia.<br><br>Abra a análise de uma moeda e toque em 👁️ Acompanhar.';
+   $('reportCard').scrollIntoView({behavior:'smooth'}); return;
+ }
+ $('report').innerHTML='<b>LISTA DE OBSERVAÇÃO — RADAR EGI V8</b><br><br>Atualizando dados técnicos...';
+ let rows=[];
+ for(let i=0;i<w.length;i++){
+   const c=w[i];
+   try{
+     const p=await technicalPlan(c);
+     const mtf=await multiTF(c);
+     rows.push(`<div style="padding:12px 0;border-bottom:1px solid #35517a">
+       <b>${c.name||c.symbol.toUpperCase()} (${c.symbol.toUpperCase()})</b><br>
+       Preço: ${money(p.price)} · ${p.tf.toUpperCase()} ${p.side}<br>
+       Convicção: ${mtf.conviction}/100 · Alinhamento: ${mtf.direction} ${mtf.aligned}/3<br>
+       <button onclick="removeWatch('${c.symbol}')">❌ Remover</button>
+     </div>`);
+   }catch(e){
+     rows.push(`<div style="padding:12px 0;border-bottom:1px solid #35517a"><b>${c.name||c.symbol.toUpperCase()} (${c.symbol.toUpperCase()})</b><br>Dados técnicos indisponíveis agora.<br><button onclick="removeWatch('${c.symbol}')">❌ Remover</button></div>`);
+   }
+ }
+ $('report').innerHTML='<b>LISTA DE OBSERVAÇÃO — RADAR EGI V8</b><br><br>'+rows.join('');
+ $('reportCard').scrollIntoView({behavior:'smooth'});
+}
+
+
+
+const GUIDE_TEXT=`RADAR EGI — PRÓXIMAS FORTES V7.2
+FUNCIONALIDADES E GUIA DE ESTUDO
+
+OBJETIVO
+O Radar Egi é uma ferramenta educacional de análise técnica e risco. Os sinais e cenários apresentados não constituem recomendação de investimento.
+
+1. RADAR DE OPORTUNIDADES
+Analisa o universo selecionado de criptomoedas e combina força relativa, momentum, volume, liquidez e dados técnicos para destacar ativos que merecem observação.
+
+2. DADOS TÉCNICOS REAIS — BINANCE
+Para ativos disponíveis em par USDT, utiliza candles da Binance para calcular:
+- RSI(14)
+- MACD(12,26,9)
+- EMA14
+- EMA200
+- ATR(14)
+- Volume atual em relação à média de 20 períodos
+- Suporte e resistência recentes
+
+3. TIMEFRAMES
+Permite análise em 1H, 4H e 1D.
+
+4. CENÁRIO TÉCNICO
+Classifica o timeframe como LONG, SHORT ou AGUARDAR a partir da combinação dos indicadores. LONG ou SHORT descreve o cenário técnico; não significa que o preço atual seja necessariamente uma boa entrada.
+
+5. ALINHAMENTO MULTI-TIMEFRAME
+Compara 1H + 4H + 1D e mostra alinhamento como LONG 2/3, LONG 3/3, SHORT 2/3, SHORT 3/3 ou cenário misto.
+A Convicção 0–100 mede a força do alinhamento do modelo; não é probabilidade garantida de acerto.
+
+6. POTENCIAL E RISCO
+O Radar apresenta Potencial, Grau de Risco e Potencial Ajustado ao Risco. Esses valores servem para comparação entre cenários e não representam previsão garantida.
+
+7. PLANO TÉCNICO
+Quando existem dados suficientes, mostra:
+- faixa de entrada
+- stop técnico
+- Alvo 1
+- Alvo 2
+- Alvo 3
+- relação risco/retorno de referência
+Os níveis são calculados a partir da estrutura técnica e ATR do timeframe.
+
+8. QUALIDADE DA ENTRADA — NOVO NA V7.1/V7.2
+O Radar separa DIREÇÃO DA TENDÊNCIA de MOMENTO DE EXECUÇÃO.
+Um ativo pode estar LONG e, ao mesmo tempo, não oferecer um preço de entrada favorável.
+
+Classificações:
+- ENTRADA FAVORÁVEL: preço próximo da faixa técnica e sem afastamento excessivo da EMA14 em unidades de ATR.
+- ESPERAR PULLBACK: tendência pode continuar favorável, mas o preço já se afastou da estrutura; uma aproximação da EMA14/faixa técnica pode melhorar a relação risco/retorno.
+- NÃO PERSEGUIR PREÇO: preço excessivamente afastado da região técnica em relação ao ATR. O Radar sugere aguardar pullback, reteste ou nova confirmação.
+- AGUARDAR CONFIRMAÇÃO: o timeframe selecionado ainda não confirmou LONG ou SHORT.
+
+A distância é normalizada pelo ATR para que a avaliação se adapte à volatilidade de cada moeda e timeframe.
+
+9. HISTÓRICO DE SINAIS
+O botão Registrar sinal salva localmente:
+- data e hora
+- ativo
+- timeframe
+- LONG/SHORT
+- preço detectado
+- faixa de entrada
+- stop
+- três alvos
+- potencial
+- risco
+- convicção
+- alinhamento 1H/4H/1D
+- qualidade da entrada
+Os dados ficam no navegador do aparelho. Limpar cache/dados do site pode apagar o histórico.
+
+10. ATUALIZAÇÃO DOS RESULTADOS
+O Radar consulta o preço atual e classifica o registro como Em andamento, Alvo 1, Alvo 2, Alvo 3 ou Stop.
+Importante: a consulta apenas pelo preço atual não reconstrói perfeitamente a ordem intraperíodo em que stop e alvos foram tocados. Uma evolução futura poderá verificar candles históricos desde o registro.
+
+11. DESEMPENHO DO RADAR
+Mostra quantidade de sinais, sinais em andamento, sinais com alvo, stops, taxa simples de sinais com alvo, desempenho por timeframe e análise dos alinhamentos 3/3.
+O objetivo é medir o próprio método com dados históricos, não prometer resultados futuros.
+
+12. OBSERVAÇÃO
+Permite guardar ativos em uma lista de acompanhamento local.
+
+13. TRADINGVIEW
+Na tabela do Radar existe acesso direto ao TradingView em cada ativo. Ao tocar no nome, abre a análise detalhada, onde também existe o botão 📈 Abrir TradingView. Use o gráfico para confirmação visual antes de qualquer decisão.
+
+14. RELATÓRIO E PDF
+É possível gerar relatório detalhado da moeda e usar a função de impressão do navegador para salvar/imprimir em PDF.
+
+15. ÁUDIO — NOVO NA V7.2
+O app possui opção para ouvir este guia de funcionalidades usando a síntese de voz do navegador.
+Controles:
+- Ouvir funcionalidades
+- Pausar/Continuar
+- Parar áudio
+O áudio é gerado no próprio aparelho/navegador e pode depender do suporte de voz disponível.
+
+EXEMPLO DE INTERPRETAÇÃO
+Se o Radar mostrar:
+4H LONG
+1D LONG
+1H AGUARDAR
+Alinhamento LONG 2/3
+Convicção 71/100
+e Qualidade da entrada = ESPERAR PULLBACK,
+a leitura correta é: a estrutura predominante favorece alta, porém o preço de execução ainda não está na condição preferida pelo modelo. Tendência e entrada são decisões técnicas separadas.
+
+REGRA DE DISCIPLINA DO RADAR
+Primeiro identificar a direção.
+Depois verificar o alinhamento.
+Depois avaliar potencial e risco.
+Depois verificar a qualidade da entrada.
+Somente então registrar o cenário para acompanhamento e estudo.
+
+AVISO
+Ferramenta educacional de análise técnica e risco. Os sinais, níveis, classificações e cenários apresentados não constituem recomendação de investimento.
+`;
+let egiSpeech=null, egiPaused=false;
+function stopGuideAudio(){
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  egiSpeech=null; egiPaused=false;
+}
+function playGuideAudio(){
+  if(!('speechSynthesis' in window)){alert('Síntese de voz não disponível neste navegador.');return;}
+  speechSynthesis.cancel();
+  egiSpeech=new SpeechSynthesisUtterance(GUIDE_TEXT);
+  egiSpeech.lang='pt-BR'; egiSpeech.rate=0.95;
+  egiSpeech.onend=()=>{egiSpeech=null;egiPaused=false;};
+  speechSynthesis.speak(egiSpeech);
+}
+function pauseResumeGuide(){
+  if(!('speechSynthesis' in window))return;
+  if(speechSynthesis.speaking && !speechSynthesis.paused){speechSynthesis.pause();egiPaused=true;}
+  else if(speechSynthesis.paused){speechSynthesis.resume();egiPaused=false;}
+}
+function showGuide(){
+  $('reportCard').classList.add('open');
+  $('report').textContent=GUIDE_TEXT;
+  let old=document.getElementById('audioGuideControls'); if(old)old.remove();
+  const d=document.createElement('div'); d.id='audioGuideControls'; d.style.margin='12px 0';
+  d.innerHTML='<button onclick="playGuideAudio()">🔊 Ouvir funcionalidades</button> <button onclick="pauseResumeGuide()">⏯️ Pausar/Continuar</button> <button onclick="stopGuideAudio()">⏹️ Parar áudio</button>';
+  $('report').parentNode.insertBefore(d,$('report'));
+  $('reportCard').scrollIntoView({behavior:'smooth'});
+}
+
+const HISTKEY='radarEgiHistoryV7';
+
+function ensureViewer(){
+ let v=document.getElementById('egiViewer');
+ if(!v){
+   v=document.createElement('div'); v.id='egiViewer';
+   v.style.cssText='margin:18px 0;padding:18px;border:1px solid #35517a;border-radius:18px;background:#0c1a2d;color:#eef5ff;white-space:pre-wrap';
+   const controls=document.querySelector('.card')||document.body;
+   controls.parentNode.insertBefore(v,controls.nextSibling);
+ }
+ v.style.display='block'; return v;
+}
+
+function getHist(){try{return JSON.parse(localStorage.getItem(HISTKEY)||'[]')}catch(_){return []}}
+function setHist(a){localStorage.setItem(HISTKEY,JSON.stringify(a))}
+function saveSignal(c,p,mtf,exec=null){
+ if(p.side==='AGUARDAR'){alert('Cenário AGUARDAR não é registrado como sinal.');return}
+ const a=getHist();
+ a.unshift({
+   id:Date.now(),created:new Date().toISOString(),symbol:c.symbol,name:c.name,tf:p.tf,side:p.side,
+   price:p.price,entry1:p.entry1,entry2:p.entry2,stop:p.stop,t1:p.t1,t2:p.t2,t3:p.t3,
+   potential:p.potential,risk:p.riskScore,adjusted:p.adjusted,conviction:mtf?mtf.conviction:null,
+   alignment:mtf?`${mtf.direction} ${mtf.aligned}/3`:'—',execution:exec?exec.label:'—',status:'EM ANDAMENTO',last:p.price,updated:new Date().toISOString()
+ });
+ setHist(a); alert('Sinal salvo no Histórico do Radar.');
+}
+function hitStatus(x,price){
+ if(x.side==='LONG'){
+   if(price<=x.stop)return 'STOP';
+   if(price>=x.t3)return 'ALVO 3';
+   if(price>=x.t2)return 'ALVO 2';
+   if(price>=x.t1)return 'ALVO 1';
+ }else{
+   if(price>=x.stop)return 'STOP';
+   if(price<=x.t3)return 'ALVO 3';
+   if(price<=x.t2)return 'ALVO 2';
+   if(price<=x.t1)return 'ALVO 1';
+ }
+ return 'EM ANDAMENTO';
+}
+async function updateHistory(){
+ const a=getHist();
+ if(!a.length){alert('Histórico vazio.');return}
+ for(const x of a){
+   if(x.status==='STOP'||x.status==='ALVO 3')continue;
+   try{
+     const q=await binanceJSON(`/api/v3/ticker/price?symbol=${encodeURIComponent(x.symbol.toUpperCase()+'USDT')}`);
+     const price=+q.price; if(Number.isFinite(price)){x.last=price;const ns=hitStatus(x,price);
+       const rank={'EM ANDAMENTO':0,'ALVO 1':1,'ALVO 2':2,'ALVO 3':3,'STOP':4};
+       if(ns==='STOP'||rank[ns]>rank[x.status])x.status=ns;
+       x.updated=new Date().toISOString();
+     }
+   }catch(_){}
+ }
+ setHist(a); showHistory();
+}
+
+
+async function topPotentialReport(){
+ const v=ensureViewer();
+ if(!ranked || !ranked.length){
+   v.textContent='📑 RELATÓRIO — MAIORES POTENCIAIS E RISCO/RETORNO\n\nPrimeiro toque em 🔎 Atualizar Radar.';
+   v.scrollIntoView({behavior:'smooth'}); return;
+ }
+ v.textContent='📑 RELATÓRIO — MAIORES POTENCIAIS E RISCO/RETORNO\n\nCalculando dados técnicos reais...';
+ v.scrollIntoView({behavior:'smooth',block:'start'});
+ const rows=[];
+ for(const c of ranked.slice(0,Math.min(15,ranked.length))){
+   try{
+     const p=await technicalPlan(c);
+     const mtf=await multiTF(c);
+     const risk=Math.abs(p.price-p.stop);
+     const rr1=risk>0?Math.abs(p.t1-p.price)/risk:null;
+     const rr2=risk>0?Math.abs(p.t2-p.price)/risk:null;
+     const rr3=risk>0?Math.abs(p.t3-p.price)/risk:null;
+     rows.push({c,p,mtf,rr1,rr2,rr3});
+   }catch(e){}
+ }
+ rows.sort((a,b)=>(b.p.adjusted||0)-(a.p.adjusted||0));
+ let txt='📑 RADAR EGI V8 — MAIORES POTENCIAIS E RISCO/RETORNO\n';
+ txt+=`Gerado: ${new Date().toLocaleString('pt-BR')}\nTimeframe principal: ${$('tf')?$('tf').value.toUpperCase():'—'}\n\n`;
+ rows.slice(0,10).forEach((r,i)=>{
+   const {c,p,mtf}=r, ex=executionQuality(p);
+   txt+=`${i+1}. ${c.name||c.symbol.toUpperCase()} (${c.symbol.toUpperCase()})\n`;
+   txt+=`Cenário: ${p.side} | Alinhamento: ${mtf.direction} ${mtf.aligned}/3 | Convicção: ${mtf.conviction}/100\n`;
+   txt+=`Potencial: ${p.potential}/100 | Risco: ${p.riskScore}/100 | Ajustado: ${p.adjusted}/100\n`;
+   txt+=`Execução: ${ex.label}\nPreço: ${money(p.price)}\n`;
+   if(p.side!=='AGUARDAR'){
+     txt+=`Entrada: ${money(Math.min(p.entry1,p.entry2))}–${money(Math.max(p.entry1,p.entry2))} | Stop: ${money(p.stop)}\n`;
+     txt+=`A1: ${money(p.t1)} (R/R ${r.rr1?fmt(r.rr1):'—'}:1) | A2: ${money(p.t2)} (R/R ${r.rr2?fmt(r.rr2):'—'}:1) | A3: ${money(p.t3)} (R/R ${r.rr3?fmt(r.rr3):'—'}:1)\n`;
+   }else txt+='Entrada/Stop/Alvos: aguardar confirmação técnica.\n';
+   txt+='\n';
+ });
+ txt+='LEITURA\nO ranking prioriza Potencial Ajustado ao Risco. R/R compara a distância do preço ao alvo com a distância do preço ao stop. Cenários AGUARDAR não recebem R/R operacional.\n\n';
+ txt+='AVISO\nFerramenta educacional de análise técnica e risco. Não constitui recomendação de investimento.';
+ v.textContent=txt;
+}
+
+async function showPotentialRisk(){
+ const v=ensureViewer();
+ if(!ranked || !ranked.length){
+   v.textContent='🏆 POTENCIAL × RISCO — RADAR EGI V8\n\nPrimeiro toque em 🔎 Atualizar Radar para carregar os ativos.';
+   v.scrollIntoView({behavior:'smooth',block:'start'}); return;
+ }
+ v.textContent='🏆 POTENCIAL × RISCO — RADAR EGI V8\n\nCalculando indicadores reais dos principais ativos...';
+ v.scrollIntoView({behavior:'smooth',block:'start'});
+ const base=ranked.slice(0,Math.min(10,ranked.length));
+ const rows=[];
+ for(const c of base){
+   try{
+     const p=await technicalPlan(c);
+     rows.push({c,p});
+   }catch(e){}
+ }
+ if(!rows.length){
+   v.textContent='🏆 POTENCIAL × RISCO — RADAR EGI V8\n\nNão foi possível obter dados técnicos da Binance agora. Tente Atualizar Radar novamente.';
+   return;
+ }
+ rows.sort((a,b)=>(b.p.adjusted||0)-(a.p.adjusted||0));
+ let txt='🏆 POTENCIAL × RISCO — RADAR EGI V8\n\n';
+ rows.forEach((r,i)=>{
+   const p=r.p,c=r.c;
+   txt+=`${i+1}. ${c.name||c.symbol.toUpperCase()} (${c.symbol.toUpperCase()})\n`;
+   txt+=`Potencial: ${p.potential}/100 | Risco: ${p.riskScore}/100 | Ajustado: ${p.adjusted}/100\n`;
+   txt+=`Cenário ${String(p.side).toUpperCase()} · ${String(p.tf).toUpperCase()} · Preço ${money(p.price)}\n\n`;
+ });
+ txt+='Quanto maior o Potencial Ajustado, melhor a relação comparativa entre potencial técnico e risco dentro do modelo. Não é previsão garantida.';
+ v.textContent=txt;
+}
+
+function showHistory(){
+ const a=getHist(), v=ensureViewer();
+ let txt='🧾 HISTÓRICO DO RADAR EGI V8\n\n';
+ if(!a.length){
+   txt+='Nenhum sinal registrado ainda.\n\nPara criar o primeiro registro: abra uma moeda → análise completa → 💾 Registrar sinal.';
+ }else{
+   a.forEach((x,i)=>{
+     txt+=`${i+1}. ${x.symbol.toUpperCase()} | ${String(x.tf).toUpperCase()} | ${x.side} | ${x.status}\n`;
+     txt+=`Detectado: ${new Date(x.created).toLocaleString('pt-BR')} | Preço ${money(x.price)} | Último ${money(x.last)}\n`;
+     txt+=`Entrada ${money(Math.min(x.entry1,x.entry2))}–${money(Math.max(x.entry1,x.entry2))} | Stop ${money(x.stop)} | A1 ${money(x.t1)} | A2 ${money(x.t2)} | A3 ${money(x.t3)}\n`;
+     txt+=`Potencial ${x.potential}/100 | Risco ${x.risk}/100 | Convicção ${x.conviction??'—'} | ${x.alignment} | Execução ${x.execution||'—'}\n\n`;
+   });
+ }
+ v.textContent=txt; v.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function performance(){
+ const a=getHist(), v=ensureViewer();
+ let txt='📊 DESEMPENHO DO RADAR EGI V8\n\n';
+ if(!a.length){
+   txt+='Ainda não há sinais registrados.\n\nO painel começará a calcular resultados depois que você registrar sinais pelo botão 💾 Registrar sinal.';
+   v.textContent=txt; v.scrollIntoView({behavior:'smooth',block:'start'}); return;
+ }
+ const closed=a.filter(x=>x.status!=='EM ANDAMENTO');
+ const wins=closed.filter(x=>String(x.status).startsWith('ALVO'));
+ const stops=closed.filter(x=>x.status==='STOP');
+ const rate=closed.length?wins.length/closed.length*100:0;
+ txt+=`Sinais registrados: ${a.length}\nEm andamento: ${a.length-closed.length}\nClassificados: ${closed.length}\nCom alvo atingido: ${wins.length}\nStops: ${stops.length}\nTaxa simples com alvo: ${fmt(rate)}%\n\n`;
+ for(const tf of ['1h','4h','1d']){
+   const z=closed.filter(x=>x.tf===tf), w=z.filter(x=>String(x.status).startsWith('ALVO')).length;
+   txt+=`${tf.toUpperCase()}: ${z.length?fmt(w/z.length*100)+'% ('+w+'/'+z.length+')':'sem sinais encerrados'}\n`;
+ }
+ txt+='\nEstatística educacional do histórico salvo; não representa previsão de resultados futuros.';
+ v.textContent=txt; v.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function openTV(symbol){
+ const pair=(symbol||'').toUpperCase()+'USDT';
+ window.open('https://www.tradingview.com/chart/?symbol=BINANCE%3A'+encodeURIComponent(pair),'_blank','noopener');
+}
+function singleAssetReport(c,p){
+ let txt=`RADAR EGI V8 — RELATÓRIO DO ATIVO\nData/hora: ${new Date().toLocaleString('pt-BR')}\n\n`;
+ txt+=`${c.name} (${c.symbol.toUpperCase()}) — ${p.symbol} — ${p.tf.toUpperCase()}\n`;
+ txt+=`Preço: ${money(p.price)}\nPotencial: ${p.potential}/100\nRisco: ${p.riskScore}/100 ${p.riskLabel}\nPotencial ajustado ao risco: ${p.adjusted}/100\nCenário: ${p.side}\n\n`;
+ txt+=`RSI(14): ${fmt(p.R)}\nATR(14): ${money(p.A)} (${fmt(p.atrPct)}%)\nEMA14: ${money(p.e14)}\nEMA200: ${money(p.e200)}\nMACD: ${fmt(p.M.line)} | Sinal: ${fmt(p.M.signal)} | Hist: ${fmt(p.M.hist)}\nVolume atual/média20: ${fmt(p.vr)}x\nSuporte: ${money(p.support)} | Resistência: ${money(p.resistance)}\n\n`;
+ txt+=`Faixa de entrada: ${p.side==='AGUARDAR'?'Aguardar confirmação':money(Math.min(p.entry1,p.entry2))+' a '+money(Math.max(p.entry1,p.entry2))}\nStop: ${money(p.stop)}\nAlvo 1: ${money(p.t1)}\nAlvo 2: ${money(p.t2)}\nAlvo 3: ${money(p.t3)}\nRisco/Retorno: ${p.rr||'—'}\n\n`;
+ txt+=`Justificativas: ${p.reasons.join(' · ')||'Sem alinhamento técnico suficiente.'}\n\n`;
+ txt+=`AVISO: ferramenta educacional de análise técnica e risco. Os sinais e cenários apresentados não constituem recomendação de investimento.`;
+ $('report').textContent=txt;$('reportCard').classList.add('open');$('reportCard').scrollIntoView({behavior:'smooth'});
+}
+
+async function showDetail(i){
+ const c=ranked[i]; if(!c)return;
+ let [label]=cls(c.final);
+ $('detail').classList.add('open');
+ $('detailBody').innerHTML=`<h3>${c.name} (${c.symbol.toUpperCase()})</h3><p>Consultando candles reais da Binance…</p>`;
+ $('detail').scrollIntoView({behavior:'smooth'});
+ try{
+   const p=await technicalPlan(c);
+   const exec=executionQuality(p);
+   let mtf=null; try{mtf=await multiTF(c)}catch(_){}
+   const action=p.side==='LONG'?'CENÁRIO LONG':p.side==='SHORT'?'CENÁRIO SHORT':'AGUARDAR CONFIRMAÇÃO';
+   $('detailBody').innerHTML=`
+   <div class="cols"><div><h3>${c.name} (${c.symbol.toUpperCase()})</h3>
+   <p><span class="badge">Radar ${c.final}/100</span><span class="badge">Potencial ${p.potential}/100</span><span class="badge">Risco ${p.riskScore}/100</span><span class="badge">Ajustado ${p.adjusted}/100</span>${mtf?`<span class="badge">Convicção ${mtf.conviction}/100</span>`:''}</p>
+   <p><b>Classe Radar:</b> ${label}<br><b>Risco:</b> ${p.riskLabel}<br><b>Leitura:</b> ${action}</p></div>
+   <div><p><b>Binance:</b> ${p.symbol} · ${p.tf.toUpperCase()}</p><p><b>Preço:</b> ${money(p.price)}<br><b>Suporte:</b> ${money(p.support)} · <b>Resistência:</b> ${money(p.resistance)}</p></div></div>
+   <hr style="border-color:#263a60"><h3>📊 Indicadores reais</h3>
+   <p><b>RSI(14):</b> ${fmt(p.R)} · <b>ATR(14):</b> ${money(p.A)} (${fmt(p.atrPct)}%)<br>
+   <b>EMA14:</b> ${money(p.e14)} · <b>EMA200:</b> ${money(p.e200)}<br>
+   <b>MACD:</b> ${fmt(p.M.line)} · <b>Sinal:</b> ${fmt(p.M.signal)} · <b>Hist:</b> ${fmt(p.M.hist)}<br>
+   <b>Volume atual/média20:</b> ${fmt(p.vr)}x</p>
+   <h3>🎯 Cenário técnico — ${p.tf.toUpperCase()}</h3>
+   <p class="signalStrong">${p.side}</p>
+   <p><b>Faixa de entrada:</b> ${p.side==='AGUARDAR'?'Aguardar confirmação':money(Math.min(p.entry1,p.entry2))+' a '+money(Math.max(p.entry1,p.entry2))}<br>
+   <b>Stop:</b> ${money(p.stop)}<br><b>Alvo 1:</b> ${money(p.t1)} · <b>Alvo 2:</b> ${money(p.t2)} · <b>Alvo 3:</b> ${money(p.t3)}<br>
+   <b>Risco/Retorno referência:</b> ${p.rr||'—'}</p>
+   <p><b>Justificativas:</b> ${p.reasons.join(' · ')||'Sem alinhamento técnico suficiente.'}</p>
+   ${mtf?`<hr style="border-color:#263a60"><hr>
+     <h3>🚦 Qualidade da entrada</h3>
+     <p><b style="font-size:1.15em">${exec.label}</b></p>
+     <p>${exec.note}</p>
+     <p class="muted">Distância da EMA14: ${Number.isFinite(exec.dEma)?fmt(exec.dEma)+' ATR':'—'} · Distância da faixa de entrada: ${Number.isFinite(exec.dZone)?fmt(exec.dZone)+' ATR':'—'}</p>
+     <p class="muted"><b>Importante:</b> tendência e execução são avaliações diferentes. Um cenário pode permanecer LONG e, ao mesmo tempo, indicar AGUARDAR uma entrada melhor.</p>
+     <hr>
+     <h3>🧭 Alinhamento 1H + 4H + 1D</h3>
+   <p>${mtf.plans.map(x=>`<span class="badge"><b>${x.tf.toUpperCase()}</b> ${x.side}</span>`).join(' ')}</p>
+   <p class="signalStrong">${mtf.direction} ${mtf.aligned}/3 · Convicção ${mtf.conviction}/100</p>
+   <p class="muted">Convicção combina potencial médio, alinhamento entre timeframes e risco médio. Não representa chance garantida de ganho.</p>`:''}
+   <div class="top noPrint">
+     <button id="saveSignalBtn">💾 Registrar sinal</button>
+     <button onclick="addWatch({symbol:'${c.symbol}',name:'${c.name.replace("'", "\'")}'})">👁️ Acompanhar</button>
+     <button onclick="openTV('${c.symbol}')">📈 Abrir TradingView</button>
+     <button id="assetReportBtn">📄 Relatório da moeda</button>
+     <button onclick="window.print()">🖨️ Salvar/Imprimir PDF</button>
+   </div>
+   <p class="muted"><b>Aviso:</b> ferramenta educacional de análise técnica e risco. Os sinais e cenários apresentados não constituem recomendação de investimento.</p>`;
+   const arb=$('assetReportBtn'); if(arb) arb.onclick=()=>singleAssetReport(c,p);
+   const ssb=$('saveSignalBtn'); if(ssb) ssb.onclick=()=>{
+     if(exec.label.includes('NÃO PERSEGUIR') && !confirm('O Radar marcou NÃO PERSEGUIR PREÇO. Deseja registrar este sinal mesmo assim para estudo?')) return;
+     saveSignal(c,p,mtf,exec);
+   };
+ }catch(e){
+   $('detailBody').innerHTML=`<h3>${c.name} (${c.symbol.toUpperCase()})</h3><p class="bad"><b>Análise técnica Binance indisponível.</b></p><p>${e.message}</p><p class="muted">O Radar continua exibindo a moeda, mas a V7 não gera entrada, stop, alvos ou indicadores sem candles suficientes.</p>`;
+ }
+}
+
+async function makeRiskReport(){
+ $('reportCard').classList.add('open');
+ $('report').textContent='Analisando candles Binance das melhores candidatas…';
+ const top=ranked.slice(0,Math.min(10,ranked.length)), results=[];
+ for(const c of top){
+   try{results.push({c,p:await technicalPlan(c)})}catch(e){results.push({c,error:e.message})}
+ }
+ const ok=results.filter(x=>x.p).sort((a,b)=>b.p.adjusted-a.p.adjusted);
+ let txt=`RADAR EGI V8 — MAIOR POTENCIAL × GRAU DE RISCO\nData/hora: ${new Date().toLocaleString('pt-BR')}\nTimeframe: ${($('tf').value||'4h').toUpperCase()}\n\n`;
+ ok.forEach((x,i)=>{const {c,p}=x;txt+=`${i+1}. ${c.symbol.toUpperCase()} | Potencial ${p.potential}/100 | Risco ${p.riskScore}/100 ${p.riskLabel} | Ajustado ${p.adjusted}/100 | ${p.side}\n   Preço ${money(p.price)} | Entrada ${p.side==='AGUARDAR'?'aguardar':money(Math.min(p.entry1,p.entry2))+'–'+money(Math.max(p.entry1,p.entry2))} | Stop ${money(p.stop)} | A1 ${money(p.t1)} | A2 ${money(p.t2)} | A3 ${money(p.t3)}\n`;});
+ const bad=results.filter(x=>x.error); if(bad.length)txt+=`\nSem análise Binance: ${bad.map(x=>x.c.symbol.toUpperCase()).join(', ')}.\n`;
+ txt+=`\nAVISO: ferramenta educacional de análise técnica e risco. Os sinais e cenários apresentados não constituem recomendação de investimento.`;
+ $('report').textContent=txt;
+ $('reportCard').scrollIntoView({behavior:'smooth'});
+}
+
+function makeReport(){
+ const now=new Date().toLocaleString('pt-BR');
+ const btc=data.find(x=>x.symbol==='btc')||data[0];
+ let txt=`RADAR EGI — PRÓXIMAS FORTES V5\nData/hora: ${now}\n\n`;
+ txt+=`PANORAMA\nBTC 24h: ${btc?pct(btc.price_change_percentage_24h_in_currency):'—'}\nAtivos no filtro atual: ${ranked.length}\nModo: ${mode==='pre'?'Possível início LONG':mode==='short'?'Possível início SHORT':'Ranking geral'}\n\n`;
+ txt+=`TOP 10\n`;
+ ranked.slice(0,10).forEach((c,i)=>{txt+=`${i+1}. ${c.symbol.toUpperCase()} — Final ${c.final}/100 | Técnico ${c.technical} | Atividade ${c.flow} | Confirmação ${c.confirm.n}/5 | 24h ${pct(c.p24)} | vs BTC ${pct(c.rel)} | Vol/Cap ${pct(c.vr)}\n   Motivos: ${why(c)}\n`;});
+ txt+=`\nCONCLUSÃO\n`;
+ if(!ranked.length) txt+='Nenhuma candidata passou pelos critérios atuais.\n';
+ else {
+   const fortes=ranked.filter(x=>x.final>=80).length, boas=ranked.filter(x=>x.final>=65&&x.final<80).length, early=ranked.filter(x=>x.early).length;
+   txt+=`${fortes} ativo(s) em FORTE, ${boas} em BOA e ${early} marcado(s) como possível início de movimento.\n`;
+   txt+=`Priorize confirmação no gráfico 4H/1D, suporte/resistência e gestão de risco antes de qualquer operação.\n`;
+ }
+ txt+=`\nAVISO: ferramenta educacional de análise técnica e risco. Os sinais e cenários apresentados não constituem recomendação de investimento.`;
+ $('report').textContent=txt; $('reportCard').classList.add('open'); $('reportCard').scrollIntoView({behavior:'smooth'});
+}
+
+async function scan(){
+ $('rows').innerHTML='<tr><td colspan="13">Coletando dados…</td></tr>';
+ const n=$('limit').value,key=$('key').value.trim();
+ let url=`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${n}&page=1&sparkline=false&price_change_percentage=1h,24h,7d`;
+ if(key)url+=`&x_cg_demo_api_key=${encodeURIComponent(key)}`;
+ try{let r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);data=await r.json();await enrichTriple(data);render()}
+ catch(e){$('rows').innerHTML=`<tr><td colspan="13">Falha ao consultar CoinGecko: ${e.message}. Tente novamente em alguns instantes.</td></tr>`}
+}
+$('tf').onchange=()=>render();
+$('scan').onclick=scan;
+$('pre').onclick=()=>{
+ mode='pre'; render();
+ const target=$('modeStatus')||$('flow');
+ if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+ if(!ranked.length) setTimeout(()=>alert('Nenhum ativo passou 100% dos critérios de “Possível início” neste momento. O painel agora mostra os mais próximos do gatilho e o que falta em cada um.'),120);
+};
+$('preShort').onclick=()=>{
+ mode='short'; render();
+ const target=$('modeStatus')||$('flow');
+ if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+ if(!ranked.length) setTimeout(()=>alert('Nenhum ativo passou pelos critérios de possível início SHORT neste momento.'),120);
+};
+$('all').onclick=()=>{
+ mode='all'; render();
+ const target=$('modeStatus')||$('flow');
+ if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+};
+$('reportBtn').onclick=makeReport;
+$('gptReportBtn').onclick=makeGPTSmartReport;
+$('myReportBtn').onclick=makeMySmartReport;
+$('riskBtn').onclick=makeRiskReport;
+$('watchBtn').onclick=showWatch;
+$('histBtn').onclick=showHistory;
+$('perfBtn').onclick=performance;
+$('updHistBtn').onclick=updateHistory;
+$('guideBtn').onclick=showGuide;
+$('pdfBtn').onclick=()=>{makeReport();setTimeout(()=>window.print(),250)};
+scan();
+
+// V7.3: fallback robusto para abertura do detalhe ao tocar no ativo.
+document.addEventListener('click',function(ev){
+  const el=ev.target.closest('[data-coin-index]');
+  if(!el)return;
+  const idx=Number(el.getAttribute('data-coin-index'));
+  if(Number.isInteger(idx) && typeof showDetail==='function') showDetail(idx);
+});
+
+
+document.addEventListener('click',function(e){
+ const b=e.target.closest('button');
+ if(!b)return;
+ if(b.id==='histBtn'){e.preventDefault();showHistory();}
+ if(b.id==='perfBtn'){e.preventDefault();performance();}
+});
+
+
+document.addEventListener('click',function(e){
+ const b=e.target.closest('button'); if(!b)return;
+ const t=(b.textContent||'').toLowerCase();
+ if(b.id==='riskBtn'||b.id==='riskRank'||t.includes('potencial × risco')||t.includes('potencial x risco')){
+   e.preventDefault(); e.stopPropagation(); showPotentialRisk();
+ }
+});
+
+
+document.addEventListener('click',function(e){
+ const b=e.target.closest('button'); if(!b)return;
+ if(b.id==='topReportBtn'){e.preventDefault();e.stopPropagation();topPotentialReport();}
+});
+
+</script><div class="card" style="margin-top:18px;text-align:center"><b>📌 REGRA DE USO:</b> 4H identifica a oportunidade → 1H procura confirmação → 15m apenas refina a entrada.<br><span class="muted">🚀/🔻 Possível início = alerta para análise, não sinal automático. Triple Screen D1→1h→5m entra como camada de qualidade e timing.</span></div>
+</body></html>
