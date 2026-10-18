@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08111f"><title>Painel Início do Dia EGI V1.8</title>
+<style>
+:root{--bg:#07101d;--card:#101b2c;--line:#29445f;--txt:#edf6ff;--muted:#9fb7d2;--green:#29d391;--yellow:#ffd166;--red:#ff6278;--blue:#59a5ff;--purple:#c084fc}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#07101d,#0b1524 45%,#07101d);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:1050px;margin:auto;padding:10px}.hero,.card,details.step{background:#101b2c;border:1px solid var(--line);border-radius:17px;padding:14px;margin:10px 0}
+h1{font-size:clamp(22px,6vw,34px);margin:0 0 5px}h2{font-size:17px;margin:0 0 9px}.muted{color:var(--muted)}
+.topgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.toolbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.toolbar.sticky{position:sticky;top:0;z-index:30;background:#07101def;padding:8px;border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px)}
+summary{cursor:pointer;list-style:none;display:flex;gap:9px;align-items:center;font-weight:900;font-size:16px}summary::-webkit-details-marker{display:none}summary::after{content:'▾';margin-left:auto;color:var(--muted)}details:not([open]) summary::after{content:'▸'}
+.num{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#18304d;font-weight:900;flex:0 0 auto}.body{padding-top:10px}.check{display:flex;gap:8px;padding:7px 0;border-bottom:1px dashed #253a55}.check input{width:auto}
+button,a.btn,select,input,textarea{font:inherit}button,a.btn{display:inline-block;text-decoration:none;color:#fff;border:1px solid #385574;background:#172940;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}button:hover,a.btn:hover{filter:brightness(1.12)}
+a.btn.primary,button.primary{background:#0d6575;border-color:#39d7ef}.green{background:#14532d;border-color:#22c55e}.yellow{background:#713f12;border-color:#facc15;color:#fff}.red{background:#7f1d1d;border-color:#ef4444}.blue{background:#0c4a6e;border-color:#38bdf8}.purple{background:#4c1d66;border-color:#c084fc}.danger{background:#7f1d1d;border-color:#ef4444}
+select,input,textarea{width:100%;border:1px solid #385574;background:#091625;color:#fff;border-radius:10px;padding:10px}label{display:block;color:#cfe0f3;margin-top:8px;font-size:12px}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.reportarea{min-height:150px;resize:vertical}.reportarea.big{min-height:260px}.progress{height:11px;border-radius:99px;background:#091625;overflow:hidden;border:1px solid #263c59}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#29d391,#59a5ff)}
+.statusbar{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.sem{font-size:28px}.mini{font-size:12px;color:var(--muted)}.notice{padding:10px;border-radius:10px;border:1px solid #385574;background:#0b1829;margin-top:10px}.ok{border-color:#1f7a58}.warn{border-color:#76591d;background:#2b2415}
+.tablewrap{overflow:auto;margin-top:10px}table{width:100%;border-collapse:collapse;min-width:780px}th,td{padding:8px;border-bottom:1px solid #29445f;text-align:left;font-size:13px}th{color:#b9d8f8}.summarybox{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.pill{border:1px solid #385574;background:#0b1829;border-radius:12px;padding:10px}.pill b{display:block;font-size:18px}.quick{font-size:16px;font-weight:850;color:#dff7ed}.guide{border:2px solid #39d7ef;background:#082131}.guide h2{font-size:19px}.guide-now{font-size:20px;font-weight:900;margin:8px 0;color:#fff}.guide-sub{color:#b9d8f8}.guide .actions{margin-top:12px}.badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid #385574;background:#0b1829;font-size:12px;font-weight:800}.manual-list{margin:8px 0 0 20px}.manual-list li{margin:6px 0}.auto-ok{border-color:#279d73;background:#0b2a23}.auto-warn{border-color:#c79728;background:#2b2513}.auto-bad{border-color:#bd4556;background:#31131a}.sep{height:1px;background:#29445f;margin:10px 0}
+@media(max-width:700px){.topgrid,.summarybox{grid-template-columns:1fr}.statusbar{grid-template-columns:1fr 1fr 1fr}.toolbar.sticky{position:static}}
+</style></head><body><main class="wrap">
+<section class="hero">
+<div class="muted">EGI • CONTEXTO → FLUXO → CONFLUÊNCIA → GATILHO → PLANO</div>
+<h1>📊 Painel Início do Dia EGI V1.8</h1>
+<div class="muted">Fluxo único: BTC → Fortes → Manada + Volatilidade → Confluência V5.1 → SMC → SetupDT + KDJ/Volume → Plano.</div>
+</section>
+
+<div class="toolbar sticky">
+<button id="openAll" type="button">📂 Abrir todos</button><button id="closeAll" type="button">📁 Fechar todos</button><button class="primary" id="genAll" type="button">🔄 ATUALIZAR TUDO</button><button class="danger" id="clearPanel">🧹 Limpar painel</button><a class="btn" href="index.html">🏠 Central EGI</a>
+</div>
+
+<section class="card topgrid">
+<div><h2>🌅 Abertura</h2><label>Data<input id="date" type="date"></label><label>Viés inicial<select id="bias"><option>⚪ NEUTRO</option><option>🟢 COMPRADOR</option><option>🔴 VENDEDOR</option><option>🟡 LATERAL</option></select></label></div>
+<div><h2>🚦 Semáforo</h2><div id="sem" class="sem">⚪</div><div id="semTxt" class="muted">Aguardando contexto.</div><div class="statusbar"><button data-s="🟢 OPERAR">🟢</button><button data-s="🟡 SELETIVO">🟡</button><button data-s="🔴 NÃO OPERAR">🔴</button></div></div>
+</section>
+
+<section class="card guide" id="guideCard">
+  <div class="badge">MODO GUIADO EGI</div>
+  <h2>🧭 O que fazer agora</h2>
+  <div id="guideNow" class="guide-now">Cole primeiro o relatório do BTC.</div>
+  <div id="guideSub" class="guide-sub">O painel vai avisar a próxima etapa automaticamente.</div>
+  <div class="actions">
+    <button id="guideAction" class="primary" type="button">IR PARA A PRÓXIMA ETAPA</button>
+    <button id="autoModeBtn" type="button">🤖 Automação: LIGADA</button>
+    <a class="btn" href="Manual_Painel_Inicio_Dia_EGI_V1_8.html" target="_blank">📘 Manual rápido</a>
+  </div>
+</section>
+
+<section class="card"><h2>Progresso</h2><div class="progress"><i id="bar"></i></div><div id="prog" class="mini">0/9 etapas concluídas</div><div id="quick" class="notice quick">Cole Manada e Volatilidade para gerar o Top Confluência.</div></section>
+
+<details class="step" data-step="1" open><summary><span class="num">1</span>BTC — contexto</summary><div class="body">
+<div class="check"><input type="checkbox"><span>4h definido</span></div><div class="check"><input type="checkbox"><span>1h confirma/diverge</span></div><div class="check"><input type="checkbox"><span>15m mostra aceleração/correção</span></div>
+<label>Relatório BTC<textarea class="reportarea field" data-f="btc" placeholder="Cole aqui o relatório do BTC Padrão"></textarea></label><div class="actions"><button class="paste" data-target="btc">📋 Colar</button><button class="clear" data-target="btc">🧹 Limpar área</button><a class="btn primary" href="btc.html">Abrir BTC Padrão</a><a class="btn" href="setupdt.html">Abrir SetupDT</a></div></div></details>
+
+<details class="step" data-step="2"><summary><span class="num">2</span>Mercado — regime</summary><div class="body">
+<div class="check"><input type="checkbox"><span>Força relativa avaliada</span></div><div class="check"><input type="checkbox"><span>Volume geral avaliado</span></div><div class="check"><input type="checkbox"><span>Ambiente não está errático</span></div>
+<label>Relatório Mercado<textarea class="reportarea field" data-f="mercado" placeholder="Cole Próximas Fortes / contexto de mercado"></textarea></label><div class="actions"><button class="paste" data-target="mercado">📋 Colar</button><button class="clear" data-target="mercado">🧹 Limpar área</button><a class="btn" href="proximas-fortes.html">Próximas Fortes</a></div></div></details>
+
+<details class="step" data-step="3" open><summary><span class="num">3</span>Radar Manada</summary><div class="body">
+<div class="check"><input type="checkbox"><span>Top moedas identificadas</span></div><div class="check"><input type="checkbox"><span>Persistência avaliada</span></div>
+<label>Relatório Manada<textarea class="reportarea big field" data-f="manada" placeholder="Cole o RELATÓRIO INTELIGENTE do Radar Manada"></textarea></label><div class="actions"><button class="paste primary" data-target="manada">📋 Colar Manada</button><button class="clear" data-target="manada">🧹 Limpar área</button><a class="btn" href="manada.html">Abrir Manada</a></div></div></details>
+
+<details class="step" data-step="4" open><summary><span class="num">4</span>Radar Volatilidade</summary><div class="body">
+<div class="check"><input type="checkbox"><span>Volatilidade suficiente</span></div><div class="check"><input type="checkbox"><span>Spread/liquidez aceitáveis</span></div>
+<label>Relatório Volatilidade<textarea class="reportarea big field" data-f="vol" placeholder="Cole o RELATÓRIO INTELIGENTE do Radar Volatilidade V2.3"></textarea></label><div class="actions"><button class="paste primary" data-target="vol">📋 Colar Volatilidade</button><button class="clear" data-target="vol">🧹 Limpar área</button><a class="btn" href="volatilidade.html">Abrir Volatilidade</a></div></div></details>
+
+<details class="step" data-step="5" open><summary><span class="num">5</span>Confluência automática</summary><div class="body">
+<div class="notice" id="crossStatus">Aguardando Manada + Volatilidade.</div>
+<div class="summarybox"><div class="pill"><span class="mini">Cruzados</span><b id="crossCount">0</b></div><div class="pill"><span class="mini">Melhor</span><b id="bestCandidate">—</b></div><div class="pill"><span class="mini">Fortes</span><b id="strongCount">0</b></div><div class="pill"><span class="mini">Evitar</span><b id="avoidCount">0</b></div></div>
+<div class="tablewrap"><table><thead><tr><th>#</th><th>Ativo</th><th>Manada</th><th>Entrada</th><th>Vol</th><th>Qual</th><th>Eq.</th><th>Risco</th><th>Conf.</th><th>Decisão</th></tr></thead><tbody id="rows"><tr><td colspan="10">Sem cruzamento.</td></tr></tbody></table></div>
+<label>Relatório Confluência V5.1 gerado<textarea class="reportarea field" data-f="finalistas" readonly></textarea></label>
+<div class="actions">
+  <button class="primary" id="genCross" type="button">🔄 ATUALIZAR CONFLUÊNCIA</button>
+  <button id="copyTop5" type="button">📋 Copiar Top 5</button>
+  <button id="openConfluence51" type="button">🧠 Abrir Confluência V5.1 + SMC</button>
+  <button id="sendTopSetup" type="button">🚀 Enviar Top ao SetupDT</button>
+  <button class="clear" data-target="finalistas" type="button">🧹 Limpar resultado</button>
+</div>
+<div class="mini">O botão Confluência V5.1 leva automaticamente os relatórios Manada + Volatilidade para o app completo. O SetupDT continua sendo a confirmação final.</div>
+</div></details>
+
+<details class="step" data-step="6"><summary><span class="num">6</span>SMC do finalista — análise real</summary><div class="body">
+<div class="check"><input type="checkbox"><span>Estrutura 4h/1h clara</span></div><div class="check"><input type="checkbox"><span>Liquidez e níveis marcados</span></div><div class="check"><input type="checkbox"><span>Há espaço operacional</span></div>
+<label>Relatório SMC<textarea class="reportarea field" data-f="smc" placeholder="Aqui entra o RELATÓRIO SMC REAL do finalista escolhido. A lista da Confluência não é SMC."></textarea></label><div class="actions"><button class="paste" data-target="smc">📋 Colar</button><button class="clear" data-target="smc">🧹 Limpar área</button><a class="btn" href="confluencia.html">Abrir Confluência V5.1 / SMC</a></div></div></details>
+
+<details class="step" data-step="7"><summary><span class="num">7</span>SetupDT + KDJ + Volume — confirmação automática</summary><div class="body">
+<div class="check"><input id="setupDirOk" type="checkbox"><span>Direção coerente</span></div>
+<div class="check"><input id="setupEntryOk" type="checkbox"><span>Entrada não tardia</span></div>
+<div class="check"><input id="setupRiskOk" type="checkbox"><span>Stop/alvos defensáveis</span></div>
+<div id="setupAutoStatus" class="notice">Cole o relatório do SetupDT. O painel marcará as caixas automaticamente e explicará o que falta.</div>
+<label>Relatório SetupDT<textarea class="reportarea field" data-f="setup" placeholder="Cole a confirmação do finalista"></textarea></label>
+<div class="actions"><button class="paste" data-target="setup">📋 Colar</button><button id="reanalyzeSetup" type="button">🤖 Reavaliar relatório</button><button class="clear" data-target="setup">🧹 Limpar área</button><a class="btn primary" href="setupdt.html">Abrir SetupDT</a></div>
+<div class="mini">As caixas são automáticas. Se o relatório disser SEM ALINHAMENTO, níveis ainda não liberados ou risco não configurado, elas permanecem desmarcadas.</div>
+</div></details>
+
+<details class="step" data-step="8"><summary><span class="num">8</span>Plano da entrada</summary><div class="body">
+<label>Ativo<input class="field" data-f="ativo"></label><label>Direção<select class="field" data-f="direcao"><option>AGUARDAR</option><option>LONG</option><option>SHORT</option></select></label><label>Entrada<input class="field" data-f="entrada"></label><label>Stop<input class="field" data-f="stop"></label><label>Alvo 1<input class="field" data-f="alvo1"></label><label>Alvo 2<input class="field" data-f="alvo2"></label>
+<div class="check"><input type="checkbox"><span>Aceito o risco antes da entrada</span></div><div class="check"><input type="checkbox"><span>Não estou entrando por FOMO</span></div></div></details>
+
+<section class="card"><h2>📝 Observações</h2><textarea id="obs"></textarea><div class="actions"><button id="clearObs">🧹 Limpar observações</button></div></section>
+<section class="card"><h2>📋 Relatório completo para ChatGPT</h2><div class="actions"><button class="primary" id="copy">📋 Copiar relatório</button><button id="saveTxt">💾 Salvar TXT</button><button id="newDay">🌅 Novo dia</button></div><textarea id="report" class="reportarea big" readonly></textarea></section>
+
+<script>
+const KEY='egi_inicio_dia_v18', OLDKEY='egi_inicio_dia_v17'; let st={status:''}, crossed=[];
+const qs=s=>document.querySelector(s), qsa=s=>[...document.querySelectorAll(s)];
+const clamp=(x,a=0,b=100)=>Math.max(a,Math.min(b,x));
+function today(){let d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`}
+function field(key){return qs(`[data-f="${key}"]`)}
+function save(){st.date=qs('#date').value;st.bias=qs('#bias').value;st.obs=qs('#obs').value;st.status=st.status||'';st.checks=qsa('.check input').map(x=>x.checked);st.fields={};qsa('[data-f]').forEach(x=>st.fields[x.dataset.f]=x.value);localStorage.setItem(KEY,JSON.stringify(st));update()}
+function load(){let raw=localStorage.getItem(KEY)||localStorage.getItem(OLDKEY)||'{}';try{st=JSON.parse(raw)}catch(e){st={}};qs('#date').value=st.date||today();qs('#bias').value=st.bias||'⚪ NEUTRO';qs('#obs').value=st.obs||'';qsa('.check input').forEach((x,i)=>x.checked=!!st.checks?.[i]);qsa('[data-f]').forEach(x=>{if(st.fields?.[x.dataset.f]!=null)x.value=st.fields[x.dataset.f]});setStatus(st.status||'',false);if(field('manada').value&&field('vol').value){generateConfluence(false);try{localStorage.setItem('egi_confluencia_area1',combinedRadarText())}catch(_){}}update()}
+function setStatus(s,p=true){st.status=s;qs('#sem').textContent=s?s.slice(0,2):'⚪';qs('#semTxt').textContent=s||'Aguardando contexto.';if(p)save()}
+function stepsDone(){let n=0;qsa('.step').forEach(x=>{let c=[...x.querySelectorAll('.check input')];if(c.length&&c.every(v=>v.checked))n++});return n}
+function num(v){if(v==null)return null;const n=Number(String(v).replace(',','.'));return Number.isFinite(n)?n:null}
+function parsePersist(t){const count=num((t.match(/\b(\d+)x\b/)||[])[1]);const score=num((t.match(/score\s+(\d+(?:[.,]\d+)?)\/100/i)||[])[1]);const up=/FORTE|CONFIRMADA|SAUDÁVEL/i.test(t),down=/DETERIOR/i.test(t);return{count:count||1,score,up,down,text:t.trim()}}
+function parseManada(text){const out={};for(const raw of String(text||'').split(/\r?\n/)){const line=raw.trim();const m=line.match(/^\d+\.\s+([A-Z0-9]+USDT)\s+\|\s+Manada\s+(\d+)\/100\s+\|.*?Entrada\s+(\d+)\/100/i);if(!m)continue;const sym=m[1].toUpperCase();const p=(line.match(/Persistência\s+(.+?)\s+\|\s+(?:🟢|🟡|🔴|⚪|🚀|🔥)/i)||[])[1]||'';const action=(line.match(/\|\s+ação\s+([^|]+)/i)||[])[1]?.trim()||'';const rsi=num((line.match(/\|\s+RSI\s+(-?\d+(?:[.,]\d+)?)/i)||[])[1]);const space=num((line.match(/espaço resistência\s+(-?\d+(?:[.,]\d+)?)%/i)||[])[1]);const dVwap=num((line.match(/dist VWAP\s+(-?\d+(?:[.,]\d+)?)%/i)||[])[1]);const dEma=num((line.match(/dist MME9\s+(-?\d+(?:[.,]\d+)?)%/i)||[])[1]);const trend=(line.match(/tendência\s+([^|]+)/i)||[])[1]?.trim()||'';out[sym]={symbol:sym,manada:+m[2],entry:+m[3],persist:parsePersist(p),action,rsi,space,dVwap,dEma,trend,raw:line}}return out}
+function parseVol(text){const out={};for(const raw of String(text||'').split(/\r?\n/)){const line=raw.trim();const m=line.match(/^\d+\.\s+([A-Z0-9]+USDT)\s+\|.*?Vol\s+(\d+)\/100\s+\|\s+Qual\s+(\d+)\/100\s+\|\s+Equilíbrio\s+(\d+)\/100\s+\|\s+Movimento\s+(\d+)\/100\s+\|\s+Risco\s+(\d+)\/100/i);if(!m)continue;const sym=m[1].toUpperCase();const spread=num((line.match(/Spread\s+(-?\d+(?:[.,]\d+)?)%/i)||[])[1]);const volRatio=num((line.match(/Vol\/média\s+(-?\d+(?:[.,]\d+)?)x/i)||[])[1]);out[sym]={symbol:sym,vol:+m[2],quality:+m[3],balance:+m[4],movement:+m[5],danger:+m[6],spread,volRatio,raw:line}}return out}
+function confluence(m,v){const fields=[['manada',m.manada,.24],['entry',m.entry,.22],['balance',v.balance,.22],['quality',v.quality,.16],['movement',v.movement,.06]];let total=0,w=0;for(const [,val,wt] of fields){if(Number.isFinite(val)){total+=val*wt;w+=wt}}let score=w?total/w:0;if(m.persist.count>=2&&Number.isFinite(m.persist.score)){score=score*.90+m.persist.score*.10}if(m.persist.count>=3&&m.persist.up)score+=4;if(m.persist.down)score-=8;score-=Math.max(0,(v.danger-55))*.22;if(v.quality<55)score-=10;else if(v.quality<70)score-=4;if(/NÃO PERSEGUIR/i.test(m.action))score-=14;if(/PULLBACK/i.test(m.action))score-=7;if(Number.isFinite(m.rsi)&&m.rsi>72)score-=5;if(Number.isFinite(m.space)&&m.space<.8)score-=4;return Math.round(clamp(score))}
+function decision(x){const m=x.man,v=x.vol;if(v.danger>=68||v.quality<55||/NÃO PERSEGUIR/i.test(m.action))return{label:'🔴 EVITAR AGORA',cls:'red',next:'Aguardar normalização/pullback'};if(/PULLBACK/i.test(m.action)||(m.rsi!=null&&m.rsi>70)||(m.space!=null&&m.space<.8))return{label:'🔵 ESPERAR PULLBACK',cls:'blue',next:'Reavaliar depois do recuo'};if(x.score>=74&&m.entry>=70&&v.quality>=70&&v.balance>=65)return{label:'🟢 CONFLUÊNCIA FORTE',cls:'green',next:'Contexto SMC → SetupDT'};if(x.score>=64)return{label:'🟡 PROMISSORA',cls:'yellow',next:'Observar / confirmar SMC'};return{label:'⚪ BAIXA CONFLUÊNCIA',cls:'purple',next:'Não priorizar'}}
+function buildCrossReport(){if(!crossed.length)return'';let t=`RELATÓRIO — CONFLUÊNCIA AUTOMÁTICA DO PAINEL EGI V1.8\nGerado em: ${new Date().toLocaleString('pt-BR')}\nRegra de score: motor do Radar Confluência EGI V5.1.\n\nTOP CONFLUÊNCIA\n`;crossed.slice(0,10).forEach((x,i)=>{t+=`${i+1}. ${x.symbol} | Confluência ${x.score}/100 | Manada ${x.man.manada} | Entrada ${x.man.entry} | Persistência ${x.man.persist.count}x${x.man.persist.score!=null?' score '+Math.round(x.man.persist.score):''} | Vol ${x.vol.vol} | Qual ${x.vol.quality} | Equilíbrio ${x.vol.balance} | Risco ${x.vol.danger} | ${x.decision.label} | Próxima ação ${x.decision.next}\n`});t+=`\nPEDIDO AO CHATGPT\nEscolha no máximo 3 candidatos para abrir no SetupDT. Penalize entrada tardia, pullback pendente, volatilidade perigosa e qualidade baixa. O cruzamento não define LONG/SHORT.`;return t}
+function generateConfluence(persist=true){const M=parseManada(field('manada').value),V=parseVol(field('vol').value);crossed=[];for(const sym of Object.keys(M)){if(V[sym]){const x={symbol:sym,man:M[sym],vol:V[sym]};x.score=confluence(x.man,x.vol);x.decision=decision(x);crossed.push(x)}}crossed.sort((a,b)=>b.score-a.score);const mc=Object.keys(M).length,vc=Object.keys(V).length;qs('#crossCount').textContent=crossed.length;qs('#bestCandidate').textContent=crossed[0]?crossed[0].symbol.replace('USDT','')+' '+crossed[0].score:'—';qs('#strongCount').textContent=crossed.filter(x=>x.decision.label.includes('FORTE')).length;qs('#avoidCount').textContent=crossed.filter(x=>x.decision.label.includes('EVITAR')).length;qs('#rows').innerHTML=crossed.length?crossed.slice(0,10).map((x,i)=>`<tr><td>${i+1}</td><td><b>${x.symbol.replace('USDT','')}</b></td><td>${x.man.manada}</td><td>${x.man.entry}</td><td>${x.vol.vol}</td><td>${x.vol.quality}</td><td>${x.vol.balance}</td><td>${x.vol.danger}</td><td><b>${x.score}</b></td><td class="${x.decision.cls}"><b>${x.decision.label}</b></td></tr>`).join(''):'<tr><td colspan="10">Nenhum ativo apareceu nos dois relatórios.</td></tr>';field('finalistas').value=buildCrossReport();if(!mc||!vc){qs('#crossStatus').className='notice warn';qs('#crossStatus').textContent=`Área incompleta: encontrei ${mc} ativo(s) no Manada e ${vc} no Volatilidade. Cole os relatórios completos.`}else if(!crossed.length){qs('#crossStatus').className='notice warn';qs('#crossStatus').textContent='Os relatórios foram lidos, mas não encontrei ativos em comum.'}else{qs('#crossStatus').className='notice ok';qs('#crossStatus').textContent=`Confluência pronta: ${crossed.length} ativos cruzados. Top: ${crossed.slice(0,3).map(x=>x.symbol.replace('USDT','')+' '+x.score).join(' • ')}.`}updateQuick();try{localStorage.setItem('egi_confluencia_area1',combinedRadarText())}catch(_){}if(persist)save();else update()}
+function updateQuick(){if(!crossed.length){qs('#quick').textContent='Cole Manada e Volatilidade para gerar o Top Confluência.';return}const strong=crossed.find(x=>x.decision.label.includes('FORTE'));const pull=crossed.find(x=>x.decision.label.includes('PULLBACK'));const prom=crossed.find(x=>x.decision.label.includes('PROMISSORA'));const avoid=crossed.find(x=>x.decision.label.includes('EVITAR'));let parts=[];if(strong)parts.push(`🟢 ${strong.symbol.replace('USDT','')} → SMC/SetupDT`);if(pull)parts.push(`🔵 ${pull.symbol.replace('USDT','')} → esperar pullback`);if(!strong&&prom)parts.push(`🟡 ${prom.symbol.replace('USDT','')} → confirmar SMC`);if(avoid)parts.push(`🔴 ${avoid.symbol.replace('USDT','')} → evitar agora`);qs('#quick').textContent=parts.join(' | ')||'Confluência calculada; revisar Top 3.';guideState?.()}
+function rep(){let f={};qsa('[data-f]').forEach(x=>f[x.dataset.f]=x.value||'—');return `RELATÓRIO — PAINEL INÍCIO DO DIA EGI V1.8\nData: ${qs('#date').value}\nSemáforo: ${st.status||'NÃO DEFINIDO'}\nViés: ${qs('#bias').value}\nProgresso: ${stepsDone()}/8\n\n1 BTC: ${f.btc}\n\n2 Mercado: ${f.mercado}\n\n3 Manada: ${f.manada}\n\n4 Volatilidade: ${f.vol}\n\n5 Finalistas Confluência: ${f.finalistas}\n\n6 SMC: ${f.smc}\n\n7 SetupDT + KDJ + Volume: ${f.setup}\n\n8 Plano: ${f.ativo} | ${f.direcao} | Entrada ${f.entrada} | Stop ${f.stop} | A1 ${f.alvo1} | A2 ${f.alvo2}\n\nObservações:\n${qs('#obs').value||'—'}\n\nPedido ao ChatGPT:\nAnalise contexto, fluxo, volume, confluência, SetupDT e gatilho. Destaque divergências, entrada tardia, risco e o que ainda falta para uma entrada tecnicamente defensável.`}
+function update(){let d=stepsDone();qs('#bar').style.width=(d/8*100)+'%';qs('#prog').textContent=`${d}/8 etapas concluídas`;qs('#report').value=rep()}
+async function pasteInto(key){const el=field(key);try{const t=await navigator.clipboard.readText();if(!t)throw new Error('vazio');el.value=t;el.dispatchEvent(new Event('input',{bubbles:true}));if(key==='manada'||key==='vol'){if(field('manada').value&&field('vol').value)generateConfluence(true)}}catch(e){el.focus();alert('O navegador bloqueou a leitura automática da área de transferência. A área já está selecionada: use Ctrl+V para colar.')}}
+function clearField(key){const el=field(key);if(!el)return;el.value='';if(key==='manada'||key==='vol'||key==='finalistas'){crossed=[];qs('#crossCount').textContent='0';qs('#bestCandidate').textContent='—';qs('#strongCount').textContent='0';qs('#avoidCount').textContent='0';qs('#rows').innerHTML='<tr><td colspan="10">Sem cruzamento.</td></tr>';qs('#crossStatus').className='notice';qs('#crossStatus').textContent='Aguardando Manada + Volatilidade.';if(key!=='finalistas')field('finalistas').value='';updateQuick()}save()}
+document.addEventListener('input',e=>{if(e.target.matches('input,textarea,select')&&!e.target.readOnly)save()});document.addEventListener('change',e=>{if(e.target.matches('input,textarea,select'))save()});qsa('[data-s]').forEach(b=>b.onclick=()=>setStatus(b.dataset.s));qsa('.paste').forEach(b=>b.onclick=()=>pasteInto(b.dataset.target));qsa('.clear').forEach(b=>b.onclick=()=>clearField(b.dataset.target));
+
+function setAllDetails(open){
+  qsa('details.step').forEach(d=>{
+    d.open=!!open;
+    if(open) d.setAttribute('open','');
+    else d.removeAttribute('open');
+  });
+}
+function combinedRadarText(){
+  return `${field('manada').value||''}\n\n${field('vol').value||''}`.trim();
+}
+function top5Text(){
+  if(!crossed.length) generateConfluence(true);
+  return crossed.slice(0,5).map((x,i)=>`${i+1}. ${x.symbol} | Confluência ${x.score}/100 | ${x.decision.label}`).join('\n');
+}
+async function copySimple(t,msg='Copiado.'){
+  if(!t)return alert('Gere a Confluência primeiro.');
+  try{await navigator.clipboard.writeText(t);alert(msg)}
+  catch(_){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert(msg)}
+}
+function openConfluence51(){
+  const txt=combinedRadarText();
+  if(!field('manada').value||!field('vol').value)return alert('Cole primeiro os relatórios Manada e Volatilidade.');
+  try{localStorage.setItem('egi_confluencia_area1',txt)}catch(_){}
+  generateConfluence(true);
+  window.open('confluencia.html','_blank');
+}
+function sendTopToSetup(){
+  if(!crossed.length)generateConfluence(true);
+  if(!crossed.length)return alert('Nenhum candidato cruzado. Cole Manada + Volatilidade.');
+  const asset=crossed[0].symbol.replace(/USDT$/,'');
+  const url=`setupdt.html?viradas=${encodeURIComponent(asset)}`;
+  window.open(url,'_blank');
+}
+const openAllBtn=qs('#openAll'), closeAllBtn=qs('#closeAll');
+if(openAllBtn)openAllBtn.addEventListener('click',e=>{e.preventDefault();setAllDetails(true)});
+if(closeAllBtn)closeAllBtn.addEventListener('click',e=>{e.preventDefault();setAllDetails(false)});
+qs('#genCross').addEventListener('click',()=>generateConfluence(true));
+qs('#genAll').addEventListener('click',()=>generateConfluence(true));
+qs('#copyTop5').addEventListener('click',()=>copySimple(top5Text(),'Top 5 copiado.'));
+qs('#openConfluence51').addEventListener('click',openConfluence51);
+qs('#sendTopSetup').addEventListener('click',sendTopToSetup);
+
+qs('#clearObs').onclick=()=>{qs('#obs').value='';save()};qs('#clearPanel').onclick=()=>{if(!confirm('Limpar todas as áreas do Painel do Dia?'))return;qsa('[data-f]').forEach(x=>{if(x.tagName==='SELECT')x.value='AGUARDAR';else x.value=''});qsa('.check input').forEach(x=>x.checked=false);qs('#obs').value='';crossed=[];localStorage.removeItem(KEY);save();generateConfluence(false)};
+qs('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(rep());alert('Relatório copiado.')}catch(e){qs('#report').select();document.execCommand('copy');alert('Relatório copiado.')}};qs('#saveTxt').onclick=()=>{const blob=new Blob([rep()],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Painel_Inicio_Dia_EGI_${qs('#date').value||'hoje'}.txt`;a.click();URL.revokeObjectURL(a.href)};qs('#newDay').onclick=()=>{if(confirm('Iniciar um novo dia e limpar o painel?')){localStorage.removeItem(KEY);location.reload()}};
+load();
+
+
+function setupAutoEvaluate(){
+  const t=(field('setup')?.value||'').trim();
+  const dir=qs('#setupDirOk'), ent=qs('#setupEntryOk'), risk=qs('#setupRiskOk'), box=qs('#setupAutoStatus');
+  if(!dir||!ent||!risk||!box)return;
+  if(!t){
+    dir.checked=false; ent.checked=false; risk.checked=false;
+    box.className='notice';
+    box.textContent='Cole o relatório do SetupDT. O painel marcará as caixas automaticamente e explicará o que falta.';
+    return;
+  }
+
+  const upper=t.toUpperCase();
+  const checklist=(()=>{const m=t.match(/CHECKLIST:\s*(\d+)\s*\/\s*6/i);return m?Number(m[1]):null})();
+
+  // 1) Direção coerente
+  const faltaAlinhamento=/4H\s+E\s+1H:\s+MESMA DIREÇÃO/i.test(t) || /SEM ALINHAMENTO/i.test(t);
+  const direcaoLiberada=/DIREÇÃO DAY TRADE:\s*(LONG|SHORT)\b/i.test(t) && !/DIREÇÃO DAY TRADE:\s*AGUARDAR/i.test(t);
+  dir.checked = !faltaAlinhamento && (direcaoLiberada || checklist===6);
+
+  // 2) Entrada não tardia
+  const tardiaRuim=/ENTRADA TARDIA|NÃO PERSEGUIR|ESTICAD[AO]|EXAUSTÃO (?:ALTA|FORTE)|RISCO DE ENTRADA TARDIA:\s*(?:ALTO|ELEVADO)/i.test(t);
+  const qualidade=(t.match(/QUALIDADE:\s*(\d+)\s*\/\s*100/i)||t.match(/QUALIDADE DA ENTRADA(?: AGORA)?:\s*(\d+)\s*\/\s*100/i));
+  const distAtr=(t.match(/DISTÂNCIA DA MM20:\s*(-?\d+(?:[.,]\d+)?)\s*ATR/i)||[])[1];
+  const q=qualidade?Number(qualidade[1]):null, da=distAtr?Number(String(distAtr).replace(',','.')):null;
+  ent.checked = !tardiaRuim && ((q!=null && q>=70) || (da!=null && Math.abs(da)<=1.0));
+
+  // 3) Stop/alvos defensáveis
+  const niveisBloqueados=/AINDA NÃO LIBERADOS|NÍVEIS.*NÃO LIBERADOS|RISCO:\s*NÃO CONFIGURADO/i.test(t);
+  const temStop=/\bSTOP\b\s*[:\-]/i.test(t);
+  const temAlvo=/\bALVO\s*1\b\s*[:\-]/i.test(t);
+  const rr=(t.match(/R:R(?:\s+ATUAL|\s+INTELIGENTE|\s+OPERACIONAL)?[^0-9]{0,20}(\d+(?:[.,]\d+)?)\s*:\s*1/i)||[])[1];
+  risk.checked = !niveisBloqueados && temStop && temAlvo && (!rr || Number(String(rr).replace(',','.'))>=1.5);
+
+  const msgs=[];
+  msgs.push(dir.checked ? '✅ Direção coerente' : '❌ Direção ainda sem alinhamento suficiente');
+  msgs.push(ent.checked ? '✅ Entrada não parece tardia' : '⚪ Entrada ainda não confirmada como saudável');
+  msgs.push(risk.checked ? '✅ Stop/alvos defensáveis' : '❌ Stop/alvos ainda não liberados ou R:R insuficiente');
+  if(checklist!=null) msgs.unshift(`SetupDT ${checklist}/6`);
+  box.className='notice '+(dir.checked&&ent.checked&&risk.checked?'auto-ok':(dir.checked||ent.checked||risk.checked?'auto-warn':'auto-bad'));
+  box.textContent=msgs.join(' • ');
+
+  // Persist automatic checkbox states and refresh progress/report.
+  st.checks=qsa('.check input').map(x=>x.checked);
+  localStorage.setItem(KEY,JSON.stringify({...st,checks:st.checks}));
+  update();
+}
+
+let autoMode=true, autoTimer=null;
+function hasText(k){const e=field(k);return !!(e&&e.value&&e.value.trim())}
+function stepEl(n){return document.querySelector(`details.step[data-step="${n}"]`)}
+function openOnly(n){
+  qsa('details.step').forEach(d=>d.open=(Number(d.dataset.step)===n));
+  const d=stepEl(n); if(d) d.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function topSymbol(){return crossed[0]?.symbol?.replace(/USDT$/,'')||''}
+function guideState(){
+  let now='', sub='', step=1, action='IR PARA A PRÓXIMA ETAPA';
+  if(!hasText('btc')){
+    now='1️⃣ Cole o relatório BTC Padrão';
+    sub='Ele define o contexto principal do mercado.';
+    step=1;
+  } else if(!hasText('mercado')){
+    now='2️⃣ Cole o relatório Próximas Fortes / Mercado';
+    sub='Serve para enxergar quem está mais forte ou perto do gatilho.';
+    step=2;
+  } else if(!hasText('manada')){
+    now='3️⃣ Cole o Radar Manada';
+    sub='O painel precisa dele para medir pressão compradora e persistência.';
+    step=3;
+  } else if(!hasText('vol')){
+    now='4️⃣ Cole o Radar Volatilidade';
+    sub='Assim que Manada + Volatilidade estiverem completos, a Confluência será gerada automaticamente.';
+    step=4;
+  } else if(!crossed.length){
+    now='5️⃣ Gerar Confluência';
+    sub='Os dois radares estão preenchidos. Clique para cruzar agora.';
+    step=5; action='🔄 GERAR CONFLUÊNCIA AGORA';
+  } else if(!hasText('smc')){
+    const t=topSymbol()||'Top 1';
+    now=`6️⃣ Abrir SMC do ${t}`;
+    sub=`Confluência pronta. Analise primeiro ${t}; não confunda a lista de finalistas com relatório SMC.`;
+    step=6; action=`🧠 ABRIR SMC DO ${t}`;
+  } else if(!hasText('setup')){
+    const t=topSymbol()||'finalista';
+    now=`7️⃣ Confirmar ${t} no SetupDT + KDJ`;
+    sub='O SetupDT agora já traz 15m/1h/4h + KDJ + Volume da mesma moeda.';
+    step=7; action='🚀 ABRIR SETUPDT';
+  } else if(!hasText('entrada') || !hasText('stop')){
+    now='8️⃣ Montar o plano da entrada';
+    sub='O SetupDT já traz KDJ + Volume da moeda. Preencha entrada, stop e alvos somente depois das confirmações.';
+    step=8;
+  } else {
+    now='✅ Fluxo do dia preenchido';
+    sub='Revise o relatório final e mantenha a disciplina do plano.';
+    step=8; action='📋 VER RELATÓRIO FINAL';
+  }
+  const gn=qs('#guideNow'), gs=qs('#guideSub'), ga=qs('#guideAction');
+  if(gn)gn.textContent=now;if(gs)gs.textContent=sub;if(ga){ga.textContent=action;ga.dataset.step=step}
+  return {step,action};
+}
+function runGuideAction(){
+  const s=guideState().step;
+  if(s===5){generateConfluence(true);guideState();return}
+  if(s===6){openConfluence51();return}
+  if(s===7){sendTopToSetup();return}
+  if(hasText('entrada')&&hasText('stop')&&s===8){qs('#report')?.scrollIntoView({behavior:'smooth'});return}
+  openOnly(s);
+}
+function scheduleAutoCross(){
+  if(!autoMode)return;
+  clearTimeout(autoTimer);
+  autoTimer=setTimeout(()=>{
+    if(hasText('manada')&&hasText('vol')){
+      generateConfluence(false);
+      guideState();
+    }
+  },450);
+}
+const reSetup=qs('#reanalyzeSetup'); if(reSetup)reSetup.addEventListener('click',setupAutoEvaluate);
+const guideBtn=qs('#guideAction'); if(guideBtn)guideBtn.addEventListener('click',runGuideAction);
+const autoBtn=qs('#autoModeBtn'); if(autoBtn)autoBtn.addEventListener('click',()=>{
+  autoMode=!autoMode;
+  autoBtn.textContent=`🤖 Automação: ${autoMode?'LIGADA':'DESLIGADA'}`;
+  if(autoMode)scheduleAutoCross();
+});
+document.addEventListener('input',e=>{
+  if(e.target.matches('[data-f="manada"],[data-f="vol"]'))scheduleAutoCross();
+  if(e.target.matches('[data-f="setup"]'))setTimeout(setupAutoEvaluate,40);
+  setTimeout(guideState,30);
+});
+document.addEventListener('change',()=>setTimeout(guideState,30));
+
+setupAutoEvaluate();
+guideState();
+</script></main></body></html>
