@@ -22,8 +22,8 @@
 <p>Uma única consulta diária: panorama quantitativo + sequência dos aplicativos essenciais. O DiaHoje não interpreta automaticamente o conteúdo dos outros aplicativos. Dados informativos, nunca ordem.</p>
 <div class="focus" id="egiMorningStatus" role="status">Panorama aguardando consulta...</div>
 <div class="actions"><button class="primary" id="egiRefresh" onclick="egiFetchMorning()">🔄 Atualizar panorama</button><button onclick="egiCopyMorning()">📋 Copiar resumo</button><button onclick="egiMorningReset()">↺ Reiniciar rotina de hoje</button></div>
-<div id="egiQuoteList" class="grid" style="margin-top:12px"></div>
-<p class="small">Fonte: Binance Spot pública, candles 15m fechados para variação entre os dois últimos fechamentos. Os preços NÃO são cotação em tempo real. Atualização ao abrir o painel e a cada 5 minutos enquanto a aba estiver ativa. Se a API falhar, mostra indisponível, nunca valores inventados.</p>
+<div id="egiSemaforo" class="focus" role="status">⚪ Aguardando dados de todos os períodos.</div><div id="egiBreadth"></div><div id="egiQuoteList" class="grid" style="margin-top:12px"></div>
+<p class="small">Fonte: Binance Spot pública, somente candles fechados de 5m, 15m, 1h e 4h. Cada percentual compara os dois últimos fechamentos do respectivo timeframe. Os preços NÃO são cotação em tempo real. Atualização ao abrir o painel e a cada 5 minutos enquanto a aba estiver ativa. Se a API falhar, mostra indisponível, nunca valores inventados.</p>
 <h3 style="margin-top:18px">✅ Cinco consultas essenciais</h3><p id="egiMorningProgress">0/5 verificadas hoje.</p><div id="egiMorningTasks"></div>
 <p class="small">A marcação é manual e fica salva neste navegador, separada do checklist histórico de 15 tarefas. Abertura dos aplicativos não prova que uma análise foi realizada.</p></section>\n<section class="card"><h2>🚀 Abrir aplicativos EGI</h2><p class="sectionnote">Os HTMLs disponíveis foram integrados a este site; alguns aplicativos ainda exigem endereço próprio. Se o app possuir uma página publicada diferente, use “Editar URL”. Os endereços personalizados ficam salvos neste navegador.</p><div id="apps"></div></section>
 <section class="card" id="panicEGI">
@@ -119,8 +119,76 @@ function egiDay(){return new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_
 function egiChecked(){try{return JSON.parse(localStorage.getItem("egi_morning_"+egiDay())||"{}")}catch{return {}}}
 function egiMorningRender(){const done=egiChecked();const root=document.getElementById("egiMorningTasks");root.replaceChildren();egiMorningApps.forEach((app,i)=>{const row=document.createElement("div");row.className="task";const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!done[i];cb.addEventListener("change",()=>{const latest=egiChecked();latest[i]=cb.checked;localStorage.setItem("egi_morning_"+egiDay(),JSON.stringify(latest));egiMorningRender()});const label=document.createElement("label");label.textContent=app[0];const button=document.createElement("button");button.textContent="Abrir";button.onclick=()=>{if(app[1].startsWith("#")){document.querySelector(app[1])?.scrollIntoView({behavior:"smooth"});return}window.open(new URL(app[1],location.href).href,"_blank","noopener,noreferrer")};row.append(cb,label,button);root.append(row)});document.getElementById("egiMorningProgress").textContent=egiMorningApps.filter((_,i)=>done[i]).length+"/5 verificadas em "+egiDay()+"."}
 function egiMorningReset(){if(!confirm("Reiniciar somente as cinco verificações de abertura de hoje?"))return;localStorage.removeItem("egi_morning_"+egiDay());egiMorningRender()}
-async function egiFetchMorning(){const status=document.getElementById("egiMorningStatus"),button=document.getElementById("egiRefresh");button.disabled=true;status.textContent="Consultando candles fechados da Binance Spot...";const t=Date.now();let ok=[],bad=[];try{const rows=await Promise.allSettled(egiSymbols.map(async sym=>{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8500);try{const resp=await fetch("https://api.binance.com/api/v3/klines?symbol="+encodeURIComponent(sym)+"&interval=15m&limit=5",{signal:controller.signal,cache:"no-store"});if(!resp.ok)throw Error("HTTP "+resp.status);const data=await resp.json();if(!Array.isArray(data))throw Error("Resposta inválida");const closed=data.filter(x=>Number(x[6])<Date.now());if(closed.length<2)throw Error("Sem 2 candles fechados");const a=closed[closed.length-2],b=closed[closed.length-1],p=Number(b[4]),last=Number(a[4]);return {sym,price:p,pct:100*(p/last-1),end:Number(b[6])}}finally{clearTimeout(timeout)}}));rows.forEach((r,i)=>r.status==="fulfilled"?ok.push(r.value):bad.push(egiSymbols[i]));egiSnapshot=ok;egiLastTime=t;const grid=document.getElementById("egiQuoteList");grid.replaceChildren();for(const x of ok){const card=document.createElement("div");card.className="focus";card.style.margin="0";const title=document.createElement("strong");title.textContent=x.sym.replace("USDT","")+" • "+x.price.toLocaleString("pt-BR",{maximumFractionDigits:6});const sub=document.createElement("div");sub.className="small";sub.textContent="Último 15m: "+(x.pct>=0?"+":"")+x.pct.toFixed(2)+"% | Fecho: "+new Date(x.end).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"});card.append(title,sub);grid.append(card)}status.textContent=ok.length?("Consulta: "+ok.length+"/7 ativos • "+new Date(t).toLocaleString("pt-BR")+" • "+(bad.length?"Indisponíveis: "+bad.join(", "):"sem falhas")+". Não equivale a um sinal."):"Dados indisponíveis. Confira a conexão ou restrição da API."; }catch(e){status.textContent="Falha na consulta. Dados indisponíveis: "+e.message}finally{button.disabled=false}}
-function egiCopyMorning(){const lines=["DIAHOJE EGI — ABERTURA "+egiDay(),"Fonte: Binance Spot / últimos candles 15m fechados","Consulta: "+(egiLastTime?new Date(egiLastTime).toLocaleString("pt-BR"):"pendente"),...egiSnapshot.map(x=>x.sym+" "+x.price+" | 15m "+x.pct.toFixed(2)+"%"),"Ativos indisponíveis não devem ser presumidos.","Checklist: "+egiMorningApps.map((x,i)=>(egiChecked()[i]?"[OK] ":"[PENDENTE] ")+x[0]).join("; "),"Sem ordens; panorama não substitui Professor, Destino do Capital ou SetupDT."];const txt=lines.join("\n");if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(()=>alert("Resumo copiado."),()=>prompt("Copie:",txt));else prompt("Copie:",txt)}
+
+const egiTFs=["5m","15m","1h","4h"];
+let egiMatrix={},egiBreadth={};
+async function egiFetchMorning(){
+ const status=document.getElementById("egiMorningStatus"),button=document.getElementById("egiRefresh");
+ if(button.disabled)return;button.disabled=true;status.textContent="Consultando 5m, 15m, 1h e 4h: apenas candles fechados...";
+ const stamp=Date.now(), matrix={}, errors=[];
+ try{
+  const jobs=egiSymbols.flatMap(sym=>egiTFs.map(tf=>({sym,tf})));
+  const results=await Promise.allSettled(jobs.map(async ({sym,tf})=>{
+   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+   try{
+    const url="https://api.binance.com/api/v3/klines?symbol="+encodeURIComponent(sym)+"&interval="+tf+"&limit=5";
+    const response=await fetch(url,{signal:controller.signal,cache:"no-store"});
+    if(!response.ok)throw Error("HTTP "+response.status);
+    const rows=await response.json();
+    if(!Array.isArray(rows))throw Error("Resposta inválida");
+    const closed=rows.filter(x=>Number(x[6])<Date.now());
+    if(closed.length<2)throw Error("Histórico fechado insuficiente");
+    const last=closed.at(-1),prev=closed.at(-2),price=Number(last[4]),previous=Number(prev[4]);
+    if(!Number.isFinite(price)||!Number.isFinite(previous)||previous<=0)throw Error("Preço inválido");
+    return {sym,tf,price,pct:100*(price/previous-1),end:Number(last[6])};
+   }finally{clearTimeout(timer)}
+  }));
+  results.forEach((r,i)=>{const {sym,tf}=jobs[i];if(r.status==="fulfilled"){(matrix[sym]??={})[tf]=r.value}else errors.push(sym+" "+tf)});
+  egiMatrix=matrix;egiLastTime=stamp;egiSnapshot=egiSymbols.map(sym=>matrix[sym]?.["15m"]).filter(Boolean);
+  const breadth={};
+  egiTFs.forEach(tf=>{
+   const vals=egiSymbols.map(sym=>matrix[sym]?.[tf]).filter(Boolean);
+   const up=vals.filter(v=>v.pct>0).length,down=vals.filter(v=>v.pct<0).length,flat=vals.length-up-down;
+   breadth[tf]={up,down,flat,total:vals.length};
+  });egiBreadth=breadth;
+  const grid=document.getElementById("egiQuoteList");grid.replaceChildren();
+  for(const sym of egiSymbols){
+   const rows=matrix[sym]||{},card=document.createElement("div");card.className="focus";card.style.margin="0";
+   const title=document.createElement("strong");title.textContent=sym.replace("USDT","")+" • "+(rows["15m"]?.price.toLocaleString("pt-BR",{maximumFractionDigits:6})??"N/D")+" (fecho 15m)";
+   card.append(title);
+   for(const tf of egiTFs){const el=document.createElement("div");el.className="small";const v=rows[tf];el.textContent=tf+": "+(v?(v.pct>=0?"+":"")+v.pct.toFixed(2)+"% • "+new Date(v.end).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"}):"indisponível");card.append(el)}
+   grid.append(card);
+  }
+  const breadthEl=document.getElementById("egiBreadth");breadthEl.replaceChildren();
+  egiTFs.forEach(tf=>{
+   const b=breadth[tf],row=document.createElement("div");row.className="focus";
+   const classification=b.total<5?"Dados insuficientes":b.up===7?"Alta ampla da amostra":b.down===7?"Queda ampla da amostra":b.up>=4?"Maioria em alta":b.down>=4?"Maioria em queda":"Misto / sem maioria";
+   row.textContent=tf+" • "+b.up+" subindo / "+b.down+" caindo / "+b.flat+" estáveis ("+b.total+"/7) — "+classification;breadthEl.append(row);
+  });
+  const b5=breadth["5m"],b15=breadth["15m"],b1=breadth["1h"],b4=breadth["4h"];
+  const strong=[b5,b15,b1,b4].every(b=>b.total===7);
+  let sem="⚪ DADOS PARCIAIS — sem confirmação";
+  if(strong){
+   if(b15.up>=6&&b1.up>=5&&b4.up>=5)sem="🟢 ALTA MULTIPERÍODO NA AMOSTRA";
+   else if(b15.down>=6&&b1.down>=5&&b4.down>=5)sem="🔴 QUEDA MULTIPERÍODO NA AMOSTRA";
+   else if(b5.up>=5&&b15.up>=5&&(b1.down>=4||b4.down>=4))sem="🟡 RECUPERAÇÃO CURTA CONTRA CONTEXTO MAIOR";
+   else if(b5.down>=5&&b15.down>=5&&(b1.up>=4||b4.up>=4))sem="🟡 CORREÇÃO CURTA CONTRA CONTEXTO MAIOR";
+   else sem="⚪ CONFLUÊNCIA INSUFICIENTE / TRANSIÇÃO";
+  }
+  document.getElementById("egiSemaforo").textContent=sem+" — classificação heurística, não tendência confirmada.";
+  status.textContent="Consulta "+new Date(stamp).toLocaleString("pt-BR")+" • "+(28-errors.length)+"/28 leituras • "+(errors.length?errors.length+" indisponíveis":"todas disponíveis")+". Sem ordens.";
+ }catch(e){status.textContent="Erro na consulta: "+e.message+"; não presumir direção."}
+ finally{button.disabled=false}
+}
+function egiCopyMorning(){
+ const lines=["DIAHOJE EGI — ABERTURA "+egiDay(),"Binance Spot • candles fechados 5m/15m/1h/4h","Consulta: "+(egiLastTime?new Date(egiLastTime).toLocaleString("pt-BR"):"pendente"),"Semáforo: "+document.getElementById("egiSemaforo").textContent];
+ for(const tf of egiTFs){const b=egiBreadth[tf];if(b)lines.push(tf+": "+b.up+" altas / "+b.down+" baixas / "+b.flat+" estáveis ("+b.total+"/7)")}
+ for(const sym of egiSymbols){const rec=egiMatrix[sym]||{};lines.push(sym+" "+egiTFs.map(tf=>tf+" "+(rec[tf]?rec[tf].pct.toFixed(2)+"%":"N/D")).join(" | "))}
+ lines.push("Checklist: "+egiMorningApps.map((x,i)=>(egiChecked()[i]?"[OK] ":"[PENDENTE] ")+x[0]).join("; "));
+ lines.push("7 moedas não representam o mercado inteiro; variações são do último candle fechado de cada timeframe, não retornos acumulados.","Sem ordens; não substitui confirmação do Professor, Destino do Capital e SetupDT.");
+ const txt=lines.join("\n");
+ if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(()=>alert("Resumo copiado."),()=>prompt("Copie:",txt));else prompt("Copie:",txt);
+}
 egiMorningRender();egiFetchMorning();setInterval(()=>{if(!document.hidden)egiFetchMorning()},300000);
 
 const panicSymbols=["ADAUSDT","AVAXUSDT","DOGEUSDT","LINKUSDT","NEARUSDT","ONDOUSDT","SOLUSDT","SUIUSDT","XRPUSDT","UNIUSDT","AAVEUSDT","ICPUSDT","WLDUSDT","PENDLEUSDT","TIAUSDT"];
