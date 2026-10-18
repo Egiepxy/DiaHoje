@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>Radar KDJ Simples V5.3 — Status Claro</title>
+<style>
+:root{
+  --bg:#07101c;--card:#0e1b2c;--card2:#12243a;--txt:#eef5ff;--muted:#9fb1c8;
+  --line:#243a55;--blue:#5da9ff;--green:#39d5a2;--yellow:#ffd166;--red:#ff6b6b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#060d18,#0a1627 40%,#07101c);color:var(--txt);
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:900px;margin:auto;padding:15px}
+h1{font-size:1.45rem;margin:3px 0 6px}
+h2{font-size:1.1rem;margin:0 0 10px}
+.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+.card{background:rgba(14,27,44,.97);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0;
+box-shadow:0 10px 28px rgba(0,0,0,.18)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:650px){.grid,.grid3{grid-template-columns:1fr}}
+label{display:block;color:var(--muted);font-size:.8rem;margin-bottom:5px}
+input,select,button,textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:#091625;color:var(--txt);
+padding:11px;font-size:1rem}
+button{background:#1779ff;border:none;font-weight:800;cursor:pointer}
+button.secondary{background:#1c304a}
+button.good{background:#159c75}
+button.warn{background:#8b6913}
+button.bad{background:#943e4a}
+.toolbar{display:grid;grid-template-columns:1.15fr .85fr .85fr;gap:9px;margin-top:10px}
+.toolbar4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px}
+@media(max-width:650px){.toolbar,.toolbar4{grid-template-columns:1fr}}
+.status{text-align:center;border-radius:16px;padding:18px 12px;font-weight:900;font-size:1.15rem;border:1px solid var(--line);background:#091625}
+.status small{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin-top:6px;line-height:1.4}
+.kpi{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card2);text-align:center}
+.kpi .t{font-size:.78rem;color:var(--muted)} .kpi .v{font-size:1.5rem;font-weight:900;margin-top:3px}
+.ok{color:var(--green)} .warnc{color:var(--yellow)} .badc{color:var(--red)} .blue{color:var(--blue)}
+.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#091625;border:1px solid var(--line);font-size:.78rem;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint{font-size:.89rem;color:var(--muted);line-height:1.5}
+canvas{width:100%;height:260px;background:#07111f;border-radius:14px;border:1px solid var(--line)}
+textarea{min-height:350px;white-space:pre-wrap;line-height:1.45;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.88rem}
+.lesson{background:#091625;border:1px solid var(--line);border-radius:14px;padding:13px;margin:10px 0;line-height:1.55}
+.lesson b{color:#fff}
+details{border:1px solid var(--line);border-radius:13px;background:#091625;padding:10px 12px;margin:8px 0}
+summary{cursor:pointer;font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+.switch{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#091625}
+.switch input{width:auto}
+.foot{text-align:center;color:var(--muted);font-size:.76rem;padding:13px 0 25px}
+
+.stage-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.stage-step{background:#091625;border:1px solid var(--line);border-radius:13px;padding:10px 8px;text-align:center;min-height:78px}
+.stage-step .n{font-size:.72rem;color:var(--muted);display:block}
+.stage-step .name{font-size:.82rem;font-weight:800;margin-top:4px}
+.stage-step.done{border-color:#2b8f70;background:#0b2a27}
+.stage-step.active{outline:2px solid #ffd166}
+.stage-step.pending{opacity:.68}
+.stage-summary{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:9px;margin-top:10px}
+@media(max-width:650px){.stage-grid{grid-template-columns:1fr 1fr}.stage-summary{grid-template-columns:1fr}}
+.hist-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+@media(max-width:650px){.hist-actions{grid-template-columns:1fr}}
+
+
+.delta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px}
+.delta-card{background:#091625;border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center}
+.delta-card .t{font-size:.75rem;color:var(--muted)}
+.delta-card .v{font-size:1.05rem;font-weight:900;margin-top:4px}
+.quality-box{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#091625}
+.quality-box strong{font-size:1rem}
+.q-strong{color:var(--green)}
+.q-medium{color:var(--yellow)}
+.q-weak{color:var(--red)}
+@media(max-width:650px){.delta-grid{grid-template-columns:1fr 1fr}}
+
+
+.cycle-box{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#091625}
+.anchor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:9px}
+.anchor{background:#0d1d31;border:1px solid var(--line);border-radius:12px;padding:9px;text-align:center}
+.anchor .t{font-size:.72rem;color:var(--muted)}
+.anchor .v{font-size:.95rem;font-weight:900;margin-top:3px}
+.stage5-initial{color:var(--yellow)}
+.stage5-sustained{color:var(--green)}
+.stage5-failed{color:var(--red)}
+.stage5-wait{color:var(--muted)}
+@media(max-width:650px){.anchor-grid{grid-template-columns:1fr 1fr}}
+
+
+.diag-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.diag{background:#091625;border:1px solid var(--line);border-radius:12px;padding:9px;text-align:center}
+.diag .t{font-size:.72rem;color:var(--muted)}
+.diag .v{font-size:.9rem;font-weight:850;margin-top:3px}
+.req-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:9px}
+.req{background:#0d1d31;border:1px solid var(--line);border-radius:12px;padding:9px;text-align:center}
+.req .t{font-size:.7rem;color:var(--muted)}
+.req .v{font-size:.88rem;font-weight:850;margin-top:3px}
+@media(max-width:650px){.diag-grid,.req-grid{grid-template-columns:1fr 1fr}}
+
+
+.dual-cycle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.cycle-mini{background:#091625;border:1px solid var(--line);border-radius:14px;padding:12px}
+.cycle-mini h3{margin:0 0 8px;font-size:.95rem}
+.cycle-mini .line{font-size:.82rem;color:var(--muted);margin:4px 0}
+.live-opposite{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#0d1d31}
+@media(max-width:650px){.dual-cycle{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Radar KDJ Simples V5.3</h1>
+  <div class="sub">Laboratório KDJ • memória da sequência • Estágio 5 Inicial/Sustentado • relatório e áudio</div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>Moeda</label><input id="symbol" value="SOLUSDT"></div>
+      <div><label>Timeframe</label>
+        <select id="tf"><option>5m</option><option selected>15m</option><option>1h</option><option>4h</option><option>1d</option></select>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="btnUpdate">Atualizar agora</button>
+      <select id="auto"><option value="0">Auto: parado</option><option value="30" selected>Auto: 30s</option><option value="60">Auto: 1 min</option><option value="300">Auto: 5 min</option></select>
+      <label class="switch"><input type="checkbox" id="audioAlert" checked>🔊 Áudio na mudança</label>
+    </div>
+
+    <div class="diag-grid">
+      <div class="diag"><div class="t">Consulta</div><div class="v" id="diagFetch">—</div></div>
+      <div class="diag"><div class="t">Última consulta</div><div class="v" id="diagTime">—</div></div>
+      <div class="diag"><div class="t">Candle Binance</div><div class="v" id="diagCandle">—</div></div>
+      <div class="diag"><div class="t">Dados mudaram?</div><div class="v" id="diagChanged">—</div></div>
+    </div>
+    <div class="hint" id="diagNext" style="margin-top:7px">Próxima atualização: —</div>
+  </div>
+
+  <div class="card">
+    <div id="status" class="status">Aguardando análise...<small>Clique em “Atualizar agora”.</small></div>
+    <div class="grid3" style="margin-top:10px">
+      <div class="kpi"><div class="t">K</div><div class="v blue" id="k">—</div></div>
+      <div class="kpi"><div class="t">D</div><div class="v warnc" id="d">—</div></div>
+      <div class="kpi"><div class="t">J</div><div class="v" id="j">—</div></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="kpi"><div class="t">Último preço</div><div class="v" id="price">—</div></div>
+      <div class="kpi"><div class="t">Última atualização</div><div class="v" style="font-size:1rem" id="updated">—</div></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span class="pill">KDJ (9,3,3)</span><span class="pill">Sobrevenda ≈ &lt;20</span><span class="pill">Sobrecompra ≈ &gt;80</span>
+      <span class="pill" id="crossPill">Cruzamento: —</span>
+    </div>
+
+    <div class="stage-summary">
+      <div class="kpi"><div class="t">Estágio atual</div><div class="v" style="font-size:1rem" id="stageNow">—</div></div>
+      <div class="kpi"><div class="t">Distância K − D</div><div class="v" style="font-size:1.1rem" id="gapKD">—</div></div>
+      <div class="kpi"><div class="t">Distância</div><div class="v" style="font-size:1rem" id="gapTrend">—</div></div>
+    </div>
+
+    <div class="stage-grid" id="stageGrid">
+      <div class="stage-step pending" id="st1"><span class="n">ESTÁGIO 1</span><div class="name">Extremo</div></div>
+      <div class="stage-step pending" id="st2"><span class="n">ESTÁGIO 2</span><div class="name">J virou</div></div>
+      <div class="stage-step pending" id="st3"><span class="n">ESTÁGIO 3</span><div class="name">K aproxima D</div></div>
+      <div class="stage-step pending" id="st4"><span class="n">ESTÁGIO 4</span><div class="name">Cruzamento</div></div>
+      <div class="stage-step pending" id="st5"><span class="n">ESTÁGIO 5</span><div class="name">Preço + volume</div></div>
+    </div>
+    <div class="hint" id="stageNote" style="margin-top:9px">Aguardando dados para medir a evolução do sinal.</div>
+
+    <div class="delta-grid">
+      <div class="delta-card"><div class="t">Δ K</div><div class="v" id="deltaK">—</div></div>
+      <div class="delta-card"><div class="t">Δ D</div><div class="v" id="deltaD">—</div></div>
+      <div class="delta-card"><div class="t">Δ J</div><div class="v" id="deltaJ">—</div></div>
+      <div class="delta-card"><div class="t">Quem fechou K−D?</div><div class="v" style="font-size:.9rem" id="gapDriver">—</div></div>
+    </div>
+    <div class="quality-box">
+      <strong id="stage3Quality">Qualidade do Estágio 3: —</strong>
+      <div class="hint" id="stage3Reason" style="margin-top:5px">Aguardando leitura.</div>
+    </div>
+
+    <div class="dual-cycle">
+      <div class="cycle-mini">
+        <h3>🟢 Ciclo LONG</h3>
+        <div class="line">Maior estágio: <b id="longMaxStage">—</b></div>
+        <div class="line">Estado 5: <b id="longStage5">—</b></div>
+        <div class="line">Preço E1: <b id="longP1">—</b></div>
+        <div class="line">Preço E4: <b id="longP4">—</b></div>
+        <div class="line">Abertura K−D desde cruzamento: <b id="longGapOpen">—</b></div>
+      </div>
+      <div class="cycle-mini">
+        <h3>🔴 Ciclo SHORT</h3>
+        <div class="line">Maior estágio: <b id="shortMaxStage">—</b></div>
+        <div class="line">Estado 5: <b id="shortStage5">—</b></div>
+        <div class="line">Preço E1: <b id="shortP1">—</b></div>
+        <div class="line">Preço E4: <b id="shortP4">—</b></div>
+        <div class="line">Abertura K−D desde cruzamento: <b id="shortGapOpen">—</b></div>
+      </div>
+    </div>
+
+    <div class="live-opposite">
+      <b id="liveCycleAlert">Alerta ao vivo: —</b>
+      <div class="hint" id="liveCycleNote" style="margin-top:4px">O alerta ao vivo não apaga nem mistura o ciclo oposto já registrado.</div>
+    </div>
+
+    <div class="cycle-box">
+      <strong id="stage5Status" class="stage5-wait">Estágio 5: aguardando</strong>
+      <div class="hint" id="stage5Reason" style="margin-top:5px">
+        O Estágio 5 Inicial é provisório. O Sustentado exige 2 candles fechados mantendo o cruzamento e K−D abrindo a favor.
+      </div>
+      <div class="req-grid">
+        <div class="req"><div class="t">Cruzamento</div><div class="v" id="reqCross">—</div></div>
+        <div class="req"><div class="t">Preço vs candle anterior</div><div class="v" id="reqPrice">—</div></div>
+        <div class="req"><div class="t">Volume / média 20</div><div class="v" id="reqVol">—</div></div>
+        <div class="req"><div class="t">Fechados após 5 inicial</div><div class="v" id="reqClosed">—</div></div>
+      </div>
+      <div class="anchor-grid">
+        <div class="anchor"><div class="t">Preço Estágio 1</div><div class="v" id="priceS1">—</div></div>
+        <div class="anchor"><div class="t">Preço Estágio 4</div><div class="v" id="priceS4">—</div></div>
+        <div class="anchor"><div class="t">Preço 5 Inicial</div><div class="v" id="priceS5I">—</div></div>
+        <div class="anchor"><div class="t">Preço 5 Sustentado</div><div class="v" id="priceS5S">—</div></div>
+      </div>
+      <div class="hint" id="cyclePerf" style="margin-top:8px">Variação desde o Estágio 1: —</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Gráfico KDJ</h2>
+    <div class="hint">K = linha rápida • D = linha mais lenta • J = linha mais agressiva. Linhas horizontais em 20, 50 e 80.</div>
+    <canvas id="chart" width="820" height="260"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>🧠 Relatório Inteligente KDJ</h2>
+    <div class="hint">Gera uma leitura didática do que o KDJ está mostrando e um bloco pronto para copiar e conversar comigo no ChatGPT.</div>
+    <div class="toolbar4">
+      <button id="btnReport" class="good">Gerar relatório</button>
+      <button id="btnCopy" class="secondary">Copiar para GPT</button>
+      <button id="btnReadReport" class="secondary">▶ Ouvir relatório</button>
+      <button id="btnStopReport" class="bad">■ Parar áudio</button>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div><label>Velocidade do áudio</label>
+        <select id="speedReport"><option value=".8">0,8x</option><option value="1" selected>1,0x</option><option value="1.2">1,2x</option><option value="1.4">1,4x</option><option value="1.6">1,6x</option></select>
+      </div>
+      <div><label>Modo do relatório</label>
+        <select id="reportMode"><option value="didatico" selected>Didático / estudo</option><option value="curto">Curto</option><option value="tecnico">Técnico</option></select>
+      </div>
+    </div>
+    <textarea id="report" placeholder="O relatório aparecerá aqui depois da atualização."></textarea>
+  </div>
+
+  <div class="card">
+    <h2>🗂 Histórico do teste KDJ</h2>
+    <div class="hint">O app registra automaticamente mudanças materiais de estágio/estado e também permite salvar uma leitura manual. O histórico fica salvo neste navegador.</div>
+    <div class="hist-actions" style="grid-template-columns:1fr 1fr 1fr">
+      <button id="btnSaveReading" class="secondary">💾 Registrar leitura agora</button>
+      <button id="btnResetCycle" class="warn">↺ Novo ciclo KDJ</button>
+      <button id="btnClearHistory" class="bad">🗑 Limpar histórico</button>
+    </div>
+    <div style="overflow:auto">
+      <table>
+        <thead><tr><th>Hora</th><th>Ativo/TF</th><th>Preço</th><th>Estágio</th><th>K−D</th><th>Estado</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎓 Manual KDJ para estudo</h2>
+    <div class="grid">
+      <div><label>Velocidade</label>
+        <select id="speedManual"><option value=".8">0,8x</option><option value="1" selected>1,0x</option><option value="1.2">1,2x</option><option value="1.4">1,4x</option><option value="1.6">1,6x</option></select>
+      </div>
+      <div><label>Áudio</label>
+        <div class="row"><button id="btnReadManual" class="secondary" style="flex:1">▶ Ouvir manual</button><button id="btnStopManual" class="bad" style="flex:1">■ Parar</button></div>
+      </div>
+    </div>
+
+    <div id="manualText">
+      <div class="lesson"><b>1. O que é o KDJ?</b><br>
+      O KDJ é um oscilador derivado do Estocástico. Ele tenta mostrar onde o fechamento atual está dentro da faixa recente de preço. As linhas K e D mostram o movimento suavizado; a linha J reage mais rápido e exagera os extremos.</div>
+
+      <div class="lesson"><b>2. Como interpretar K, D e J?</b><br>
+      K é mais rápida. D é mais lenta e funciona como referência. J é a linha mais agressiva e pode ultrapassar 100 ou ficar abaixo de zero. Isso não é erro; mostra que o movimento está muito esticado.</div>
+
+      <div class="lesson"><b>3. Zonas 20 e 80.</b><br>
+      Abaixo de 20 chamamos de região de sobrevenda. Acima de 80 chamamos de região de sobrecompra. Essas zonas são alertas de esticamento, não ordens automáticas. Um ativo pode continuar sobrevendido durante uma tendência forte de baixa e continuar sobrecomprado durante uma tendência forte de alta.</div>
+
+      <div class="lesson"><b>4. Cruzamento para cima.</b><br>
+      Quando K estava abaixo de D e passa para cima, temos um cruzamento altista. Ele ganha interesse quando ocorre perto da região de sobrevenda. O melhor uso é como aviso para procurar confirmação em preço, RSI, MACD, volume e estrutura.</div>
+
+      <div class="lesson"><b>5. Cruzamento para baixo.</b><br>
+      Quando K estava acima de D e passa para baixo, temos um cruzamento baixista. Ele ganha interesse perto da sobrecompra. Da mesma forma, não deve ser tratado isoladamente como ordem de venda ou short.</div>
+
+      <div class="lesson"><b>6. O papel da linha J.</b><br>
+      J costuma reagir antes. Uma J muito baixa começando a subir pode mostrar perda de força vendedora; uma J muito alta começando a cair pode mostrar perda de força compradora. Como é muito sensível, também produz mais ruído.</div>
+
+      <div class="lesson"><b>7. Divergência.</b><br>
+      Se o preço faz um fundo mais baixo, mas o KDJ faz um fundo mais alto, pode existir divergência altista. Se o preço faz topo mais alto e o KDJ topo mais baixo, pode existir divergência baixista. Divergência é contexto, não confirmação sozinha.</div>
+
+      <div class="lesson"><b>8. Como encaixar no seu método.</b><br>
+      Use o KDJ como detector antecipado. Depois verifique: tendência nas médias, RSI, MACD, volume, estrutura gráfica e espaço para risco-retorno. O KDJ serve melhor como camada de gatilho e exaustão do que como filtro único.</div>
+
+      <div class="lesson"><b>9. Exemplo simples de LONG.</b><br>
+      KDJ entra abaixo de 20. J fica muito baixa. Depois J vira para cima e K cruza D para cima. Ao mesmo tempo, o candle reage numa região de suporte e o volume melhora. Isso é muito mais interessante do que comprar apenas porque o KDJ ficou abaixo de 20.</div>
+
+      <div class="lesson"><b>10. Exemplo simples de SHORT.</b><br>
+      KDJ entra acima de 80. J fica muito alta. Depois J vira para baixo e K cruza D para baixo. Se houver rejeição de resistência e perda de impulso, o aviso ganha qualidade.</div>
+
+      <div class="lesson"><b>11. Principal erro.</b><br>
+      O erro mais comum é confundir sobrevendido com fundo garantido e sobrecomprado com topo garantido. Em tendência forte, extremos podem durar bastante. Por isso o cruzamento e o contexto importam.</div>
+
+      <div class="lesson"><b>12. Regra de estudo.</b><br>
+      Durante o teste, anote o que aconteceu depois de cada aviso: preço, K, D, J, timeframe e se RSI, MACD e volume confirmaram. Depois de uma amostra razoável, compare quais condições deram os melhores sinais. O objetivo é descobrir se o KDJ realmente acrescenta valor ao seu método.</div>
+
+      <div class="lesson"><b>13. Memória da sequência na V5.</b><br>
+      Depois que um estágio realmente aconteceu, ele permanece marcado no ciclo. Assim, se o cruzamento oscilar e o indicador voltar temporariamente do 4 para o 3, o app não apaga o fato de que o Estágio 3 já ocorreu. O campo “Estágio ao vivo” continua mostrando a condição atual.</div>
+
+      <div class="lesson"><b>14. Estágio 5 Inicial e Sustentado.</b><br>
+      O Estágio 5 Inicial é um primeiro sinal com cruzamento, preço e volume. Ele ainda é provisório. Para virar Estágio 5 Sustentado, dois candles precisam fechar mantendo o cruzamento, e a distância entre K e D precisa começar a abrir a favor do movimento. Se um candle fechado perder o cruzamento antes disso, o app registra “não sustentado”.</div>
+      <div class="lesson"><b>15. Ciclos LONG e SHORT separados.</b><br>
+      A V5.2 guarda um ciclo LONG e um ciclo SHORT de forma independente. Se um LONG anterior chegou ao Estágio 4 e depois o KDJ entra em sobrecompra, isso passa a ser um novo alerta SHORT, sem apagar nem rebaixar a memória do LONG anterior.</div>
+      <div class="lesson"><b>16. Movimento do último candle versus força acumulada.</b><br>
+      “Aproximando” ou “afastando” descreve apenas o último candle. A V5.2 também mede quanto K−D abriu ou fechou desde o cruzamento real, que é a informação mais importante para avaliar se o movimento se sustentou.</div>
+      <div class="lesson"><b>17. Preços não retroativos.</b><br>
+      Se o app for aberto no meio de um ciclo, ele não inventa preços de estágios anteriores. Esses campos ficam como traço até que um novo ciclo seja acompanhado desde o início.</div>
+    </div>
+
+    <details><summary>📌 Checklist rápido</summary>
+      <p class="hint">
+        1) Está abaixo de 20 ou acima de 80?<br>
+        2) K cruzou D?<br>
+        3) J virou antes ou depois do cruzamento?<br>
+        4) Houve reação de preço?<br>
+        5) RSI e MACD confirmam?<br>
+        6) Volume melhorou?<br>
+        7) Existe suporte/resistência ou figura gráfica?<br>
+        8) O timeframe maior está contra ou a favor?<br>
+        9) Há espaço para stop e alvo?<br>
+        10) O sinal é realmente melhor com KDJ do que sem KDJ?
+      </p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Últimos candles calculados</h2>
+    <div style="overflow:auto">
+      <table><thead><tr><th>Hora</th><th>Fechamento</th><th>K</th><th>D</th><th>J</th></tr></thead><tbody id="tbody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="foot">Ferramenta educacional. Não envia ordens. KDJ isolado não é confirmação de entrada.</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let timer=null,lastState="",lastStageKey="",lastArr=[],lastCandles=[],lastReport="",lastCycle=null,lastFingerprint="",nextTickAt=0,countdownTimer=null;
+function fmt(n,d=2){if(!Number.isFinite(n))return"—";return n.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function cleanSymbol(s){return s.trim().toUpperCase().replace("/","")}
+function speak(text,rate=1){
+  if(!("speechSynthesis" in window)){alert("Seu navegador não oferece leitura por voz.");return}
+  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text);u.lang="pt-BR";u.rate=+rate;speechSynthesis.speak(u)
+}
+function stripHtml(html){const d=document.createElement("div");d.innerHTML=html;return d.innerText}
+
+function setDiag(id,text,cls=""){
+  const el=$(id); if(!el) return;
+  el.textContent=text; el.className="v "+cls;
+}
+function fingerprint(candles){
+  if(!candles||!candles.length) return "";
+  const c=candles[candles.length-1];
+  return [c.time,c.open,c.high,c.low,c.close,c.volume].join("|");
+}
+function candleLabel(ms){
+  if(!ms) return "—";
+  return new Date(ms).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+function updateStage5Requirements(si,cyc,candles){
+  if(!candles||candles.length<22) return;
+  const cc=candles[candles.length-1],pc=candles[candles.length-2];
+  const av=avgVolume(candles.slice(0,-1),20);
+  const ratio=av?cc.volume/av:0;
+  const side=(cyc&&cyc.side!=="NONE")?cyc.side:si.side;
+
+  const crossOK=side==="LONG"?si.gap>0:side==="SHORT"?si.gap<0:false;
+  const priceOK=side==="LONG"?cc.close>pc.close:side==="SHORT"?cc.close<pc.close:false;
+  const volOK=av===0||ratio>=.8;
+
+  setDiag("reqCross",crossOK?"✅ válido":"❌ não",""+(crossOK?"ok":"badc"));
+  setDiag("reqPrice",priceOK?"✅ confirma":"❌ falta",""+(priceOK?"ok":"badc"));
+  setDiag("reqVol",`${fmt(ratio,2)}x ${volOK?"✅":"❌"}`,volOK?"ok":"badc");
+
+  let n=0;
+  if(cyc&&cyc.stage5InitialCandleTime!=null){
+    const closed=candles.slice(0,-1);
+    n=closed.filter(x=>x.time>=cyc.stage5InitialCandleTime).length;
+  }
+  setDiag("reqClosed",`${Math.min(n,2)}/2`,n>=2?"ok":(n>0?"warnc":""));
+}
+function scheduleCountdown(){
+  clearInterval(countdownTimer);
+  countdownTimer=setInterval(()=>{
+    const auto=+$("auto").value;
+    if(auto<=0){$("diagNext").textContent="Próxima atualização: automática parada";return}
+    const sec=Math.max(0,Math.ceil((nextTickAt-Date.now())/1000));
+    $("diagNext").textContent=`Próxima atualização automática em ~${sec}s. Ao voltar para esta aba, o app também atualiza imediatamente.`;
+  },1000);
+}
+
+function calcKDJ(candles,period=9,sK=3,sD=3){
+  let out=[],K=50,D=50;
+  for(let i=0;i<candles.length;i++){
+    if(i<period-1){out.push(null);continue}
+    const s=candles.slice(i-period+1,i+1),lo=Math.min(...s.map(x=>x.low)),hi=Math.max(...s.map(x=>x.high)),cl=candles[i].close;
+    const rsv=hi===lo?50:((cl-lo)/(hi-lo))*100;
+    K=((sK-1)/sK)*K+(1/sK)*rsv; D=((sD-1)/sD)*D+(1/sD)*K; const J=3*K-2*D;
+    out.push({time:candles[i].time,close:cl,K,D,J})
+  } return out.filter(Boolean)
+}
+function classify(arr){
+  const c=arr[arr.length-1],p=arr[arr.length-2];
+  const up=p.K<=p.D&&c.K>c.D,down=p.K>=p.D&&c.K<c.D;
+  if(up&&(c.K<35||c.D<35))return{id:"LONG",title:"🟢 CRUZAMENTO LONG",sub:"K cruzou D para cima em região baixa. Possível reação; ainda precisa de confirmação.",cls:"ok",cross:"K ↑ D"};
+  if(down&&(c.K>65||c.D>65))return{id:"SHORT",title:"🔻 CRUZAMENTO SHORT",sub:"K cruzou D para baixo em região alta. Possível enfraquecimento; ainda precisa de confirmação.",cls:"badc",cross:"K ↓ D"};
+  if(c.K<20||c.D<20)return{id:"OVERSOLD",title:"🟡 SOBREVENDA",sub:"O KDJ está esticado para baixo. Isso é atenção, não compra automática.",cls:"warnc",cross:"sem cruzamento novo"};
+  if(c.K>80||c.D>80)return{id:"OVERBOUGHT",title:"🔴 SOBRECOMPRA",sub:"O KDJ está esticado para cima. Isso é atenção, não venda automática.",cls:"badc",cross:"sem cruzamento novo"};
+  return{id:"NEUTRAL",title:"⚪ NEUTRO",sub:"Sem extremo ou cruzamento relevante neste momento.",cls:"",cross:"sem cruzamento novo"}
+}
+function jDirection(arr){const a=arr[arr.length-1].J,b=arr[arr.length-2].J;return a>b?"subindo":a<b?"caindo":"estável"}
+function momentum(arr){const a=arr[arr.length-1],b=arr[arr.length-4]||arr[0];const d=a.J-b.J;return d>15?"reação forte para cima":d<-15?"reação forte para baixo":d>3?"melhora gradual":d<-3?"perda gradual":"lateral"}
+
+function avgVolume(candles,n=20){
+  const a=candles.slice(-n); return a.length?a.reduce((z,x)=>z+x.volume,0)/a.length:0
+}
+function stageInfo(arr,candles){
+  const c=arr[arr.length-1],p=arr[arr.length-2],p2=arr[arr.length-3]||p;
+  const recent=arr.slice(-8);
+  const sawLow=recent.some(x=>x.K<20||x.D<20||x.J<0);
+  const sawHigh=recent.some(x=>x.K>80||x.D>80||x.J>100);
+  let side="NONE";
+  if(sawLow&&!sawHigh) side="LONG";
+  else if(sawHigh&&!sawLow) side="SHORT";
+  else if(sawLow&&sawHigh) side=Math.abs(c.K-20)<Math.abs(c.K-80)?"LONG":"SHORT";
+
+  const gap=c.K-c.D,prevGap=p.K-p.D;
+  const absGap=Math.abs(gap),prevAbs=Math.abs(prevGap);
+  const gapTrend=absGap<prevAbs-0.15?"aproximando":absGap>prevAbs+0.15?"afastando":"estável";
+  const deltaK=c.K-p.K,deltaD=c.D-p.D,deltaJ=c.J-p.J;
+
+  let gapDriver="misto";
+  if(gapTrend==="aproximando"){
+    if(side==="LONG"){
+      const kHelp=Math.max(deltaK,0),dHelp=Math.max(-deltaD,0);
+      gapDriver=kHelp>dHelp*1.35?"principalmente K ↑":dHelp>kHelp*1.35?"principalmente D ↓":"K ↑ + D ↓";
+    }else if(side==="SHORT"){
+      const kHelp=Math.max(-deltaK,0),dHelp=Math.max(deltaD,0);
+      gapDriver=kHelp>dHelp*1.35?"principalmente K ↓":dHelp>kHelp*1.35?"principalmente D ↑":"K ↓ + D ↑";
+    }
+  }else if(gapTrend==="afastando") gapDriver="distância abriu";
+  else gapDriver="quase sem mudança";
+
+  let checks=[false,false,false,false,false],stage=0,note="Sem extremo recente relevante.";
+  if(side==="LONG"){
+    checks[0]=sawLow;
+    checks[1]=checks[0]&&c.J>p.J;
+    checks[2]=checks[1]&&c.K<c.D&&(gapTrend==="aproximando"||absGap<=4);
+    checks[3]=checks[0]&&c.K>=c.D;
+    const av=avgVolume(candles.slice(0,-1),20),cc=candles[candles.length-1],pc=candles[candles.length-2];
+    checks[4]=checks[3]&&cc.close>pc.close&&(av===0||cc.volume>=av*.8);
+    stage=checks[4]?5:checks[3]?4:checks[2]?3:checks[1]?2:checks[0]?1:0;
+    note=stage===1?"Extremo detectado. Esperar J mostrar reação.":stage===2?"J já reagiu. Agora observe se K reduz a distância para D.":stage===3?"A distância K/D está fechando. Agora importa saber se K ganhou força ou se D apenas caiu até K.":stage===4?"K está acima de D. Falta confirmação básica do preço/volume e, fora do KDJ, RSI/MACD/MMEs.":stage===5?"Sequência básica KDJ + preço/volume confirmada. Ainda confronte tendência e risco.":"Sem sequência LONG ativa.";
+  }else if(side==="SHORT"){
+    checks[0]=sawHigh;
+    checks[1]=checks[0]&&c.J<p.J;
+    checks[2]=checks[1]&&c.K>c.D&&(gapTrend==="aproximando"||absGap<=4);
+    checks[3]=checks[0]&&c.K<=c.D;
+    const av=avgVolume(candles.slice(0,-1),20),cc=candles[candles.length-1],pc=candles[candles.length-2];
+    checks[4]=checks[3]&&cc.close<pc.close&&(av===0||cc.volume>=av*.8);
+    stage=checks[4]?5:checks[3]?4:checks[2]?3:checks[1]?2:checks[0]?1:0;
+    note=stage===1?"Extremo detectado. Esperar J virar para baixo.":stage===2?"J já virou para baixo. Agora observe se K reduz a distância para D.":stage===3?"A distância K/D está fechando. Agora importa saber se K ganhou força para baixo ou se D apenas subiu até K.":stage===4?"K está abaixo de D. Falta confirmação básica do preço/volume e, fora do KDJ, RSI/MACD/MMEs.":stage===5?"Sequência básica KDJ + preço/volume confirmada. Ainda confronte tendência e risco.":"Sem sequência SHORT ativa.";
+  }
+
+  let stage3Quality="N/A",stage3Class="",stage3Reason="Estágio 3 ainda não está ativo.";
+  if(stage===3&&side==="LONG"){
+    if(deltaK>=1.5&&deltaJ>0&&gapTrend==="aproximando"){
+      stage3Quality="FORTE";stage3Class="q-strong";stage3Reason="K está ganhando inclinação para cima e ajudando diretamente a fechar a distância para D.";
+    }else if(deltaK>0.35&&gapTrend==="aproximando"){
+      stage3Quality="MÉDIO";stage3Class="q-medium";stage3Reason="K está subindo, mas ainda sem aceleração forte. A aproximação é válida, porém precisa continuar.";
+    }else if(gapTrend==="aproximando"){
+      stage3Quality="FRACO";stage3Class="q-weak";stage3Reason="A distância está fechando mais pela queda de D do que por força real de K. Ainda é um pré-sinal frágil.";
+    }
+  }else if(stage===3&&side==="SHORT"){
+    if(deltaK<=-1.5&&deltaJ<0&&gapTrend==="aproximando"){
+      stage3Quality="FORTE";stage3Class="q-strong";stage3Reason="K está ganhando inclinação para baixo e ajudando diretamente a fechar a distância para D.";
+    }else if(deltaK<-0.35&&gapTrend==="aproximando"){
+      stage3Quality="MÉDIO";stage3Class="q-medium";stage3Reason="K está caindo, mas ainda sem aceleração forte. A aproximação é válida, porém precisa continuar.";
+    }else if(gapTrend==="aproximando"){
+      stage3Quality="FRACO";stage3Class="q-weak";stage3Reason="A distância está fechando mais pela subida de D do que por força real de K. Ainda é um pré-sinal frágil.";
+    }
+  }else if(stage>=4){
+    stage3Quality="SUPERADO";stage3Class="q-strong";stage3Reason="O Estágio 3 já foi vencido; o foco agora é cruzamento e confirmação.";
+  }
+  return {side,stage,checks,gap,absGap,gapTrend,note,deltaK,deltaD,deltaJ,gapDriver,stage3Quality,stage3Class,stage3Reason};
+}
+function renderStages(si,cyc){
+  const labels=["Extremo","J virou","K aproxima D","Cruzamento","Preço + volume"];
+  const mem=(cyc&&cyc.stages)||[false,false,false,false,false];
+
+  for(let i=1;i<=5;i++){
+    const el=$("st"+i);
+    const done=!!mem[i-1];
+    el.className="stage-step "+(done?"done":"pending");
+
+    const isActive=(si.stage===i && !(cyc&&cyc.stage5State==="INICIAL"&&i<5));
+    if(isActive) el.classList.add("active");
+
+    let nm=labels[i-1];
+    if(i===5 && cyc){
+      if(cyc.stage5State==="SUSTENTADO") nm="5 Sustentado";
+      else if(cyc.stage5State==="INICIAL") nm="5 Inicial";
+      else if(cyc.stage5State==="FALHOU") nm="5 falhou";
+    }
+    el.querySelector(".name").textContent=(done?"✅ ":"⬜ ")+nm;
+  }
+
+  let stageText=si.stage?`Estágio ${si.stage} • ${si.side}`:"Sem estágio";
+  if(cyc){
+    if(cyc.stage5State==="SUSTENTADO") stageText=`Estágio 5 SUSTENTADO • ${cyc.side}`;
+    else if(cyc.stage5State==="INICIAL") stageText=`Estágio 5 INICIAL • ${cyc.side}`;
+    else if(cyc.stage5State==="FALHOU") stageText=`Estágio ${si.stage||0} • ${cyc.side} | 5 falhou`;
+  }
+  $("stageNow").textContent=stageText;
+  $("gapKD").textContent=(si.gap>=0?"+":"")+fmt(si.gap)+" pts";
+  $("gapTrend").textContent=si.gapTrend;
+
+  let note=si.note+(si.stage===3?` • Qualidade: ${si.stage3Quality}`:"");
+  if(cyc&&cyc.stage5State==="INICIAL")
+    note="Estágio 5 Inicial registrado. Agora o app aguarda 2 candles FECHADOS mantendo o cruzamento e K−D abrindo a favor.";
+  if(cyc&&cyc.stage5State==="SUSTENTADO")
+    note="Estágio 5 Sustentado: dois candles fechados mantiveram o cruzamento e a distância K−D abriu na direção esperada.";
+  if(cyc&&cyc.stage5State==="FALHOU")
+    note="O Estágio 5 Inicial não se sustentou em candle fechado. A sequência anterior continua registrada para estudo.";
+  $("stageNote").textContent=note;
+
+  $("deltaK").textContent=(si.deltaK>=0?"+":"")+fmt(si.deltaK);
+  $("deltaD").textContent=(si.deltaD>=0?"+":"")+fmt(si.deltaD);
+  $("deltaJ").textContent=(si.deltaJ>=0?"+":"")+fmt(si.deltaJ);
+  $("gapDriver").textContent=si.gapDriver;
+
+  const q=$("stage3Quality");
+  q.className=si.stage3Class||"";
+  q.textContent="Qualidade do Estágio 3: "+(mem[2]&&si.stage>=4?"SUPERADO":si.stage3Quality);
+  $("stage3Reason").textContent=mem[2]&&si.stage>=4
+    ?"O Estágio 3 já aconteceu e permanece registrado na memória do ciclo."
+    :si.stage3Reason;
+
+  renderStage5(cyc,si);
+}
+
+function fmtPriceMaybe(v){
+  if(v==null||!Number.isFinite(+v)) return "—";
+  const n=+v; return fmt(n,n<1?6:n<10?4:2);
+}
+function pctFrom(a,b){
+  if(!a||!b) return null;
+  return ((b/a)-1)*100;
+}
+function renderStage5(cyc,si){
+  const st=$("stage5Status"),rs=$("stage5Reason");
+  if(!cyc){
+    st.className="stage5-wait";st.textContent="Estágio 5: aguardando";return;
+  }
+  if(cyc.stage5State==="SUSTENTADO"){
+    st.className="stage5-sustained";st.textContent="🟢 Estágio 5 SUSTENTADO";
+    rs.textContent="Dois candles fechados mantiveram o cruzamento e K−D abriu a favor. Ainda é confirmação do KDJ, não ordem automática.";
+  }else if(cyc.stage5State==="INICIAL"){
+    st.className="stage5-initial";st.textContent="🟡 Estágio 5 INICIAL — provisório";
+    rs.textContent=`Aguardando 2 candles fechados após o primeiro Estágio 5. Tentativa ${cyc.stage5Attempts||1}.`;
+  }else if(cyc.stage5State==="FALHOU"){
+    st.className="stage5-failed";st.textContent="🔴 Estágio 5 NÃO SUSTENTADO";
+    rs.textContent="Um candle fechado invalidou o cruzamento antes da confirmação sustentada. O caso fica preservado no histórico.";
+  }else{
+    st.className="stage5-wait";st.textContent="Estágio 5: ainda não atingido";
+    rs.textContent="Primeiro precisamos completar extremo → J virou → aproximação → cruzamento → preço/volume.";
+  }
+
+  $("priceS1").textContent=fmtPriceMaybe(cyc.prices&&cyc.prices.s1);
+  $("priceS4").textContent=fmtPriceMaybe(cyc.prices&&cyc.prices.s4);
+  $("priceS5I").textContent=fmtPriceMaybe(cyc.prices&&cyc.prices.s5i);
+  $("priceS5S").textContent=fmtPriceMaybe(cyc.prices&&cyc.prices.s5s);
+
+  const cur=lastArr.length?lastArr[lastArr.length-1].close:null;
+  const pc=pctFrom(cyc.prices&&cyc.prices.s1,cur);
+  $("cyclePerf").textContent=pc==null
+    ?"Variação desde o Estágio 1: —"
+    :`Variação do preço desde o Estágio 1: ${pc>=0?"+":""}${fmt(pc)}% • Maior estágio memorizado: ${cyc.maxStage||0}/5`;
+}
+
+
+const CYCLE_KEY="RadarKDJ_V5_2_Ciclos";
+function loadCycles(){
+  try{return JSON.parse(localStorage.getItem(CYCLE_KEY)||"{}")}catch{return{}}
+}
+function saveCycles(x){localStorage.setItem(CYCLE_KEY,JSON.stringify(x))}
+function cycleKey(symbol,tf,side){return `${symbol}|${tf}|${side}`}
+function blankCycle(side="NONE"){
+  return {
+    side,stages:[false,false,false,false,false],maxStage:0,
+    stage5State:"NONE",stage5Attempts:0,
+    stage5InitialCandleTime:null,lastAttemptCandleTime:null,
+    stage5SustainedTime:null,stage5FailedTime:null,
+    prices:{s1:null,s4:null,s5i:null,s5s:null},
+    times:{s1:null,s4:null,s5i:null,s5s:null},
+    createdAt:Date.now(),updatedAt:Date.now()
+  }
+}
+function getCycle(symbol,tf,side){
+  const all=loadCycles(),key=cycleKey(symbol,tf,side);
+  return all[key]||null;
+}
+function putCycle(symbol,tf,side,cyc){
+  const all=loadCycles();all[cycleKey(symbol,tf,side)]=cyc;saveCycles(all);return cyc
+}
+function resetCycle(symbol,tf,side){
+  const all=loadCycles();
+  if(side){
+    delete all[cycleKey(symbol,tf,side)];
+  }else{
+    delete all[cycleKey(symbol,tf,"LONG")];
+    delete all[cycleKey(symbol,tf,"SHORT")];
+  }
+  saveCycles(all);lastCycle=null;
+}
+
+function alignedForSide(x,side){
+  if(side==="LONG") return x.K>x.D;
+  if(side==="SHORT") return x.K<x.D;
+  return false;
+}
+function gapOpeningForSide(a,b,side){
+  const ga=a.K-a.D,gb=b.K-b.D;
+  if(side==="LONG") return gb>ga+0.15 && gb>0;
+  if(side==="SHORT") return gb<ga-0.15 && gb<0;
+  return false;
+}
+
+function updateCycle(si,arr,candles){
+  const symbol=cleanSymbol($("symbol").value),tf=$("tf").value;
+  const currentCandle=candles[candles.length-1];
+  const currentPrice=arr[arr.length-1].close;
+  const now=Date.now();
+
+  // Sem lado definido, não cria ciclo.
+  if(si.side==="NONE") return null;
+
+  let cyc=getCycle(symbol,tf,si.side);
+
+  // Só cria um ciclo novo quando existe estágio REAL ao vivo.
+  if(!cyc && si.stage>=1){
+    cyc=blankCycle(si.side);
+    cyc.startedAtCandle=currentCandle.time;
+  }
+  if(!cyc) return null;
+
+  // Memória dos estágios: mantém o que ocorreu, sem misturar lado contrário.
+  if(si.stage>=1){
+    const previousMax=cyc.maxStage||0;
+    for(let i=0;i<si.stage;i++) cyc.stages[i]=true;
+    cyc.maxStage=Math.max(previousMax,si.stage);
+
+    // Regra crítica V5.2:
+    // Só grava preço de um estágio quando aquele estágio aparece pela PRIMEIRA VEZ
+    // depois de o app já estar acompanhando esse ciclo. Não inventa preço retroativo.
+    if(si.stage===1 && previousMax<1 && cyc.prices.s1==null){
+      cyc.prices.s1=currentPrice;cyc.times.s1=now;cyc.candles1=currentCandle.time;
+    }
+    if(si.stage===4 && previousMax<4 && cyc.prices.s4==null){
+      cyc.prices.s4=currentPrice;cyc.times.s4=now;cyc.candles4=currentCandle.time;
+      cyc.gapAtCross=(arr[arr.length-1].K-arr[arr.length-1].D);
+    }
+  }
+
+  // Estágio 5 inicial somente quando chega a 5 pela primeira vez em uma tentativa.
+  if(si.stage>=5 && cyc.stage5State!=="SUSTENTADO"){
+    const candleTime=currentCandle.time;
+    const canStart = cyc.stage5State==="NONE" ||
+      (cyc.stage5State==="FALHOU" && candleTime>(cyc.lastAttemptCandleTime||0));
+
+    if(canStart){
+      cyc.stage5State="INICIAL";
+      cyc.stage5Attempts=(cyc.stage5Attempts||0)+1;
+      cyc.stage5InitialCandleTime=candleTime;
+      cyc.lastAttemptCandleTime=candleTime;
+      cyc.prices.s5i=currentPrice;
+      cyc.times.s5i=now;
+      cyc.stages[4]=true;
+      cyc.maxStage=Math.max(cyc.maxStage||0,5);
+    }
+  }
+
+  // Validação em candles FECHADOS.
+  if(cyc.stage5State==="INICIAL" && cyc.stage5InitialCandleTime!=null){
+    const closedCandles=candles.slice(0,-1);
+    const closedArr=calcKDJ(closedCandles);
+    const post=closedArr.filter(x=>x.time>=cyc.stage5InitialCandleTime);
+
+    if(post.length>=1){
+      const latest=post[post.length-1];
+      if(!alignedForSide(latest,cyc.side)){
+        cyc.stage5State="FALHOU";
+        cyc.stage5FailedTime=latest.time;
+      }
+    }
+
+    if(cyc.stage5State==="INICIAL" && post.length>=2){
+      const a=post[post.length-2],b=post[post.length-1];
+      if(alignedForSide(a,cyc.side) && alignedForSide(b,cyc.side) && gapOpeningForSide(a,b,cyc.side)){
+        cyc.stage5State="SUSTENTADO";
+        cyc.stage5SustainedTime=b.time;
+        cyc.prices.s5s=b.close;
+        cyc.times.s5s=now;
+        cyc.stages=[true,true,true,true,true];
+        cyc.maxStage=5;
+      }
+    }
+  }
+
+  // Métrica de abertura desde o cruzamento real registrado.
+  if(cyc.gapAtCross!=null){
+    const currentGap=arr[arr.length-1].K-arr[arr.length-1].D;
+    cyc.currentGap=currentGap;
+    cyc.gapOpenedSinceCross = currentGap - cyc.gapAtCross;
+  }
+
+  cyc.updatedAt=now;
+  putCycle(symbol,tf,si.side,cyc);
+  return cyc;
+}
+
+function getBothCycles(symbol,tf){
+  return {
+    LONG:getCycle(symbol,tf,"LONG"),
+    SHORT:getCycle(symbol,tf,"SHORT")
+  };
+}
+function fmtGapOpen(cyc){
+  if(!cyc || cyc.gapAtCross==null || cyc.currentGap==null) return "—";
+  const d=cyc.gapOpenedSinceCross||0;
+  const good = cyc.side==="LONG" ? d>0 : d<0;
+  return `${d>=0?"+":""}${fmt(d)} pts ${good?"✅":"⚠️"}`;
+}
+function renderBothCycles(symbol,tf,si){
+  const both=getBothCycles(symbol,tf),L=both.LONG,S=both.SHORT;
+
+  $("longMaxStage").textContent=L?`${L.maxStage||0}/5`:"—";
+  $("shortMaxStage").textContent=S?`${S.maxStage||0}/5`:"—";
+  $("longStage5").textContent=L?L.stage5State:"—";
+  $("shortStage5").textContent=S?S.stage5State:"—";
+  $("longP1").textContent=L?fmtPriceMaybe(L.prices&&L.prices.s1):"—";
+  $("shortP1").textContent=S?fmtPriceMaybe(S.prices&&S.prices.s1):"—";
+  $("longP4").textContent=L?fmtPriceMaybe(L.prices&&L.prices.s4):"—";
+  $("shortP4").textContent=S?fmtPriceMaybe(S.prices&&S.prices.s4):"—";
+  $("longGapOpen").textContent=fmtGapOpen(L);
+  $("shortGapOpen").textContent=fmtGapOpen(S);
+
+  if(si.side==="LONG"){
+    $("liveCycleAlert").textContent=`🟢 Alerta ao vivo LONG — estágio ${si.stage||0}/5`;
+    $("liveCycleNote").textContent="Este alerta LONG não altera a memória do ciclo SHORT.";
+  }else if(si.side==="SHORT"){
+    $("liveCycleAlert").textContent=`🔴 Alerta ao vivo SHORT — estágio ${si.stage||0}/5`;
+    $("liveCycleNote").textContent="Este alerta SHORT não altera a memória do ciclo LONG.";
+  }else{
+    $("liveCycleAlert").textContent="⚪ Alerta ao vivo: sem novo ciclo definido";
+    $("liveCycleNote").textContent="As memórias LONG e SHORT permanecem separadas.";
+  }
+}
+
+const HIST_KEY="RadarKDJ_V3_Historico";
+function loadHistory(){try{return JSON.parse(localStorage.getItem(HIST_KEY)||"[]")}catch{return[]}}
+function saveHistory(h){localStorage.setItem(HIST_KEY,JSON.stringify(h.slice(0,150)))}
+function registerReading(auto=false){
+  if(lastArr.length<3||lastCandles.length<3)return;
+  const c=lastArr[lastArr.length-1],st=classify(lastArr),si=stageInfo(lastArr,lastCandles);
+  const cyc=lastCycle||getCycle(cleanSymbol($("symbol").value),$("tf").value,si.side);
+  const rec={ts:Date.now(),symbol:cleanSymbol($("symbol").value),tf:$("tf").value,price:c.close,K:c.K,D:c.D,J:c.J,state:st.id,stage:si.stage,side:si.side,gap:si.gap,quality:si.stage3Quality,driver:si.gapDriver,stage5:cyc?cyc.stage5State:"NONE",maxStage:cyc?cyc.maxStage:si.stage,auto};
+  const h=loadHistory();h.unshift(rec);saveHistory(h);renderHistory();
+}
+function renderHistory(){
+  const h=loadHistory();
+  $("historyBody").innerHTML=h.length?h.map(r=>`<tr><td>${new Date(r.ts).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</td><td>${r.symbol}/${r.tf}</td><td>${fmt(r.price,r.price<1?6:r.price<10?4:2)}</td><td>${r.stage?`${r.stage} ${r.side}`:"—"}</td><td>${r.gap>=0?"+":""}${fmt(r.gap)}</td><td>${r.state}</td></tr>`).join(""):`<tr><td colspan="6" style="text-align:center;color:var(--muted)">Nenhum registro ainda.</td></tr>`;
+}
+
+
+function preSignalLabel(si){
+  if(!si || si.side==="NONE" || !si.stage) return "sem pré-sinal ativo";
+  let q="";
+  if(si.stage===3 && si.stage3Quality && si.stage3Quality!=="N/A") q=` ${si.stage3Quality}`;
+  if(si.stage===1) q=" INICIAL";
+  if(si.stage===2) q=" EM FORMAÇÃO";
+  if(si.stage===4) q=" CRUZAMENTO";
+  if(si.stage>=5) q=" CONFIRMADO";
+  return `${si.side} ${si.stage}/5${q}`;
+}
+
+function generateReport(){
+  if(lastArr.length<4){$("report").value="Atualize os dados antes de gerar o relatório.";return}
+  const symbol=cleanSymbol($("symbol").value),tf=$("tf").value,c=lastArr[lastArr.length-1],p=lastArr[lastArr.length-2],st=classify(lastArr),si=stageInfo(lastArr,lastCandles);
+  const cyc=lastCycle||getCycle(symbol,tf,si.side);
+  const both=getBothCycles(symbol,tf),longC=both.LONG,shortC=both.SHORT;
+  const up=p.K<=p.D&&c.K>c.D,down=p.K>=p.D&&c.K<c.D;
+  const zone=(c.K<20||c.D<20)?"SOBREVENDA":(c.K>80||c.D>80)?"SOBRECOMPRA":"NEUTRA";
+  const jdir=jDirection(lastArr),mom=momentum(lastArr);
+  const jext=c.J<0?"J abaixo de 0: extremo baixista importante":c.J>100?"J acima de 100: extremo altista importante":c.J<20?"J em região baixa":c.J>80?"J em região alta":"J em região intermediária";
+  const mode=$("reportMode").value;
+  const mem=cyc?cyc.stages:si.checks;
+  const checkText=mem.map((v,i)=>`${v?"✅":"❌"} Estágio ${i+1}: ${["Extremo","J virou","K aproximando D","Cruzamento","Preço + volume"][i]}`).join("\n");
+  const stage5=cyc?cyc.stage5State:"NONE";
+  const price1=cyc&&cyc.prices?cyc.prices.s1:null;
+  const perf=price1?((c.close/price1)-1)*100:null;
+
+  let stage5Text="ainda não atingido";
+  if(stage5==="INICIAL") stage5Text=`INICIAL / provisório — aguardando 2 candles fechados (tentativa ${cyc.stage5Attempts||1})`;
+  else if(stage5==="SUSTENTADO") stage5Text="SUSTENTADO — 2 candles fechados mantiveram o cruzamento e K−D abriu a favor";
+  else if(stage5==="FALHOU") stage5Text="NÃO SUSTENTADO — candle fechado invalidou o cruzamento antes da confirmação";
+
+  let body=`RELATÓRIO INTELIGENTE — RADAR KDJ SIMPLES V5.3
+Data/Hora: ${new Date().toLocaleString("pt-BR")}
+Ativo: ${symbol} | Mercado: Binance Futures | Timeframe: ${tf}
+Indicador: KDJ (9,3,3)
+
+1) RESUMO
+Estado KDJ atual: ${st.title.replace(/[^\p{L}\p{N}\s↑↓]/gu,"").trim()}
+Pré-sinal: ${preSignalLabel(si)}
+Preço: ${fmt(c.close,c.close<1?6:c.close<10?4:2)}
+K: ${fmt(c.K)} | D: ${fmt(c.D)} | J: ${fmt(c.J)}
+Zona: ${zone}
+Cruzamento no último cálculo: ${up?"K cruzou D para cima":down?"K cruzou D para baixo":"sem novo cruzamento"}
+Linha J: ${jdir} | ${jext}
+Impulso recente do J: ${mom}
+
+2) CICLOS SEPARADOS
+Alerta ao vivo atual: ${si.side} • estágio ${si.stage||0}/5
+
+CICLO LONG
+Maior estágio: ${longC?longC.maxStage:0}/5
+Estado 5: ${longC?longC.stage5State:"NONE"}
+Preço E1: ${fmtPriceMaybe(longC&&longC.prices.s1)}
+Preço E4: ${fmtPriceMaybe(longC&&longC.prices.s4)}
+Abertura K−D desde cruzamento LONG: ${fmtGapOpen(longC)}
+
+CICLO SHORT
+Maior estágio: ${shortC?shortC.maxStage:0}/5
+Estado 5: ${shortC?shortC.stage5State:"NONE"}
+Preço E1: ${fmtPriceMaybe(shortC&&shortC.prices.s1)}
+Preço E4: ${fmtPriceMaybe(shortC&&shortC.prices.s4)}
+Abertura K−D desde cruzamento SHORT: ${fmtGapOpen(shortC)}
+
+IMPORTANTE:
+• LONG e SHORT agora têm memórias independentes.
+• Um alerta SHORT novo não rebaixa nem mistura o ciclo LONG anterior.
+• Preço de estágio só é gravado quando aquele estágio acontece pela primeira vez com o app já acompanhando o ciclo.
+
+3) ESTÁGIO 5 — ANTI-RUÍDO
+Situação: ${stage5Text}
+Preço Estágio 1: ${fmtPriceMaybe(cyc&&cyc.prices.s1)}
+Preço Estágio 4: ${fmtPriceMaybe(cyc&&cyc.prices.s4)}
+Observação: “—” significa que o app entrou no ciclo depois daquele estágio e NÃO inventou um preço retroativo.
+Preço 5 Inicial: ${fmtPriceMaybe(cyc&&cyc.prices.s5i)}
+Preço 5 Sustentado: ${fmtPriceMaybe(cyc&&cyc.prices.s5s)}
+Variação do preço desde Estágio 1: ${perf==null?"—":`${perf>=0?"+":""}${fmt(perf)}%`}
+
+Regra do 5 Sustentado:
+• primeiro ocorre o Estágio 5 Inicial;
+• depois o cruzamento precisa permanecer válido por 2 candles FECHADOS;
+• entre esses candles, K−D precisa abrir na direção do sinal;
+• se um candle fechado invalidar o cruzamento antes disso, o 5 é marcado como NÃO SUSTENTADO.
+
+4) DINÂMICA K / D / J
+Distância K − D atual: ${si.gap>=0?"+":""}${fmt(si.gap)} pontos
+Movimento do ÚLTIMO candle: ${si.gapTrend}
+ΔK: ${si.deltaK>=0?"+":""}${fmt(si.deltaK)} | ΔD: ${si.deltaD>=0?"+":""}${fmt(si.deltaD)} | ΔJ: ${si.deltaJ>=0?"+":""}${fmt(si.deltaJ)}
+Quem moveu K−D no último candle: ${si.gapDriver}
+Abertura acumulada desde o cruzamento do ciclo atual: ${fmtGapOpen(cyc)}
+Qualidade do Estágio 3 ao vivo: ${si.stage3Quality}
+Motivo: ${si.stage3Reason}
+
+5) LEITURA DIDÁTICA
+${zone==="SOBREVENDA"?"O KDJ está ou esteve muito esticado para baixo. Isso chama atenção para reação, mas não garante fundo.":zone==="SOBRECOMPRA"?"O KDJ está ou esteve muito esticado para cima. Isso chama atenção para correção, mas não garante topo.":"O KDJ está fora das zonas extremas neste momento."}
+A V5.3 mantém LONG e SHORT em memórias separadas e também separa visualmente o “Estado KDJ atual” do “Pré-sinal”. Assim, NEUTRO pode coexistir com um pré-sinal SHORT ou LONG em formação sem parecer contradição. O movimento do último candle e a abertura acumulada de K−D desde o cruzamento continuam mostrados separadamente.
+
+6) DIAGNÓSTICO DO ESTÁGIO 5
+A tela V5.3 mostra separadamente:
+• se K/D ainda está cruzado na direção do ciclo;
+• se o preço atual confirma contra o candle anterior;
+• volume atual dividido pela média dos 20 candles anteriores;
+• quantos candles fechados existem após o Estágio 5 Inicial.
+
+Se o estágio permanecer no 4, consulte esses quatro campos: eles mostram exatamente qual requisito ainda está faltando.
+
+7) CONFIRMAÇÕES EXTERNAS QUE CONTINUAM NECESSÁRIAS
+• Estrutura do preço e suporte/resistência.
+• RSI e possíveis divergências.
+• MACD e evolução do histograma.
+• Volume real da reação.
+• MMEs e direção da tendência.
+• 1h/4h contra ou a favor.
+• Stop técnico e relação risco/retorno.
+
+8) PARA CONVERSAR COM O CHATGPT
+Analise este relatório KDJ V5.3 e responda:
+a) Qual é o estado separado do ciclo LONG e do ciclo SHORT?
+b) O alerta ao vivo atual pertence ao mesmo ciclo anterior ou é um ciclo oposto novo?
+c) K−D abriu ou fechou quanto DESDE O CRUZAMENTO real do ciclo?
+d) Os preços E1/E4 são reais ou aparecem como “—” porque o app entrou no meio do ciclo?
+e) O Estágio 5 ficou apenas Inicial, virou Sustentado ou falhou?
+f) O KDJ realmente antecipou uma reação útil ou apenas oscilou sem resultado?
+`;
+
+  if(mode==="curto"){
+    body=`KDJ V5.3 ${symbol} ${tf}
+${new Date().toLocaleString("pt-BR")}
+Preço: ${fmt(c.close,c.close<1?6:c.close<10?4:2)}
+K ${fmt(c.K)} | D ${fmt(c.D)} | J ${fmt(c.J)}
+Estado KDJ: ${st.title.replace(/[^\p{L}\p{N}\s↑↓]/gu,"").trim()}
+Pré-sinal: ${preSignalLabel(si)}
+Ao vivo: estágio ${si.stage||0}/5 ${si.side}
+Memória: maior estágio ${cyc?cyc.maxStage:si.stage}/5
+Estágio 5: ${stage5Text}
+K−D: ${si.gap>=0?"+":""}${fmt(si.gap)} pts | ${si.gapTrend}
+ΔK ${si.deltaK>=0?"+":""}${fmt(si.deltaK)} | ΔD ${si.deltaD>=0?"+":""}${fmt(si.deltaD)} | ΔJ ${si.deltaJ>=0?"+":""}${fmt(si.deltaJ)}
+Preço E1 ${fmtPriceMaybe(cyc&&cyc.prices.s1)} | E4 ${fmtPriceMaybe(cyc&&cyc.prices.s4)} | 5I ${fmtPriceMaybe(cyc&&cyc.prices.s5i)} | 5S ${fmtPriceMaybe(cyc&&cyc.prices.s5s)}
+Desde E1: ${perf==null?"—":`${perf>=0?"+":""}${fmt(perf)}%`}`;
+  }else if(mode==="tecnico"){
+    body+=`\n8) BLOCO TÉCNICO\nEstado 5: ${stage5}.\nTentativas de Estágio 5: ${cyc?cyc.stage5Attempts:0}.\nGap K-D: ${fmt(si.gap)}.\nGap absoluto: ${fmt(si.absGap)}.\nDelta K: ${fmt(si.deltaK)}.\nDelta D: ${fmt(si.deltaD)}.\nDelta J: ${fmt(si.deltaJ)}.\n`;
+  }
+
+  lastReport=body;$("report").value=body;
+}
+async function fetchData(){
+  const symbol=cleanSymbol($("symbol").value),tf=$("tf").value;
+  if(!symbol){alert("Digite uma moeda, por exemplo SOLUSDT.");return}
+
+  $("btnUpdate").disabled=true;
+  $("btnUpdate").textContent="Atualizando...";
+  setDiag("diagFetch","consultando...","warnc");
+
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),10000);
+
+  try{
+    const url=`https://fapi.binance.com/fapi/v1/klines?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(tf)}&limit=160&_=${Date.now()}`;
+    const r=await fetch(url,{cache:"no-store",signal:controller.signal,headers:{"Cache-Control":"no-cache"}});
+    if(!r.ok)throw new Error("Binance respondeu "+r.status);
+
+    const raw=await r.json();
+    lastCandles=raw.map(x=>({time:x[0],open:+x[1],high:+x[2],low:+x[3],close:+x[4],volume:+x[5]}));
+    lastArr=calcKDJ(lastCandles);
+
+    const fp=fingerprint(lastCandles);
+    const changed=!!lastFingerprint && fp!==lastFingerprint;
+    const first=!lastFingerprint;
+    lastFingerprint=fp;
+
+    const c=lastArr[lastArr.length-1],st=classify(lastArr),si=stageInfo(lastArr,lastCandles);
+    lastCycle=updateCycle(si,lastArr,lastCandles);
+    renderBothCycles(symbol,tf,si);
+
+    $("k").textContent=fmt(c.K);$("d").textContent=fmt(c.D);$("j").textContent=fmt(c.J);
+    $("j").className="v "+(c.J<20?"warnc":c.J>80?"badc":"");
+    $("price").textContent=fmt(c.close,c.close<1?6:c.close<10?4:2);
+    $("updated").textContent=new Date().toLocaleTimeString("pt-BR");
+
+    $("status").className="status "+st.cls;
+    $("status").innerHTML=`${st.title}<small>${st.sub}</small>`;
+    $("crossPill").textContent="Cruzamento: "+st.cross;
+
+    renderStages(si,lastCycle);
+    updateStage5Requirements(si,lastCycle,lastCandles);
+
+    // Status claro: separa estado bruto do KDJ do pré-sinal por estágio.
+    const pre=preSignalLabel(si);
+    $("status").innerHTML=`Estado KDJ: ${st.title}<small>Pré-sinal: ${pre}. ${st.sub}</small>`;
+
+    setDiag("diagFetch","OK","ok");
+    setDiag("diagTime",new Date().toLocaleTimeString("pt-BR"),"ok");
+    setDiag("diagCandle",candleLabel(lastCandles[lastCandles.length-1].time),"");
+    setDiag("diagChanged",first?"primeira leitura":changed?"SIM ✅":"não — mesmos dados",changed?"ok":"warnc");
+
+    const s5=lastCycle?lastCycle.stage5State:"NONE";
+    const maxS=lastCycle?lastCycle.maxStage:si.stage;
+    const materialKey=`${symbol}|${tf}|${st.id}|${si.side}|${si.stage}|${maxS}|${s5}`;
+
+    if(lastStageKey && materialKey!==lastStageKey){
+      registerReading(true);
+      if($("audioAlert").checked){
+        let msg=`${symbol}, ${tf}. Estágio ao vivo ${si.stage||0}.`;
+        if(s5==="INICIAL") msg+=" Estágio cinco inicial. Aguardando dois candles fechados.";
+        else if(s5==="SUSTENTADO") msg+=" Estágio cinco sustentado confirmado.";
+        else if(s5==="FALHOU") msg+=" Estágio cinco não se sustentou.";
+        else msg+=" "+si.note;
+        speak(msg,1);
+      }
+    }else if(lastState&&st.id!==lastState&&$("audioAlert").checked){
+      speak(`${symbol}, ${tf}. ${stripHtml(st.title)}. ${st.sub}`,1);
+    }
+
+    lastStageKey=materialKey;
+    lastState=st.id;
+
+    renderTable(lastArr.slice(-10).reverse());
+    draw(lastArr.slice(-55));
+    generateReport();
+    renderHistory();
+
+  }catch(e){
+    const msg=e.name==="AbortError"?"tempo de consulta excedido":e.message;
+    setDiag("diagFetch","ERRO","badc");
+    setDiag("diagTime",new Date().toLocaleTimeString("pt-BR"),"badc");
+    $("status").className="status badc";
+    $("status").innerHTML=`⚠️ Falha ao atualizar<small>${msg}. O app tentará novamente no próximo ciclo.</small>`;
+  }finally{
+    clearTimeout(timeout);
+    $("btnUpdate").disabled=false;
+    $("btnUpdate").textContent="Atualizar agora";
+    const auto=+$("auto").value;
+    nextTickAt=auto>0?Date.now()+auto*1000:0;
+  }
+}
+function renderTable(rows){
+  $("tbody").innerHTML=rows.map(x=>`<tr><td>${new Date(x.time).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</td><td>${fmt(x.close,x.close<1?6:x.close<10?4:2)}</td><td>${fmt(x.K)}</td><td>${fmt(x.D)}</td><td>${fmt(x.J)}</td></tr>`).join("")
+}
+function draw(rows){
+  const c=$("chart"),ctx=c.getContext("2d"),W=c.width,H=c.height,pad=34;ctx.clearRect(0,0,W,H);ctx.fillStyle="#07111f";ctx.fillRect(0,0,W,H);
+  const vals=rows.flatMap(x=>[x.K,x.D,x.J]);let min=Math.min(-10,...vals),max=Math.max(110,...vals);min=Math.floor(min/10)*10;max=Math.ceil(max/10)*10;
+  const y=v=>pad+(max-v)/(max-min)*(H-2*pad),x=i=>pad+i/(rows.length-1)*(W-2*pad);
+  ctx.strokeStyle="#243a55";ctx.lineWidth=1;[20,50,80].forEach(v=>{ctx.beginPath();ctx.moveTo(pad,y(v));ctx.lineTo(W-pad,y(v));ctx.stroke();ctx.fillStyle="#9fb1c8";ctx.font="12px system-ui";ctx.fillText(v,6,y(v)+4)});
+  function line(key,color){ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();rows.forEach((r,i)=>{const xx=x(i),yy=y(r[key]);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)});ctx.stroke()}
+  line("K","#5da9ff");line("D","#ffd166");line("J","#f1f5f9");ctx.font="12px system-ui";ctx.fillStyle="#5da9ff";ctx.fillText("K",W-74,18);ctx.fillStyle="#ffd166";ctx.fillText("D",W-50,18);ctx.fillStyle="#f1f5f9";ctx.fillText("J",W-26,18)
+}
+function resetTimer(){
+  clearInterval(timer);
+  const sec=+$("auto").value;
+  nextTickAt=sec>0?Date.now()+sec*1000:0;
+  if(sec>0) timer=setInterval(()=>{nextTickAt=Date.now()+sec*1000;fetchData()},sec*1000);
+  scheduleCountdown();
+}
+$("btnUpdate").onclick=fetchData;$("btnReport").onclick=generateReport;
+$("btnCopy").onclick=async()=>{if(!$("report").value)generateReport();try{await navigator.clipboard.writeText($("report").value);alert("Relatório copiado. Agora é só colar no ChatGPT.")}catch{ $("report").select();document.execCommand("copy");alert("Relatório copiado.")}}
+$("btnReadReport").onclick=()=>{if(!$("report").value)generateReport();speak($("report").value,$("speedReport").value)}
+$("btnStopReport").onclick=()=>speechSynthesis.cancel();
+$("btnReadManual").onclick=()=>speak(stripHtml($("manualText").innerHTML),$("speedManual").value);
+$("btnStopManual").onclick=()=>speechSynthesis.cancel();
+
+$("btnSaveReading").onclick=()=>{registerReading(false);alert("Leitura registrada no histórico.")};
+$("btnResetCycle").onclick=()=>{
+  const symbol=cleanSymbol($("symbol").value),tf=$("tf").value;
+  if(confirm(`Zerar os ciclos LONG e SHORT de ${symbol} ${tf}? O histórico antigo NÃO será apagado.`)){
+    resetCycle(symbol,tf,null);
+    lastStageKey="";
+    fetchData();
+  }
+};
+$("btnClearHistory").onclick=()=>{if(confirm("Limpar todo o histórico KDJ salvo neste navegador?")){localStorage.removeItem(HIST_KEY);renderHistory()}};
+
+$("auto").onchange=resetTimer;$("tf").onchange=fetchData;$("reportMode").onchange=generateReport;
+$("symbol").addEventListener("keydown",e=>{if(e.key==="Enter")fetchData()});
+
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden){
+    setTimeout(fetchData,150);
+    resetTimer();
+  }
+});
+window.addEventListener("focus",()=>{
+  setTimeout(fetchData,150);
+  resetTimer();
+});
+
+renderHistory();resetTimer();fetchData();
+</script>
+</body>
+</html>
