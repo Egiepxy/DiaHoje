@@ -113,7 +113,7 @@ const egiMorningApps=[
 ["RadarMME1 — pré-alertas","apps/radar-mme1.html"],
 ["SetupDT — confirmação e risco","apps/setupdt-painel.html"]
 ];
-const egiSymbols=["BTCUSDT","ETHUSDT","SOLUSDT","LINKUSDT","WLDUSDT","TIAUSDT","ETHFIUSDT"];
+const egiSymbols=["BTCUSDT","ETHUSDT","SOLUSDT","LINKUSDT","WLDUSDT","TIAUSDT","ETHFIUSDT","XRPUSDT","ADAUSDT","AVAXUSDT","DOGEUSDT","SUIUSDT","NEARUSDT","ONDOUSDT","AAVEUSDT","HYPEUSDT","PENDLEUSDT","ICPUSDT","UNIUSDT","BNBUSDT"];
 let egiSnapshot=[],egiLastTime=null;
 function egiDay(){return new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
 function egiChecked(){try{return JSON.parse(localStorage.getItem("egi_morning_"+egiDay())||"{}")}catch{return {}}}
@@ -127,19 +127,18 @@ function egiDirection(v){return !v?"N/D":v.pct>0?"ALTA":v.pct<0?"BAIXA":"ESTÁVE
 function egiHistoryUpdate(matrix,stamp){
  const history=egiHistoryLoad(),snapshot={at:stamp,coins:{}};
  for(const sym of egiSymbols){snapshot.coins[sym]={};for(const tf of egiTFs){const v=matrix[sym]?.[tf];if(v)snapshot.coins[sym][tf]={pct:v.pct,end:v.end}}}
- const previous=history.at(-1);
- const changes=[];
+ const previous=history.at(-1),changes=[];let unchanged=0,newCandles=0,sameCandle=0,unavailable=0;
  if(previous)for(const sym of egiSymbols)for(const tf of egiTFs){
  const a=previous.coins?.[sym]?.[tf],b=snapshot.coins[sym]?.[tf];
- if(!a||!b||a.end===b.end)continue;
- const from=egiDirection(a),to=egiDirection(b);
- if(from!==to)changes.push(sym.replace("USDT","")+" "+tf+": "+from+" → "+to);
+ if(!a||!b){unavailable++;continue}if(a.end===b.end){sameCandle++;continue}
+ newCandles++;const before=egiDirection(a),after=egiDirection(b);
+ if(before!==after)changes.push(sym.replace("USDT","")+" "+tf+": "+before+" → "+after);
+ else unchanged++;
  }
- const unique=history.at(-1)?.at!==stamp; if(unique){history.push(snapshot);try{localStorage.setItem("egi_panorama_history_v1",JSON.stringify(history.slice(-80)))}catch{}}
- const info=previous?changes.length?changes.slice(0,12).join(" • ")+(changes.length>12?" • +"+(changes.length-12)+" mudanças":""):"Nenhuma mudança de direção entre candles fechados comparáveis; consultas repetidas não contam como transição.":"Primeira consulta registrada; comparação ainda indisponível.";
- document.getElementById("egiHistory").textContent="Histórico entre consultas: "+info;
+ history.push(snapshot);try{localStorage.setItem("egi_panorama_history_v1",JSON.stringify(history.slice(-80)))}catch{}
+ const message=!previous?"Primeira consulta registrada — comparação ainda pendente.":newCandles===0?"Nenhum candle novo comparável desde a consulta anterior ("+sameCandle+" períodos sem novo fechamento).":changes.length?changes.slice(0,18).join(" • ")+(changes.length>18?" • +"+(changes.length-18)+" alterações":"")+" | "+unchanged+" mantiveram direção.":"Novos candles comparados: "+newCandles+"; todos mantiveram direção ("+unchanged+").";
+ document.getElementById("egiHistory").textContent="Histórico entre consultas: "+message+(unavailable?" • "+unavailable+" comparações indisponíveis.":"");
 }
-
 async function egiFetchMorning(){
  const status=document.getElementById("egiMorningStatus"),button=document.getElementById("egiRefresh");
  if(button.disabled)return;button.disabled=true;status.textContent="Consultando 5m, 15m, 1h e 4h: apenas candles fechados...";
@@ -180,17 +179,17 @@ async function egiFetchMorning(){
   const breadthEl=document.getElementById("egiBreadth");breadthEl.replaceChildren();
   egiTFs.forEach(tf=>{
    const b=breadth[tf],row=document.createElement("div");row.className="focus";
-   const classification=b.total<5?"Dados insuficientes":b.up===7?"Alta ampla da amostra":b.down===7?"Queda ampla da amostra":b.up>=4?"Maioria em alta":b.down>=4?"Maioria em queda":"Misto / sem maioria";
-   row.textContent=tf+" • "+b.up+" subindo / "+b.down+" caindo / "+b.flat+" estáveis ("+b.total+"/7) — "+classification;breadthEl.append(row);
+   const classification=b.total<Math.ceil(egiSymbols.length*.8)?"Dados insuficientes":b.up===egiSymbols.length?"Alta ampla da amostra":b.down===egiSymbols.length?"Queda ampla da amostra":b.up>b.total/2?"Maioria em alta":b.down>b.total/2?"Maioria em queda":"Misto / sem maioria";
+   row.textContent=tf+" • "+b.up+" subindo / "+b.down+" caindo / "+b.flat+" estáveis ("+b.total+"/"+egiSymbols.length+") — "+classification;breadthEl.append(row);
   });
   const b5=breadth["5m"],b15=breadth["15m"],b1=breadth["1h"],b4=breadth["4h"];
-  const strong=[b5,b15,b1,b4].every(b=>b.total===7);
+  const strong=[b5,b15,b1,b4].every(b=>b.total>=Math.ceil(egiSymbols.length*.8));
   let sem="⚪ DADOS PARCIAIS — sem confirmação";
   if(strong){
-   if(b15.up>=6&&b1.up>=5&&b4.up>=5)sem="🟢 ALTA MULTIPERÍODO NA AMOSTRA";
-   else if(b15.down>=6&&b1.down>=5&&b4.down>=5)sem="🔴 QUEDA MULTIPERÍODO NA AMOSTRA";
-   else if(b5.up>=5&&b15.up>=5&&(b1.down>=4||b4.down>=4))sem="🟡 RECUPERAÇÃO CURTA CONTRA CONTEXTO MAIOR";
-   else if(b5.down>=5&&b15.down>=5&&(b1.up>=4||b4.up>=4))sem="🟡 CORREÇÃO CURTA CONTRA CONTEXTO MAIOR";
+   if(b15.up/b15.total>=.75&&b1.up/b1.total>=.7&&b4.up/b4.total>=.7)sem="🟢 ALTA MULTIPERÍODO NA AMOSTRA";
+   else if(b15.down/b15.total>=.75&&b1.down/b1.total>=.7&&b4.down/b4.total>=.7)sem="🔴 QUEDA MULTIPERÍODO NA AMOSTRA";
+   else if(b5.up/b5.total>=.7&&b15.up/b15.total>=.7&&(b1.down/b1.total>=.6||b4.down/b4.total>=.6))sem="🟡 RECUPERAÇÃO CURTA CONTRA CONTEXTO MAIOR";
+   else if(b5.down/b5.total>=.7&&b15.down/b15.total>=.7&&(b1.up/b1.total>=.6||b4.up/b4.total>=.6))sem="🟡 CORREÇÃO CURTA CONTRA CONTEXTO MAIOR";
    else sem="⚪ CONFLUÊNCIA INSUFICIENTE / TRANSIÇÃO";
   }
   document.getElementById("egiSemaforo").textContent=sem+" — classificação heurística, não tendência confirmada.";
@@ -201,17 +200,17 @@ async function egiFetchMorning(){
 
 
   const professor=document.getElementById("egiProfessorPanorama"),watch=document.getElementById("egiWatchlist");
-  const allReady=egiTFs.every(tf=>breadth[tf].total===7);
+  const allReady=egiTFs.every(tf=>breadth[tf].total>=Math.ceil(egiSymbols.length*.8));
   let analysis="Dados insuficientes para interpretação multiperíodo.";
   if(allReady){
-   const largerUp=b1.up>=6&&b4.up>=6,largerDown=b1.down>=6&&b4.down>=6;
-   if(largerUp&&b15.up<=4)analysis="Alta ampla nos últimos candles de 1h e 4h; 15m dividido ou em correção. Candles positivos não confirmam tendência.";
-   else if(largerDown&&b15.down<=4)analysis="Queda ampla em 1h e 4h; 15m dividido ou em repique. Alívio não confirma reversão.";
-   else if(largerUp&&b15.up>=6&&b5.up>=5)analysis="Candles alinhados positivamente nos quatro períodos. Falta conferir tendência, volume e estrutura.";
-   else if(largerDown&&b15.down>=6&&b5.down>=5)analysis="Candles alinhados negativamente nos quatro períodos. Verificar continuidade e exaustão.";
+   const largerUp=b1.up/b1.total>=.75&&b4.up/b4.total>=.75,largerDown=b1.down/b1.total>=.75&&b4.down/b4.total>=.75;
+   if(largerUp&&b15.up/b15.total<=.6)analysis="Alta ampla nos últimos candles de 1h e 4h; 15m dividido ou em correção. Candles positivos não confirmam tendência.";
+   else if(largerDown&&b15.down/b15.total<=.6)analysis="Queda ampla em 1h e 4h; 15m dividido ou em repique. Alívio não confirma reversão.";
+   else if(largerUp&&b15.up/b15.total>=.75&&b5.up/b5.total>=.7)analysis="Candles alinhados positivamente nos quatro períodos. Falta conferir tendência, volume e estrutura.";
+   else if(largerDown&&b15.down/b15.total>=.75&&b5.down/b5.total>=.7)analysis="Candles alinhados negativamente nos quatro períodos. Verificar continuidade e exaustão.";
    else analysis="Timeframes divergentes: não inferir direção dominante de um único candle.";
   }
-  professor.textContent="🧠 PROFESSOR DO PANORAMA — "+analysis+" A amostra é de sete ativos e não representa o mercado inteiro.";
+  professor.textContent="🧠 PROFESSOR DO PANORAMA — "+analysis+" A amostra é de "+egiSymbols.length+" ativos e não representa o mercado inteiro.";
   watch.replaceChildren();
   if(allReady){
    const evaluated=egiSymbols.map(sym=>{
@@ -231,10 +230,10 @@ async function egiFetchMorning(){
 }
 function egiCopyMorning(){
  const lines=["DIAHOJE EGI — ABERTURA "+egiDay(),"Binance Spot • candles fechados 5m/15m/1h/4h","Consulta: "+(egiLastTime?new Date(egiLastTime).toLocaleString("pt-BR"):"pendente"),"Semáforo: "+document.getElementById("egiSemaforo").textContent,"Professor: "+document.getElementById("egiProfessorPanorama").textContent,"Observações: "+document.getElementById("egiWatchlist").textContent,"Dados: "+document.getElementById("egiDataQuality").textContent,"Mudanças: "+document.getElementById("egiHistory").textContent];
- for(const tf of egiTFs){const b=egiBreadth[tf];if(b)lines.push(tf+": "+b.up+" altas / "+b.down+" baixas / "+b.flat+" estáveis ("+b.total+"/7)")}
+ for(const tf of egiTFs){const b=egiBreadth[tf];if(b)lines.push(tf+": "+b.up+" altas / "+b.down+" baixas / "+b.flat+" estáveis ("+b.total+"/"+egiSymbols.length+")")}
  for(const sym of egiSymbols){const rec=egiMatrix[sym]||{};lines.push(sym+" "+egiTFs.map(tf=>tf+" "+(rec[tf]?rec[tf].pct.toFixed(2)+"%":"N/D")).join(" | "))}
  lines.push("Checklist: "+egiMorningApps.map((x,i)=>(egiChecked()[i]?"[OK] ":"[PENDENTE] ")+x[0]).join("; "));
- lines.push("7 moedas não representam o mercado inteiro; variações são do último candle fechado de cada timeframe, não retornos acumulados.","Sem ordens; não substitui confirmação do Professor, Destino do Capital e SetupDT.");
+ lines.push("A amostra não representa o mercado inteiro; variações são do último candle fechado de cada timeframe, não retornos acumulados.","Sem ordens; não substitui confirmação do Professor, Destino do Capital e SetupDT.");
  const txt=lines.join("\n");
  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(()=>alert("Resumo copiado."),()=>prompt("Copie:",txt));else prompt("Copie:",txt);
 }
