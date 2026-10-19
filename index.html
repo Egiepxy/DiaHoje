@@ -127,40 +127,54 @@ const egiTFs=["5m","15m","1h","4h"];
 let egiMatrix={},egiBreadth={};
 function egiHistoryLoad(){try{const v=JSON.parse(localStorage.getItem("egi_panorama_history_v1")||"[]");return Array.isArray(v)?v:[]}catch{return []}}
 function egiDirection(v){return !v?"N/D":v.pct>0?"ALTA":v.pct<0?"BAIXA":"ESTÁVEL"}
+function egiLastDifferent(history,sym,tf,currentEnd){
+ for(let i=history.length-1;i>=0;i--){const v=history[i].coins?.[sym]?.[tf];if(v&&v.end<currentEnd)return v}
+ return null;
+}
 function egiDetectRepique(matrix,breadth){
- const old=egiHistoryLoad().at(-1);
- const previous5=old?.coins||{},new5=egiSymbols.map(s=>matrix[s]?.["5m"]).filter(Boolean);
- const validPairs=egiSymbols.filter(s=>previous5[s]?.["5m"]&&matrix[s]?.["5m"]&&previous5[s]["5m"].end!==matrix[s]["5m"].end);
- const transitioned=validPairs.filter(s=>previous5[s]["5m"].pct<0&&matrix[s]["5m"].pct>0);
- const b5=breadth["5m"],b15=breadth["15m"],b1=breadth["1h"];
- const priorDown=validPairs.filter(s=>previous5[s]["5m"].pct<0).length;
- const enough=b5.total>=16&&b15.total>=16&&b1.total>=16;
- let msg="⚪ SEM ALERTA NOVO — acompanhamento em andamento.";
- if(!enough)msg="⚪ DADOS INSUFICIENTES — repique não classificado.";
- else if(validPairs.length<12)msg="⚪ AGUARDANDO NOVOS CANDLES 5m — sem antecipação prospectiva confiável.";
- else if(priorDown>=Math.ceil(validPairs.length*.6)&&transitioned.length>=Math.ceil(validPairs.length*.5)&&b5.up/b5.total>=.7&&b15.up/b15.total<.7)
- msg="🟡 REPIQUE INICIAL DETECTADO — "+transitioned.length+"/"+validPairs.length+" moedas viraram BAIXA→ALTA no 5m após fraqueza; 15m ainda não confirma amplitude. OBSERVAR; NÃO É ENTRADA.";
- else if(b5.up/b5.total>=.75&&b15.up/b15.total>=.7)
- msg="🔵 RECUPERAÇÃO CURTA PROPAGADA — maioria positiva em 5m e 15m; verificar estrutura, volume e contexto, sem ordem.";
- else if(b5.up/b5.total>=.7&&b15.up/b15.total<.6)
- msg="🟡 POSSÍVEL REPIQUE EM ANDAMENTO — 5m amplo e 15m dividido; início não demonstrado neste intervalo.";
- else if(b5.down/b5.total>=.7)msg="🔴 FRAQUEZA CURTA PREDOMINANTE — maioria negativa no 5m.";
+ const history=egiHistoryLoad(), pairs=[];
+ for(const sym of egiSymbols){
+  const curr=matrix[sym]?.["5m"];if(!curr)continue;
+  const prev=egiLastDifferent(history,sym,"5m",curr.end);
+  if(prev&&curr.end-prev.end===300000)pairs.push({sym,prev,curr});
+ }
+ const b5=breadth["5m"],b15=breadth["15m"],complete=b5.total>=16&&b15.total>=16;
+ const down=pairs.filter(x=>x.prev.pct<0).length,flips=pairs.filter(x=>x.prev.pct<0&&x.curr.pct>0);
+ let msg="⚪ AGUARDANDO NOVOS CANDLES 5m COMPARÁVEIS — sem antecipação validada.";
+ if(!complete)msg="⚪ DADOS PARCIAIS — não classificar repique.";
+ else if(pairs.length>=12&&down/pairs.length>=.6&&flips.length/pairs.length>=.5&&b5.up/b5.total>=.7&&b15.up/b15.total<.7)
+  msg="🟡 REPIQUE INICIAL — "+flips.length+"/"+pairs.length+" viradas de candle 5m negativo→positivo; investigar, NÃO é entrada.";
+ else if(b5.up/b5.total>=.75&&b15.up/b15.total>=.7)msg="🔵 RECUPERAÇÃO CURTA EM 5m E 15m — início não necessariamente observado.";
+ else if(b5.up/b5.total>=.7&&b15.up/b15.total<.6)msg="🟡 REAÇÃO CURTA NO 5m — 15m dividido; possível repique em andamento.";
+ else if(b5.down/b5.total>=.7)msg="🔴 FRAQUEZA 5m GENERALIZADA.";
+ const last=egiHistoryLoad().at(-1);
+ const newEnd=Math.max(...egiSymbols.map(s=>matrix[s]?.["5m"]?.end||0));
+ if(last&&last.repiqueEnd===newEnd&&last.repiqueMessage) return last.repiqueMessage;
  return msg;
 }
-function egiHistoryUpdate(matrix,stamp){
- const history=egiHistoryLoad(),snapshot={at:stamp,coins:{}};
- for(const sym of egiSymbols){snapshot.coins[sym]={};for(const tf of egiTFs){const v=matrix[sym]?.[tf];if(v)snapshot.coins[sym][tf]={pct:v.pct,end:v.end}}}
- const previous=history.at(-1),changes=[];let unchanged=0,newCandles=0,sameCandle=0,unavailable=0;
- if(previous)for(const sym of egiSymbols)for(const tf of egiTFs){
- const a=previous.coins?.[sym]?.[tf],b=snapshot.coins[sym]?.[tf];
- if(!a||!b){unavailable++;continue}if(a.end===b.end){sameCandle++;continue}
- newCandles++;const before=egiDirection(a),after=egiDirection(b);
- if(before!==after)changes.push(sym.replace("USDT","")+" "+tf+": "+before+" → "+after);
- else unchanged++;
+function egiHistoryUpdate(matrix,stamp,repiqueMessage){
+ const history=egiHistoryLoad(),snapshot={at:stamp,coins:{},repiqueMessage,repiqueEnd:Math.max(...egiSymbols.map(s=>matrix[s]?.["5m"]?.end||0))};
+ let changes=[],maintained=0,comparables=0,same=0,gaps=0,missing=0;
+ const ms={"5m":300000,"15m":900000,"1h":3600000,"4h":14400000};
+ for(const sym of egiSymbols){
+  snapshot.coins[sym]={};
+  for(const tf of egiTFs){
+   const v=matrix[sym]?.[tf];if(!v){missing++;continue}
+   snapshot.coins[sym][tf]={pct:v.pct,end:v.end};
+   const prev=egiLastDifferent(history,sym,tf,v.end);
+   if(!prev){same++;continue}
+   if(v.end-prev.end!==ms[tf]){gaps++;continue}
+   comparables++;
+   if(egiDirection(prev)!==egiDirection(v))changes.push(sym.replace("USDT","")+" "+tf+" "+new Date(prev.end).toLocaleTimeString("pt-BR",{timeZone:"America/Sao_Paulo"})+" → "+new Date(v.end).toLocaleTimeString("pt-BR",{timeZone:"America/Sao_Paulo"})+": "+egiDirection(prev)+" → "+egiDirection(v));
+   else maintained++;
+  }
  }
- history.push(snapshot);try{localStorage.setItem("egi_panorama_history_v1",JSON.stringify(history.slice(-80)))}catch{}
- const message=!previous?"Primeira consulta registrada — comparação ainda pendente.":newCandles===0?"Nenhum candle novo comparável desde a consulta anterior ("+sameCandle+" períodos sem novo fechamento).":changes.length?changes.slice(0,18).join(" • ")+(changes.length>18?" • +"+(changes.length-18)+" alterações":"")+" | "+unchanged+" mantiveram direção.":"Novos candles comparados: "+newCandles+"; todos mantiveram direção ("+unchanged+").";
- document.getElementById("egiHistory").textContent="Histórico entre consultas: "+message+(unavailable?" • "+unavailable+" comparações indisponíveis.":"");
+ const last=history.at(-1);
+ const signature=egiSymbols.flatMap(s=>egiTFs.map(tf=>snapshot.coins[s]?.[tf]?.end||0)).join(",");
+ const lastSignature=last&&egiSymbols.flatMap(s=>egiTFs.map(tf=>last.coins?.[s]?.[tf]?.end||0)).join(",");
+ if(signature!==lastSignature){history.push(snapshot);try{localStorage.setItem("egi_panorama_history_v1",JSON.stringify(history.slice(-100)))}catch{}}
+ const msg=changes.length?changes.slice(0,15).join(" • ")+(changes.length>15?" • mais "+(changes.length-15):"")+"; "+maintained+" mantidos.":comparables?"Novo(s) candle(s): "+comparables+" comparados, sem virada de direção.":"Sem fechamento novo consecutivo comparável; manter observação.";
+ document.getElementById("egiHistory").textContent="Memória de candles: "+msg+(gaps?" "+gaps+" com intervalos não consecutivos.":"")+(missing?" "+missing+" ausentes.":"");
 }
 async function egiFetchMorning(){
  const status=document.getElementById("egiMorningStatus"),button=document.getElementById("egiRefresh");
@@ -218,9 +232,11 @@ async function egiFetchMorning(){
   document.getElementById("egiSemaforo").textContent=sem+" — classificação heurística, não tendência confirmada.";
   const ages=egiTFs.flatMap(tf=>egiSymbols.map(sym=>matrix[sym]?.[tf]).filter(Boolean).map(x=>stamp-x.end));
   const maxAge=ages.length?Math.max(...ages):null;
-  document.getElementById("egiDataQuality").textContent="Qualidade dos dados: "+(egiSymbols.length*egiTFs.length-errors.length)+"/"+(egiSymbols.length*egiTFs.length)+" leituras completas • "+(maxAge===null?"idade indisponível":"maior idade de candle fechado "+Math.round(maxAge/60000)+" min")+" • "+(errors.length?"ausentes: "+errors.join(", "):"sem dados ausentes")+"; não equivale a qualidade preditiva.";
-  document.getElementById("egiRepique").textContent=egiDetectRepique(matrix,breadth);
-  egiHistoryUpdate(matrix,stamp);
+  const tfAge=egiTFs.map(tf=>{const vals=egiSymbols.map(s=>matrix[s]?.[tf]).filter(Boolean);const latestAge=vals.length?Math.max(...vals.map(v=>stamp-v.end)):null;const maxMinutes={"5m":10,"15m":30,"1h":120,"4h":480}[tf];return tf+": "+(latestAge===null?"N/D":Math.round(latestAge/60000)+" min"+(latestAge>maxMinutes*60000?" ATRASADO":""))}).join(" | ");
+  document.getElementById("egiDataQuality").textContent="Completude: "+(egiSymbols.length*egiTFs.length-errors.length)+"/"+(egiSymbols.length*egiTFs.length)+" • idade máxima por período: "+tfAge+" • "+(errors.length?"ausentes: "+errors.join(", "):"sem falhas de coleta")+"; qualidade preditiva não avaliada.";
+  const repiqueMessage=egiDetectRepique(matrix,breadth);
+  document.getElementById("egiRepique").textContent=repiqueMessage;
+  egiHistoryUpdate(matrix,stamp,repiqueMessage);
 
 
   const professor=document.getElementById("egiProfessorPanorama"),watch=document.getElementById("egiWatchlist");
