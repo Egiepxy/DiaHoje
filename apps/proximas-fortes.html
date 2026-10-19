@@ -31,6 +31,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px;borde
 <label><input id="key" type="hidden" value=""></label>
 <button id="scan">🔎 Atualizar Radar</button>
 <button id="pre">🚀 Possível início LONG</button>
+<button id="egiMotor" type="button" onclick="egiSendStrengthMotor(true)">🧠 Enviar ao Motor Central</button>
 <button id="preShort">🔻 Possível início SHORT</button>
 <button id="all">📊 Ranking geral</button>
 <button id="reportBtn">📄 Relatório</button>
@@ -350,6 +351,35 @@ function confirmation(c,side='long'){
 
 
 // V10.1 — transparência do filtro: mostra quem está mais perto do gatilho LONG.
+function egiSendStrengthMotor(openMotor=true){
+ const btc=data.find(x=>x.symbol==='btc')||data[0];
+ if(!btc){if(openMotor)alert('Atualize o Radar antes de enviar ao Motor Central.');return null}
+ const candidates=data.filter(x=>!['usdt','usdc'].includes(x.symbol)).map(c=>{
+   let z={...c,...metrics(c,btc),triple:tripleMap.get(c.symbol)||{score:0,state:'⚪ NÃO AVALIADO'}};
+   z.qualityFinal=Math.round(z.final*.85+z.triple.score*.15);
+   const lg=confirmation(z,'long'),sh=confirmation(z,'short');
+   const raw=(c.symbol||'').toUpperCase();
+   return {
+     symbol:raw.endsWith('USDT')?raw:raw+'USDT',
+     longConfirmation:lg.n, longReasons:lg.reasons,
+     shortConfirmation:sh.n, shortReasons:sh.reasons,
+     p1:Number(z.p1)||0,p24:Number(z.p24)||0,p7:Number(z.p7)||0,
+     relativeBTC:Number(z.rel)||0,volCap:Number(z.vr)||0,
+     technical:Number(z.technical)||0,flow:Number(z.flow)||0,
+     opportunity:Number(z.final)||0,qualityFinal:Number(z.qualityFinal)||0,
+     early:!!z.early,earlyShort:!!z.earlyShort,
+     tripleScore:Number(z.triple?.score)||0,tripleState:z.triple?.state||''
+   };
+ });
+ const payload={protocol:'EGI-MOTOR-STRENGTH-V1',source:'Radar Proximas Fortes',generatedAt:new Date().toISOString(),candidates,
+ note:'Direção e força relativa; qualidade do ativo não é filtro dominante.'};
+ try{
+   localStorage.setItem('EGI_MOTOR_STRENGTH_V1',JSON.stringify(payload));
+   if(openMotor)window.open('../motor-central.html','_blank','noopener');
+ }catch(e){if(openMotor)alert('Falha ao enviar Próximas Fortes ao Motor: '+e.message)}
+ return payload;
+}
+
 function allRadarCandidates(){
  const btc=data.find(x=>x.symbol==='btc')||data[0];
  if(!btc)return [];
@@ -1020,7 +1050,7 @@ async function scan(){
  const n=$('limit').value,key=$('key').value.trim();
  let url=`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${n}&page=1&sparkline=false&price_change_percentage=1h,24h,7d`;
  if(key)url+=`&x_cg_demo_api_key=${encodeURIComponent(key)}`;
- try{let r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);data=await r.json();await enrichTriple(data);render()}
+ try{let r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);data=await r.json();await enrichTriple(data);render();try{egiSendStrengthMotor(false)}catch(_){}}
  catch(e){$('rows').innerHTML=`<tr><td colspan="13">Falha ao consultar CoinGecko: ${e.message}. Tente novamente em alguns instantes.</td></tr>`}
 }
 $('tf').onchange=()=>render();
