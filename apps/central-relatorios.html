@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Central de Relatórios EGI V1.0</title>
+<title>Central de Relatórios EGI V1.1</title>
 <style>
 :root{color-scheme:dark;--bg:#0c1525;--panel:#17263b;--line:#364960;--txt:#eaf2fc;--muted:#b2c1d1;--blue:#70c9ef}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--txt);font:15px/1.5 system-ui,Segoe UI,sans-serif;margin:0}main{max-width:1120px;margin:auto;padding:22px}
@@ -22,7 +22,7 @@ small{color:var(--muted)}.head{display:flex;align-items:center;gap:10px;flex-wra
 <div class="card"><h2>Verificação e preparação</h2><div id="status" class="status">Aguardando os dois relatórios.</div>
 <div class="actions" style="margin-top:12px"><button id="generate">Gerar RelChat unificado</button><button id="copy" disabled>Copiar para ChatGPT</button><button id="download" disabled>Baixar TXT</button><button id="clear">Limpar campos</button></div>
 <small>O campo gerado é somente uma concatenação identificada. Horários diferentes são preservados e sinalizados; não há inferência automática de concordância ou causalidade. Os textos permanecem apenas nesta página enquanto aberta.</small></div>
-<div class="card"><h2>RELCHAT UNIFICADO</h2><textarea id="merged" readonly placeholder="Cole REL1 e REL2 e clique em Gerar RelChat unificado."></textarea></div>
+<div class="card"><h2>REL3 — Auditoria Comparativa EGI</h2><p>Comparação descritiva dos ativos comuns; nenhuma conclusão automática de operação.</p><div id="rel3status" class="status">Aguardando REL1 e REL2.</div><pre id="rel3preview" style="white-space:pre-wrap;overflow:auto;max-height:340px"></pre></div><div class="card"><h2>RELCHAT UNIFICADO</h2><textarea id="merged" readonly placeholder="Cole REL1 e REL2 e clique em Gerar RelChat unificado."></textarea></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -50,8 +50,41 @@ function validation(){
  $('status').textContent=(!a||!b?'Falta '+(!a&&!b?'REL1 e REL2':!a?'REL1':'REL2')+'. ':'Ambos os relatórios recebidos. ')+(warnings.length?'Atenção: '+warnings.join(' '):'Nenhuma divergência de horário superior a cinco minutos identificada.');
  return {a,b,m1,m2,warnings};
 }
+
+function comparative(a,b){
+ const d=new Map(),p=new Map();
+ for(const line of a.split(/\r?\n/)){
+ const m=line.match(/^([A-Z0-9]+USDT)\s+5m\s+([+-]?\d+(?:[.,]\d+)?)%\s*\|\s*15m\s+([+-]?\d+(?:[.,]\d+)?)%\s*\|\s*1h\s+([+-]?\d+(?:[.,]\d+)?)%\s*\|\s*4h\s+([+-]?\d+(?:[.,]\d+)?)%/);
+ if(m)d.set(m[1],m.slice(2).map(v=>Number(v.replace(',','.'))));
+ }
+ let current=null;
+ for(const line of b.split(/\r?\n/)){
+ const m=line.match(/^([A-Z0-9]+USDT)\s+(.+?)\s*\|\s*Fecho 15m\s+([^|]+)\|/);
+ if(m){current=m[1];p.set(current,{state:m[2].trim(),closed:m[3].trim(),five:''});}
+ const z=line.match(/^\s*5m ANTECIPAÇÃO:\s*(.+)/);
+ if(z&&current)p.get(current).five=z[1].trim();
+ }
+ const common=[...d.keys()].filter(x=>p.has(x)),onlyD=[...d.keys()].filter(x=>!p.has(x)),onlyP=[...p.keys()].filter(x=>!d.has(x));
+ let same=0,opposite=0,other=0;
+ const rows=common.map(k=>{
+ const v=d.get(k),q=p.get(k),up=q.five.startsWith('CONTINUIDADE DE ALTA'),down=q.five.startsWith('CONTINUIDADE DE QUEDA');
+ const relation=((v[0]>0&&up)||(v[0]<0&&down))?'ALINHAMENTO':((v[0]>0&&down)||(v[0]<0&&up))?'DIVERGÊNCIA':'CRITÉRIOS DIFERENTES';
+ if(relation==='ALINHAMENTO')same++;else if(relation==='DIVERGÊNCIA')opposite++;else other++;
+ return k+' | DiaHoje 5m '+v[0]+'%, 15m '+v[1]+'%, 1h '+v[2]+'%, 4h '+v[3]+'% | Professor '+q.state+' | 5m '+q.five+' | fecho 15m '+q.closed+' | '+relation;
+ });
+ const closed=[...new Set(common.map(k=>p.get(k).closed))];
+ const summary='REL3 — AUDITORIA COMPARATIVA EGI V1.0 — NÃO ORDEM\n'+
+ 'Ativos: REL1 '+d.size+' | REL2 '+p.size+' | comuns '+common.length+
+ ' | apenas REL1 '+(onlyD.join(', ')||'nenhum')+' | apenas REL2 '+(onlyP.join(', ')||'nenhum')+'\n'+
+ 'Comparação 5m: alinhamentos '+same+' | divergências '+opposite+' | critérios diferentes '+other+'\n'+
+ 'Fechos 15m no Professor: '+(closed.join('; ')||'não disponíveis')+'\n'+
+ 'ALERTA METODOLÓGICO: DiaHoje mede último candle; Professor classifica indicadores. Não há timestamp por ativo para candle 5m no REL1; sincronização de candle 5m NÃO confirmada.\n\n'+rows.join('\n');
+ return {summary,common:common.length,same,opposite,other,onlyD,onlyP};
+}
+
 function create(){
- const v=validation();if(!v.a||!v.b){$('merged').value='';$('copy').disabled=true;$('download').disabled=true;return}
+ const v=validation();if(!v.a||!v.b){$('rel3status').textContent='Aguardando REL1 e REL2.';$('rel3preview').textContent='';$('merged').value='';$('copy').disabled=true;$('download').disabled=true;return}
+ const cmp=comparative(v.a,v.b);$('rel3status').textContent=cmp.common+' ativos comuns · alinhamento '+cmp.same+' · divergência '+cmp.opposite+' · critérios diferentes '+cmp.other+' · Apenas REL1: '+(cmp.onlyD.join(', ')||'nenhum')+' · Apenas REL2: '+(cmp.onlyP.join(', ')||'nenhum');$('rel3preview').textContent=cmp.summary;
  const stamp=new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});
  $('merged').value='RELCHAT UNIFICADO EGI V1.0 — ESTUDO, NÃO ORDEM\nMontagem: '+stamp+
  '\nREL1 DiaHoje: '+v.m1.date+'\nREL2 Professor: '+v.m2.date+
@@ -60,7 +93,7 @@ function create(){
  '========== INÍCIO REL1 — DIAHOJE EGI ==========\n'+v.a+
  '\n========== FIM REL1 ==========\n\n'+
  '========== INÍCIO REL2 — PROFESSOR EGI ==========\n'+v.b+
- '\n========== FIM REL2 ==========\n';
+ '\n========== FIM REL2 ==========\n\n'+cmp.summary+'\n';
  $('copy').disabled=false;$('download').disabled=false;
 }
 $('rel1').addEventListener('input',()=>{validation();$('copy').disabled=true;$('download').disabled=true});
