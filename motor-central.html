@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Motor Central EGI V1.2</title>
+<title>Motor Central EGI V1.3</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1423;--p:#152338;--p2:#102034;--e:#2b3d55;--t:#eff6ff;--m:#aabbd1;--g:#48d5ad;--y:#ffd166;--r:#ff6b6b;--b:#74b9ff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#0b1423,#11243a);color:var(--t);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial}
@@ -17,7 +17,7 @@ textarea{width:100%;min-height:190px;background:#0e1a2b;color:#fff;border:1px so
 @media(max-width:800px){.grid3,.grid2{grid-template-columns:1fr}th:nth-child(n+7),td:nth-child(n+7){display:none}}
 </style></head><body><main>
 <section class="hero">
-<div class="tag">Motor Central EGI V1.2 • Integração real</div>
+<div class="tag">Motor Central EGI V1.3 • Integração real</div>
 <h1>🧠 Motor Central EGI</h1>
 <p class="muted">DiaHoje + Próximas Fortes + Manada × Volatilidade. Qualidade do ativo é informativa; a prioridade é qualidade da oportunidade, timing, confirmação, liquidez e risco.</p>
 <div class="grid3">
@@ -60,6 +60,12 @@ textarea{width:100%;min-height:190px;background:#0e1a2b;color:#fff;border:1px so
 <p class="mini">A “qualidade do ativo” não participa como filtro dominante do ranking. Ativos deteriorados podem subir no ranking LONG se houver reversão/assimetria, ou no SHORT se houver continuidade confirmada.</p>
 </details>
 
+<details open id="motorReports"><summary>📋 REL1 DiaHoje + REL2 Professor + REL3 Comparativo (integrados)</summary>
+<p class="mini">A Central V1.2 está incorporada nesta página. Cole os relatórios originais REL1 e REL2; a comparação REL3 é gerada no mesmo painel. Os dados NÃO alteram automaticamente o ranking ou a Moeda da Vez.</p>
+<div class="actions"><a class="btn" href="index.html" target="_blank" rel="noopener">Abrir DiaHoje — copiar REL1</a><a class="btn" href="apps/professor-daytrade.html" target="_blank" rel="noopener">Abrir Professor — copiar REL2</a></div>
+<iframe src="apps/central-relatorios-v1-2.html" title="Central de Relatórios REL1 REL2 REL3" loading="lazy" style="width:100%;height:930px;border:1px solid #497aa0;border-radius:12px;margin-top:10px;background:#0b1423"></iframe>
+<p class="mini">Integração de interface: sem leitura cruzada automática, sem envio de ordens e sem modificar os sensores existentes.</p></details>
+
 <details open><summary>📝 RelGPT consolidado</summary><div class="actions"><button class="primary" onclick="makeRelGPT()">Gerar RelGPT</button><button onclick="copyRelGPT()">Copiar RelGPT</button></div><textarea id="relgpt" readonly></textarea></details>
 
 <details open><summary>🏁 Conclusão dos Feitos EGI</summary>
@@ -68,6 +74,7 @@ textarea{width:100%;min-height:190px;background:#0e1a2b;color:#fff;border:1px so
 <tr><td>Próximas Fortes → Motor Central</td><td class="good">✅ conectado</td></tr>
 <tr><td>Manada + Volatilidade / Confluência → Motor</td><td class="good">✅ conectado</td></tr>
 <tr><td>Moeda da Vez LONG / SHORT / Geral</td><td class="good">✅ primeira versão real</td></tr>
+<tr><td>REL1 + REL2 + REL3 dentro do Motor</td><td class="good">✅ integração de interface</td></tr>
 <tr><td>RelGPT</td><td class="good">✅ consolidado</td></tr>
 <tr><td>Professor / RadarMME1 / SetupDT</td><td class="warn">🟡 próximos conectores de confirmação</td></tr>
 <tr><td>Auditor prospectivo</td><td>⬜ próximo estágio</td></tr>
