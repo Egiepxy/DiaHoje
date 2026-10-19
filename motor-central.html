@@ -1,93 +1,173 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
+<html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Motor Central EGI V1.1</title>
+<title>Motor Central EGI V1.2</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1423;--panel:#152338;--edge:#2b3d55;--text:#eff6ff;--muted:#aabbd1;--green:#48d5ad;--yellow:#ffd166;--red:#ff6b6b}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#0b1423,#11243a);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial}
-main{max-width:1120px;margin:auto;padding:18px 15px 70px}.hero,.card{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:18px;margin-top:14px}
-.hero{margin-top:0}.tag{color:var(--green);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.muted{color:var(--muted)}h1{margin:4px 0}h2{margin:0 0 10px;font-size:20px}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}
-button{background:#235477;border:1px solid #497aa0;border-radius:9px;padding:9px 12px;color:#fff;cursor:pointer}.primary{background:#177e69;border-color:#32a888}
-.sel{outline:2px solid #78a7ff}.focus{padding:11px 13px;border-left:4px solid var(--green);background:#102034;border-radius:8px;margin:8px 0}
-textarea{width:100%;min-height:180px;background:#0e1a2b;color:#fff;border:1px solid #58718d;border-radius:8px;padding:10px}
-details{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:12px;margin-top:12px}summary{cursor:pointer;font-weight:700}
-table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid var(--edge);text-align:left}.good{color:var(--green)}.warn{color:var(--yellow)}
-@media(max-width:760px){.grid{grid-template-columns:1fr}}
-</style>
-</head><body><main>
+:root{color-scheme:dark;--bg:#0b1423;--p:#152338;--p2:#102034;--e:#2b3d55;--t:#eff6ff;--m:#aabbd1;--g:#48d5ad;--y:#ffd166;--r:#ff6b6b;--b:#74b9ff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#0b1423,#11243a);color:var(--t);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial}
+main{max-width:1180px;margin:auto;padding:16px 14px 70px}.hero,.card,details{background:var(--p);border:1px solid var(--e);border-radius:16px;padding:16px;margin-top:12px}.hero{margin-top:0}
+h1{margin:3px 0;font-size:clamp(26px,5vw,38px)}h2{margin:2px 0 8px;font-size:20px}.tag{color:var(--g);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.muted{color:var(--m)}.mini{font-size:12px;color:var(--m)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}button,.btn{background:#235477;border:1px solid #497aa0;border-radius:9px;padding:9px 11px;color:#fff;cursor:pointer;text-decoration:none}.primary{background:#177e69;border-color:#32a888}.sel{outline:2px solid #8db5ff;background:#304d72}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.focus{background:var(--p2);border-left:4px solid var(--g);padding:10px 12px;border-radius:8px;margin:7px 0}.warnbox{border-left-color:var(--y)}.badbox{border-left-color:var(--r)}
+.big{font-size:25px;font-weight:800}.good{color:var(--g)}.warn{color:var(--y)}.bad{color:var(--r)}
+summary{cursor:pointer;font-weight:750}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:8px;border-bottom:1px solid var(--e);text-align:left;font-size:13px}th{color:var(--m)}
+textarea{width:100%;min-height:190px;background:#0e1a2b;color:#fff;border:1px solid #58718d;border-radius:8px;padding:10px}
+.chip{display:inline-block;padding:3px 7px;border:1px solid var(--e);border-radius:999px;font-size:11px;margin:2px;color:var(--m)}
+@media(max-width:800px){.grid3,.grid2{grid-template-columns:1fr}th:nth-child(n+7),td:nth-child(n+7){display:none}}
+</style></head><body><main>
 <section class="hero">
-<div class="tag">Motor Central EGI V1.1 • Telhado do projeto</div>
+<div class="tag">Motor Central EGI V1.2 • Integração real</div>
 <h1>🧠 Motor Central EGI</h1>
-<p class="muted">Unificar sensores, permitir configurar/escolher e recolher detalhes. Estudo, não ordem.</p>
-<div class="actions">
-<button onclick="setH(this,'HOLD')">HOLD</button><button onclick="setH(this,'SWING')">SWING</button><button class="sel" onclick="setH(this,'DAY TRADE')">DAY TRADE</button><button onclick="setH(this,'SCALPING')">SCALPING</button>
-</div><div class="actions" style="margin-top:8px">
-<button onclick="setD(this,'LONG')">LONG</button><button onclick="setD(this,'SHORT')">SHORT</button><button class="sel" onclick="setD(this,'AMBOS')">AMBOS</button>
-</div><div class="actions" style="margin-top:8px">
-<button onclick="setL(this,'CONSERVADOR')">Conservador</button><button class="sel" onclick="setL(this,'EQUILIBRADO')">Equilibrado</button><button onclick="setL(this,'AGRESSIVO')">Agressivo</button>
+<p class="muted">DiaHoje + Próximas Fortes + Manada × Volatilidade. Qualidade do ativo é informativa; a prioridade é qualidade da oportunidade, timing, confirmação, liquidez e risco.</p>
+<div class="grid3">
+<div><div class="mini">HORIZONTE</div><div class="actions" id="hz"><button onclick="setCfg('h','HOLD',this)">HOLD</button><button onclick="setCfg('h','SWING',this)">SWING</button><button class="sel" onclick="setCfg('h','DAY TRADE',this)">DAY TRADE</button><button onclick="setCfg('h','SCALPING',this)">SCALPING</button></div></div>
+<div><div class="mini">DIREÇÃO</div><div class="actions" id="dr"><button onclick="setCfg('d','LONG',this)">LONG</button><button onclick="setCfg('d','SHORT',this)">SHORT</button><button class="sel" onclick="setCfg('d','AMBOS',this)">AMBOS</button></div></div>
+<div><div class="mini">NÍVEL</div><div class="actions" id="lv"><button onclick="setCfg('l','CONSERVADOR',this)">Conservador</button><button class="sel" onclick="setCfg('l','EQUILIBRADO',this)">Equilibrado</button><button onclick="setCfg('l','AGRESSIVO',this)">Agressivo</button></div></div>
 </div>
-<p class="muted" id="perfil">DAY TRADE • AMBOS • EQUILIBRADO</p>
+<div class="focus" id="perfil">DAY TRADE • AMBOS • EQUILIBRADO</div>
+<div class="actions"><button class="primary" onclick="refreshAll()">🔄 Atualizar integrações</button><a class="btn" href="index.html">☀️ DiaHoje</a><a class="btn" href="apps/proximas-fortes.html">💪 Próximas Fortes</a><a class="btn" href="apps/inicio-dia.html">🔀 Confluência</a></div>
 </section>
 
 <section class="card">
-<h2>🔌 Integração DiaHoje</h2>
-<div class="focus" id="status">Aguardando envio do DiaHoje.</div>
-<div class="actions"><button class="primary" onclick="lerDiaHoje()">📥 Ler DiaHoje</button><button onclick="location.href='index.html'">↩ Voltar ao DiaHoje</button></div>
-<div class="focus" id="regime">Regime: N/D</div>
-<div class="focus" id="professor">Professor: N/D</div>
-<div class="focus" id="repique">Repique: N/D</div>
-<div class="muted" id="qualidade">Qualidade: N/D</div>
+<h2>🔌 Fontes conectadas</h2>
+<div class="grid3">
+<div class="focus" id="srcDia">DiaHoje: aguardando</div>
+<div class="focus" id="srcForca">Próximas Fortes: aguardando</div>
+<div class="focus" id="srcConf">Confluência: aguardando</div>
+</div>
+<div class="mini">Os pacotes ficam no armazenamento local do navegador. Se um radar for atualizado, clique “Enviar ao Motor” nele ou “Atualizar integrações” aqui.</div>
 </section>
 
-<div class="grid">
-<section class="card"><div class="tag">🟢 Moeda da Vez LONG</div><h2 id="long">Nenhuma ainda</h2><p class="muted">DiaHoje é contexto, não selecionador de sinal.</p></section>
-<section class="card"><div class="tag">🔴 Moeda da Vez SHORT</div><h2 id="short">Nenhuma ainda</h2><p class="muted">Aguardando sensores de oportunidade.</p></section>
-<section class="card"><div class="tag">🏆 Melhor oportunidade geral</div><h2 id="geral">Nenhuma ainda</h2><p class="muted">Será calculada após integrar sinais.</p></section>
+<div class="grid3">
+<section class="card"><div class="tag">🟢 Moeda da Vez LONG</div><div class="big" id="longName">Nenhuma</div><div id="longState" class="warn">AGUARDANDO</div><div class="focus" id="longWhy">Faltam sensores.</div></section>
+<section class="card"><div class="tag">🔴 Moeda da Vez SHORT</div><div class="big" id="shortName">Nenhuma</div><div id="shortState" class="warn">AGUARDANDO</div><div class="focus" id="shortWhy">Faltam sensores.</div></section>
+<section class="card"><div class="tag">🏆 Melhor oportunidade geral</div><div class="big" id="bestName">Nenhuma</div><div id="bestState" class="warn">AGUARDANDO</div><div class="focus" id="bestWhy">Aguardando cruzamento.</div></section>
 </div>
 
-<details open><summary>📊 Amplitude recebida do DiaHoje</summary><div id="breadth" style="margin-top:10px">Nenhum dado.</div></details>
-<details><summary>🪙 Ativos recebidos do DiaHoje</summary><div id="coins" style="margin-top:10px">Nenhum dado.</div></details>
-<details><summary>❓ Professor “Por que não?”</summary><p class="muted">Enquanto apenas o DiaHoje estiver conectado: “não liberou Moeda da Vez porque falta sensor de oportunidade/confirmação”.</p></details>
-
-<details open><summary>📝 RelGPT consolidado</summary>
-<div class="actions" style="margin:10px 0"><button class="primary" onclick="gerarRelGPT()">Gerar RelGPT</button><button onclick="copiarRelGPT()">Copiar RelGPT</button></div>
-<textarea id="relgpt" readonly></textarea>
+<details open><summary>🏁 Ranking Motor Central</summary>
+<div class="mini" id="rankNote">Sem candidatos.</div>
+<div style="overflow:auto"><table><thead><tr><th>#</th><th>Ativo</th><th>Dir.</th><th>Score</th><th>Estado</th><th>Conf.</th><th>Confluência</th><th>Risco</th><th>Atividade</th><th>Qual. ativo</th><th>Bloqueios</th></tr></thead><tbody id="rankRows"><tr><td colspan="11">Aguardando dados.</td></tr></tbody></table></div>
 </details>
+
+<details open><summary>🌎 Contexto do DiaHoje</summary>
+<div class="focus" id="market">Regime: N/D</div><div class="focus" id="prof">Professor: N/D</div><div class="focus" id="rep">Repique: N/D</div><div class="mini" id="dq">Qualidade: N/D</div><div id="breadth"></div>
+</details>
+
+<details><summary>❓ Professor “Por que não?”</summary><div id="whyNot" style="margin-top:8px">Aguardando candidatos.</div></details>
+
+<details><summary>⚙️ Regras do nível escolhido</summary><div id="rules" style="margin-top:8px"></div>
+<p class="mini">A “qualidade do ativo” não participa como filtro dominante do ranking. Ativos deteriorados podem subir no ranking LONG se houver reversão/assimetria, ou no SHORT se houver continuidade confirmada.</p>
+</details>
+
+<details open><summary>📝 RelGPT consolidado</summary><div class="actions"><button class="primary" onclick="makeRelGPT()">Gerar RelGPT</button><button onclick="copyRelGPT()">Copiar RelGPT</button></div><textarea id="relgpt" readonly></textarea></details>
 
 <details open><summary>🏁 Conclusão dos Feitos EGI</summary>
 <table><tr><th>Marco</th><th>Status</th></tr>
-<tr><td>Base/Radares</td><td class="good">✅ existentes</td></tr>
-<tr><td>Motor Central</td><td class="good">✅ publicado no DiaHoje</td></tr>
-<tr><td>DiaHoje → Motor Central</td><td class="good">✅ conectado por localStorage</td></tr>
-<tr><td>RelGPT</td><td class="good">✅ incluído</td></tr>
-<tr><td>Professor / SetupDT / RadarMME1 / outros</td><td class="warn">🟡 próximos conectores</td></tr>
-<tr><td>Moeda da Vez real</td><td class="warn">🟡 aguarda sensores de oportunidade</td></tr>
+<tr><td>DiaHoje → Motor Central</td><td class="good">✅ conectado</td></tr>
+<tr><td>Próximas Fortes → Motor Central</td><td class="good">✅ conectado</td></tr>
+<tr><td>Manada + Volatilidade / Confluência → Motor</td><td class="good">✅ conectado</td></tr>
+<tr><td>Moeda da Vez LONG / SHORT / Geral</td><td class="good">✅ primeira versão real</td></tr>
+<tr><td>RelGPT</td><td class="good">✅ consolidado</td></tr>
+<tr><td>Professor / RadarMME1 / SetupDT</td><td class="warn">🟡 próximos conectores de confirmação</td></tr>
 <tr><td>Auditor prospectivo</td><td>⬜ próximo estágio</td></tr>
 </table></details>
 </main>
 <script>
-let cfg={h:"DAY TRADE",d:"AMBOS",l:"EQUILIBRADO"},payload=null;
-function pick(btn){[...btn.parentElement.children].forEach(x=>x.classList.remove("sel"));btn.classList.add("sel")}
-function updatePerfil(){document.getElementById("perfil").textContent=cfg.h+" • "+cfg.d+" • "+cfg.l}
-function setH(b,v){pick(b);cfg.h=v;updatePerfil()}function setD(b,v){pick(b);cfg.d=v;updatePerfil()}function setL(b,v){pick(b);cfg.l=v;updatePerfil()}
-function lerDiaHoje(){
- try{payload=JSON.parse(localStorage.getItem("EGI_MOTOR_CENTRAL_INBOX_V1")||"null")}catch{payload=null}
- if(!payload||payload.source!=="DiaHoje"){document.getElementById("status").textContent="Nenhum pacote válido do DiaHoje encontrado.";return}
- document.getElementById("status").textContent="✅ DiaHoje recebido • "+new Date(payload.generatedAt).toLocaleString("pt-BR");
- document.getElementById("regime").textContent=payload.market?.state||"Regime: N/D";
- document.getElementById("professor").textContent=payload.market?.professor||"Professor: N/D";
- document.getElementById("repique").textContent=payload.market?.repique||"Repique: N/D";
- document.getElementById("qualidade").textContent=payload.market?.quality||"Qualidade: N/D";
- const b=payload.breadth||{};document.getElementById("breadth").innerHTML=Object.entries(b).map(([tf,x])=>"<div class='focus'><b>"+tf+"</b> • "+(x.up??0)+" altas / "+(x.down??0)+" baixas / "+(x.flat??0)+" estáveis • "+(x.total??0)+" ativos</div>").join("")||"Nenhum dado.";
- const coins=payload.coins||{};document.getElementById("coins").innerHTML=Object.entries(coins).map(([s,rec])=>"<div class='focus'><b>"+s+"</b> • "+Object.entries(rec).map(([tf,v])=>tf+" "+(Number(v.pct)||0).toFixed(2)+"%").join(" | ")+"</div>").join("")||"Nenhum dado.";
- gerarRelGPT();
+const cfg={h:'DAY TRADE',d:'AMBOS',l:'EQUILIBRADO'};
+let dia=null,strength=null,conf=null,ranked=[];
+const profiles={
+ CONSERVADOR:{req:4,maxRisk:55,min:72,label:'Mais confirmação; menor tolerância a risco.'},
+ EQUILIBRADO:{req:3,maxRisk:68,min:63,label:'Equilíbrio entre antecipação e confirmação.'},
+ AGRESSIVO:{req:2,maxRisk:82,min:55,label:'Aceita mais antecipação e ruído; risco continua explícito.'}
+};
+const clamp=(n,a=0,b=100)=>Math.max(a,Math.min(b,Number(n)||0));
+function setCfg(k,v,b){cfg[k]=v;[...b.parentElement.children].forEach(x=>x.classList.remove('sel'));b.classList.add('sel');document.getElementById('perfil').textContent=cfg.h+' • '+cfg.d+' • '+cfg.l;render()}
+function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
+function age(p){if(!p?.generatedAt)return 'sem horário';const m=Math.round((Date.now()-new Date(p.generatedAt).getTime())/60000);return m<1?'agora':m+' min atrás'}
+function refreshAll(){dia=read('EGI_MOTOR_CENTRAL_INBOX_V1');strength=read('EGI_MOTOR_STRENGTH_V1');conf=read('EGI_MOTOR_CONFLUENCE_V1');render()}
+function canon(s){s=String(s||'').toUpperCase();return s.endsWith('USDT')?s:s+'USDT'}
+function mapBy(arr){const m=new Map();(arr||[]).forEach(x=>m.set(canon(x.symbol),x));return m}
+function marketAdjust(side){
+ const s=String(dia?.market?.state||'').toUpperCase();
+ if(s.includes('ALTA MULTIPERÍODO'))return side==='LONG'?7:-7;
+ if(s.includes('QUEDA MULTIPERÍODO'))return side==='SHORT'?7:-7;
+ if(s.includes('RECUPERAÇÃO CURTA CONTRA CONTEXTO MAIOR'))return side==='SHORT'?3:-2;
+ if(s.includes('CORREÇÃO CURTA CONTRA CONTEXTO MAIOR'))return side==='LONG'?3:-2;
+ return 0;
 }
-function gerarRelGPT(){
- const lines=["RELGPT — MOTOR CENTRAL EGI V1.1 — ESTUDO, NÃO ORDEM","Gerado: "+new Date().toLocaleString("pt-BR"),"Perfil: "+cfg.h+" | "+cfg.d+" | "+cfg.l,"Fonte conectada: "+(payload?.source||"nenhuma"),"","REGIME",""+(payload?.market?.state||"N/D"),"","PROFESSOR",""+(payload?.market?.professor||"N/D"),"","REPIQUE",""+(payload?.market?.repique||"N/D"),"","MOEDA DA VEZ LONG: ainda não calculada — falta sensor de oportunidade.","MOEDA DA VEZ SHORT: ainda não calculada — falta sensor de oportunidade.","MELHOR GERAL: ainda não calculada.","","Regra EGI: detectar cedo, confirmar com segurança e nunca forçar entrada."];
- document.getElementById("relgpt").value=lines.join("\n");
+function stateFor(x,p){
+ const severe=x.blocks.filter(b=>/EVITAR|RISCO ALTO|PULLBACK/i.test(b));
+ if(x.confirm>=p.req && x.score>=p.min && !severe.length)return 'CONFIRMADO';
+ if(x.confirm>=Math.max(1,p.req-1)||x.score>=p.min-9)return 'PREPARANDO';
+ return 'OBSERVAR';
 }
-async function copiarRelGPT(){if(!document.getElementById("relgpt").value)gerarRelGPT();const t=document.getElementById("relgpt").value;try{await navigator.clipboard.writeText(t);alert("RelGPT copiado.")}catch{prompt("Copie:",t)}}
-lerDiaHoje();
+function build(){
+ const S=mapBy(strength?.candidates),C=mapBy(conf?.candidates),syms=new Set([...S.keys(),...C.keys()]);
+ const p=profiles[cfg.l],out=[];
+ for(const sym of syms){
+   const s=S.get(sym)||{},c=C.get(sym)||{};
+   const activity=clamp((Number(s.volCap)||Number(c.volRatio)||0)*10);
+   const risk=Number.isFinite(Number(c.danger))?Number(c.danger):40;
+   const riskAdj=100-clamp(risk);
+   const confl=Number.isFinite(Number(c.confluence))?Number(c.confluence):50;
+   const triple=clamp(s.tripleScore||0);
+   const rel=Number(s.relativeBTC)||0,p1=Number(s.p1)||0,p24=Number(s.p24)||0,p7=Number(s.p7)||0;
+   const longTrend=clamp(50+p1*8+p24*2+p7*.7+rel*5);
+   const shortTrend=clamp(50-p1*8-p24*2-p7*.7-rel*5);
+   for(const side of ['LONG','SHORT']){
+     const confirm=Number(side==='LONG'?s.longConfirmation:s.shortConfirmation)||0;
+     const confirmScore=confirm*20;
+     const trend=side==='LONG'?longTrend:shortTrend;
+     let score=.30*confirmScore+.25*trend+.15*confl+.15*activity+.10*riskAdj+.05*triple+marketAdjust(side);
+     if(side==='LONG'&&s.early)score+=5;if(side==='SHORT'&&s.earlyShort)score+=5;
+     score=clamp(score);
+     const blocks=[];
+     if(confirm<p.req)blocks.push('confirmação '+confirm+'/5 < '+p.req+'/5');
+     if(risk>p.maxRisk)blocks.push('RISCO ALTO '+Math.round(risk)+'/100');
+     if(/EVITAR/i.test(c.decision||''))blocks.push('EVITAR AGORA');
+     if(/PULLBACK/i.test((c.decision||'')+' '+(c.action||'')))blocks.push('ESPERAR PULLBACK');
+     if(!S.has(sym))blocks.push('sem direção do Próximas Fortes');
+     if(!C.has(sym))blocks.push('sem Confluência Manada×Volatilidade');
+     const reasons=side==='LONG'?(s.longReasons||[]):(s.shortReasons||[]);
+     const obj={sym,side,score,confirm,confl,risk,activity,assetQuality:Number(c.assetQuality)||null,blocks,reasons,c,s};
+     obj.state=stateFor(obj,p);out.push(obj);
+   }
+ }
+ return out.sort((a,b)=>b.score-a.score);
+}
+function best(side){return ranked.filter(x=>x.side===side)[0]||null}
+function txtState(x){return x?x.state+' • '+x.score.toFixed(0)+'/100':'AGUARDANDO'}
+function renderCard(prefix,x){
+ document.getElementById(prefix+'Name').textContent=x?x.sym.replace('USDT',''):'Nenhuma';
+ document.getElementById(prefix+'State').textContent=txtState(x);
+ document.getElementById(prefix+'State').className=x?.state==='CONFIRMADO'?'good':x?.state==='PREPARANDO'?'warn':'muted';
+ document.getElementById(prefix+'Why').textContent=x?('Confirmação '+x.confirm+'/5 • Confluência '+Math.round(x.confl)+'/100 • risco '+Math.round(x.risk)+'/100'+(x.blocks.length?' • Falta: '+x.blocks.join(' | '):' • sem bloqueio principal')):'Faltam sensores.';
+}
+function render(){
+ const p=profiles[cfg.l];ranked=build();
+ document.getElementById('srcDia').innerHTML=dia?'✅ <b>DiaHoje</b> • '+age(dia):'⚪ DiaHoje: sem pacote';
+ document.getElementById('srcForca').innerHTML=strength?'✅ <b>Próximas Fortes</b> • '+(strength.candidates?.length||0)+' ativos • '+age(strength):'⚪ Próximas Fortes: sem pacote';
+ document.getElementById('srcConf').innerHTML=conf?'✅ <b>Confluência</b> • '+(conf.candidates?.length||0)+' ativos • '+age(conf):'⚪ Confluência: sem pacote';
+ document.getElementById('market').textContent=dia?.market?.state||'Regime: N/D';document.getElementById('prof').textContent=dia?.market?.professor||'Professor: N/D';document.getElementById('rep').textContent=dia?.market?.repique||'Repique: N/D';document.getElementById('dq').textContent=dia?.market?.quality||'Qualidade: N/D';
+ const b=dia?.breadth||{};document.getElementById('breadth').innerHTML=Object.entries(b).map(([tf,x])=>'<span class="chip">'+tf+' '+(x.up??0)+'↑ '+(x.down??0)+'↓ / '+(x.total??0)+'</span>').join('');
+ const L=best('LONG'),S=best('SHORT');let G=cfg.d==='LONG'?L:cfg.d==='SHORT'?S:(!L?S:!S?L:(L.score>=S.score?L:S));
+ renderCard('long',L);renderCard('short',S);renderCard('best',G);
+ const visible=ranked.filter(x=>cfg.d==='AMBOS'||x.side===cfg.d).slice(0,16);
+ document.getElementById('rankRows').innerHTML=visible.length?visible.map((x,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+x.sym.replace('USDT','')+'</b></td><td>'+x.side+'</td><td><b>'+x.score.toFixed(0)+'</b></td><td>'+x.state+'</td><td>'+x.confirm+'/5</td><td>'+Math.round(x.confl)+'</td><td>'+Math.round(x.risk)+'</td><td>'+Math.round(x.activity)+'</td><td>'+(x.assetQuality==null?'—':Math.round(x.assetQuality))+'</td><td>'+((x.blocks||[]).join('; ')||'—')+'</td></tr>').join(''):'<tr><td colspan="11">Sem candidatos integrados.</td></tr>';
+ document.getElementById('rankNote').textContent='Perfil '+cfg.l+': confirmação mínima '+p.req+'/5 • risco máximo '+p.maxRisk+'/100 • score-base '+p.min+'/100. Horizonte '+cfg.h+(cfg.h==='SCALPING'?' — cobertura parcial: o Próximas Fortes não substitui sensores 1m/5m.':cfg.h==='HOLD'?' — cobertura parcial: fundamentos/tese ainda não estão conectados.':'') ;
+ document.getElementById('rules').innerHTML='<div class="focus">'+p.label+'</div><div>Confirmação mínima: <b>'+p.req+'/5</b> • risco máximo: <b>'+p.maxRisk+'/100</b> • score-base: <b>'+p.min+'/100</b>.</div>';
+ document.getElementById('whyNot').innerHTML=visible.slice(0,8).map(x=>'<div class="focus"><b>'+x.sym.replace('USDT','')+' '+x.side+'</b> — '+x.state+(x.blocks.length?' • '+x.blocks.join(' • '):' • critérios principais atendidos')+'</div>').join('')||'Aguardando candidatos.';
+ makeRelGPT();
+}
+function makeRelGPT(){
+ const L=best('LONG'),S=best('SHORT'),G=cfg.d==='LONG'?L:cfg.d==='SHORT'?S:(!L?S:!S?L:(L.score>=S.score?L:S));
+ const f=x=>x?x.sym+' | '+x.side+' | '+x.state+' | score '+x.score.toFixed(0)+'/100 | confirmação '+x.confirm+'/5 | confluência '+Math.round(x.confl)+'/100 | risco '+Math.round(x.risk)+'/100 | bloqueios '+(x.blocks.join(', ')||'nenhum principal'):'NENHUMA';
+ const lines=['RELGPT — MOTOR CENTRAL EGI V1.2 — ESTUDO, NÃO ORDEM','Gerado: '+new Date().toLocaleString('pt-BR'),'Perfil: '+cfg.h+' | '+cfg.d+' | '+cfg.l,'Fontes: DiaHoje '+(dia?'OK':'N/D')+' | Próximas Fortes '+(strength?'OK':'N/D')+' | Confluência '+(conf?'OK':'N/D'),'','CONTEXTO',dia?.market?.state||'N/D',dia?.market?.professor||'N/D','','MOEDA DA VEZ LONG: '+f(L),'MOEDA DA VEZ SHORT: '+f(S),'MELHOR GERAL: '+f(G),'','TOP CANDIDATOS'];
+ ranked.filter(x=>cfg.d==='AMBOS'||x.side===cfg.d).slice(0,8).forEach((x,i)=>lines.push((i+1)+'. '+f(x)));
+ lines.push('','Nota: qualidade do ativo não é filtro dominante. Ranking prioriza direção, confirmação, confluência/oportunidade, atividade e risco.','Regra EGI: detectar cedo, confirmar com segurança e nunca forçar entrada.');
+ document.getElementById('relgpt').value=lines.join('\n');
+}
+async function copyRelGPT(){if(!document.getElementById('relgpt').value)makeRelGPT();const t=document.getElementById('relgpt').value;try{await navigator.clipboard.writeText(t);alert('RelGPT copiado.')}catch{prompt('Copie:',t)}}
+refreshAll();
 </script></body></html>
