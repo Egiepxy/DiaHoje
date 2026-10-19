@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motor Central EGI V1.1</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1423;--panel:#152338;--edge:#2b3d55;--text:#eff6ff;--muted:#aabbd1;--green:#48d5ad;--yellow:#ffd166;--red:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#0b1423,#11243a);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial}
+main{max-width:1120px;margin:auto;padding:18px 15px 70px}.hero,.card{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:18px;margin-top:14px}
+.hero{margin-top:0}.tag{color:var(--green);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.muted{color:var(--muted)}h1{margin:4px 0}h2{margin:0 0 10px;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{background:#235477;border:1px solid #497aa0;border-radius:9px;padding:9px 12px;color:#fff;cursor:pointer}.primary{background:#177e69;border-color:#32a888}
+.sel{outline:2px solid #78a7ff}.focus{padding:11px 13px;border-left:4px solid var(--green);background:#102034;border-radius:8px;margin:8px 0}
+textarea{width:100%;min-height:180px;background:#0e1a2b;color:#fff;border:1px solid #58718d;border-radius:8px;padding:10px}
+details{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:12px;margin-top:12px}summary{cursor:pointer;font-weight:700}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid var(--edge);text-align:left}.good{color:var(--green)}.warn{color:var(--yellow)}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+</style>
+</head><body><main>
+<section class="hero">
+<div class="tag">Motor Central EGI V1.1 • Telhado do projeto</div>
+<h1>🧠 Motor Central EGI</h1>
+<p class="muted">Unificar sensores, permitir configurar/escolher e recolher detalhes. Estudo, não ordem.</p>
+<div class="actions">
+<button onclick="setH(this,'HOLD')">HOLD</button><button onclick="setH(this,'SWING')">SWING</button><button class="sel" onclick="setH(this,'DAY TRADE')">DAY TRADE</button><button onclick="setH(this,'SCALPING')">SCALPING</button>
+</div><div class="actions" style="margin-top:8px">
+<button onclick="setD(this,'LONG')">LONG</button><button onclick="setD(this,'SHORT')">SHORT</button><button class="sel" onclick="setD(this,'AMBOS')">AMBOS</button>
+</div><div class="actions" style="margin-top:8px">
+<button onclick="setL(this,'CONSERVADOR')">Conservador</button><button class="sel" onclick="setL(this,'EQUILIBRADO')">Equilibrado</button><button onclick="setL(this,'AGRESSIVO')">Agressivo</button>
+</div>
+<p class="muted" id="perfil">DAY TRADE • AMBOS • EQUILIBRADO</p>
+</section>
+
+<section class="card">
+<h2>🔌 Integração DiaHoje</h2>
+<div class="focus" id="status">Aguardando envio do DiaHoje.</div>
+<div class="actions"><button class="primary" onclick="lerDiaHoje()">📥 Ler DiaHoje</button><button onclick="location.href='index.html'">↩ Voltar ao DiaHoje</button></div>
+<div class="focus" id="regime">Regime: N/D</div>
+<div class="focus" id="professor">Professor: N/D</div>
+<div class="focus" id="repique">Repique: N/D</div>
+<div class="muted" id="qualidade">Qualidade: N/D</div>
+</section>
+
+<div class="grid">
+<section class="card"><div class="tag">🟢 Moeda da Vez LONG</div><h2 id="long">Nenhuma ainda</h2><p class="muted">DiaHoje é contexto, não selecionador de sinal.</p></section>
+<section class="card"><div class="tag">🔴 Moeda da Vez SHORT</div><h2 id="short">Nenhuma ainda</h2><p class="muted">Aguardando sensores de oportunidade.</p></section>
+<section class="card"><div class="tag">🏆 Melhor oportunidade geral</div><h2 id="geral">Nenhuma ainda</h2><p class="muted">Será calculada após integrar sinais.</p></section>
+</div>
+
+<details open><summary>📊 Amplitude recebida do DiaHoje</summary><div id="breadth" style="margin-top:10px">Nenhum dado.</div></details>
+<details><summary>🪙 Ativos recebidos do DiaHoje</summary><div id="coins" style="margin-top:10px">Nenhum dado.</div></details>
+<details><summary>❓ Professor “Por que não?”</summary><p class="muted">Enquanto apenas o DiaHoje estiver conectado: “não liberou Moeda da Vez porque falta sensor de oportunidade/confirmação”.</p></details>
+
+<details open><summary>📝 RelGPT consolidado</summary>
+<div class="actions" style="margin:10px 0"><button class="primary" onclick="gerarRelGPT()">Gerar RelGPT</button><button onclick="copiarRelGPT()">Copiar RelGPT</button></div>
+<textarea id="relgpt" readonly></textarea>
+</details>
+
+<details open><summary>🏁 Conclusão dos Feitos EGI</summary>
+<table><tr><th>Marco</th><th>Status</th></tr>
+<tr><td>Base/Radares</td><td class="good">✅ existentes</td></tr>
+<tr><td>Motor Central</td><td class="good">✅ publicado no DiaHoje</td></tr>
+<tr><td>DiaHoje → Motor Central</td><td class="good">✅ conectado por localStorage</td></tr>
+<tr><td>RelGPT</td><td class="good">✅ incluído</td></tr>
+<tr><td>Professor / SetupDT / RadarMME1 / outros</td><td class="warn">🟡 próximos conectores</td></tr>
+<tr><td>Moeda da Vez real</td><td class="warn">🟡 aguarda sensores de oportunidade</td></tr>
+<tr><td>Auditor prospectivo</td><td>⬜ próximo estágio</td></tr>
+</table></details>
+</main>
+<script>
+let cfg={h:"DAY TRADE",d:"AMBOS",l:"EQUILIBRADO"},payload=null;
+function pick(btn){[...btn.parentElement.children].forEach(x=>x.classList.remove("sel"));btn.classList.add("sel")}
+function updatePerfil(){document.getElementById("perfil").textContent=cfg.h+" • "+cfg.d+" • "+cfg.l}
+function setH(b,v){pick(b);cfg.h=v;updatePerfil()}function setD(b,v){pick(b);cfg.d=v;updatePerfil()}function setL(b,v){pick(b);cfg.l=v;updatePerfil()}
+function lerDiaHoje(){
+ try{payload=JSON.parse(localStorage.getItem("EGI_MOTOR_CENTRAL_INBOX_V1")||"null")}catch{payload=null}
+ if(!payload||payload.source!=="DiaHoje"){document.getElementById("status").textContent="Nenhum pacote válido do DiaHoje encontrado.";return}
+ document.getElementById("status").textContent="✅ DiaHoje recebido • "+new Date(payload.generatedAt).toLocaleString("pt-BR");
+ document.getElementById("regime").textContent=payload.market?.state||"Regime: N/D";
+ document.getElementById("professor").textContent=payload.market?.professor||"Professor: N/D";
+ document.getElementById("repique").textContent=payload.market?.repique||"Repique: N/D";
+ document.getElementById("qualidade").textContent=payload.market?.quality||"Qualidade: N/D";
+ const b=payload.breadth||{};document.getElementById("breadth").innerHTML=Object.entries(b).map(([tf,x])=>"<div class='focus'><b>"+tf+"</b> • "+(x.up??0)+" altas / "+(x.down??0)+" baixas / "+(x.flat??0)+" estáveis • "+(x.total??0)+" ativos</div>").join("")||"Nenhum dado.";
+ const coins=payload.coins||{};document.getElementById("coins").innerHTML=Object.entries(coins).map(([s,rec])=>"<div class='focus'><b>"+s+"</b> • "+Object.entries(rec).map(([tf,v])=>tf+" "+(Number(v.pct)||0).toFixed(2)+"%").join(" | ")+"</div>").join("")||"Nenhum dado.";
+ gerarRelGPT();
+}
+function gerarRelGPT(){
+ const lines=["RELGPT — MOTOR CENTRAL EGI V1.1 — ESTUDO, NÃO ORDEM","Gerado: "+new Date().toLocaleString("pt-BR"),"Perfil: "+cfg.h+" | "+cfg.d+" | "+cfg.l,"Fonte conectada: "+(payload?.source||"nenhuma"),"","REGIME",""+(payload?.market?.state||"N/D"),"","PROFESSOR",""+(payload?.market?.professor||"N/D"),"","REPIQUE",""+(payload?.market?.repique||"N/D"),"","MOEDA DA VEZ LONG: ainda não calculada — falta sensor de oportunidade.","MOEDA DA VEZ SHORT: ainda não calculada — falta sensor de oportunidade.","MELHOR GERAL: ainda não calculada.","","Regra EGI: detectar cedo, confirmar com segurança e nunca forçar entrada."];
+ document.getElementById("relgpt").value=lines.join("\n");
+}
+async function copiarRelGPT(){if(!document.getElementById("relgpt").value)gerarRelGPT();const t=document.getElementById("relgpt").value;try{await navigator.clipboard.writeText(t);alert("RelGPT copiado.")}catch{prompt("Copie:",t)}}
+lerDiaHoje();
+</script></body></html>
