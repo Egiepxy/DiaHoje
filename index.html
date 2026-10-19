@@ -195,7 +195,7 @@ async function egiFetchMorning(){
   document.getElementById("egiSemaforo").textContent=sem+" — classificação heurística, não tendência confirmada.";
   const ages=egiTFs.flatMap(tf=>egiSymbols.map(sym=>matrix[sym]?.[tf]).filter(Boolean).map(x=>stamp-x.end));
   const maxAge=ages.length?Math.max(...ages):null;
-  document.getElementById("egiDataQuality").textContent="Qualidade dos dados: "+(28-errors.length)+"/28 leituras completas • "+(maxAge===null?"idade indisponível":"maior idade de candle fechado "+Math.round(maxAge/60000)+" min")+" • "+(errors.length?"ausentes: "+errors.join(", "):"sem dados ausentes")+"; não equivale a qualidade preditiva.";
+  document.getElementById("egiDataQuality").textContent="Qualidade dos dados: "+(egiSymbols.length*egiTFs.length-errors.length)+"/"+(egiSymbols.length*egiTFs.length)+" leituras completas • "+(maxAge===null?"idade indisponível":"maior idade de candle fechado "+Math.round(maxAge/60000)+" min")+" • "+(errors.length?"ausentes: "+errors.join(", "):"sem dados ausentes")+"; não equivale a qualidade preditiva.";
   egiHistoryUpdate(matrix,stamp);
 
 
@@ -224,7 +224,7 @@ async function egiFetchMorning(){
    watch.append(note);
   }
 
-  status.textContent="Consulta "+new Date(stamp).toLocaleString("pt-BR")+" • "+(28-errors.length)+"/28 leituras • "+(errors.length?errors.length+" indisponíveis":"todas disponíveis")+". Sem ordens.";
+  status.textContent="Consulta "+new Date(stamp).toLocaleString("pt-BR")+" • "+(egiSymbols.length*egiTFs.length-errors.length)+"/"+(egiSymbols.length*egiTFs.length)+" leituras • "+(errors.length?errors.length+" indisponíveis":"todas disponíveis")+". Sem ordens.";
  }catch(e){status.textContent="Erro na consulta: "+e.message+"; não presumir direção."}
  finally{button.disabled=false}
 }
