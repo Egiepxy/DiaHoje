@@ -25,7 +25,13 @@
 <div id="egiSemaforo" class="focus" role="status">⚪ Aguardando dados de todos os períodos.</div><div id="egiBreadth"></div><div id="egiRepique" class="focus" role="status">⚪ Repique inicial: aguardando sequência de candles fechados.</div><div class="focus" id="egiProfessorPanorama" role="status">🧠 Professor do Panorama: aguardando os quatro períodos.</div><div id="egiWatchlist"></div><div class="focus" id="egiDataQuality">Qualidade: aguardando coleta.</div><div id="egiHistory" class="small">Histórico: aguardando novas consultas.</div><div id="egiQuoteList" class="grid" style="margin-top:12px"></div>
 <p class="small">Fonte: Binance Spot pública, somente candles fechados de 5m, 15m, 1h e 4h. Cada percentual compara os dois últimos fechamentos do respectivo timeframe. Os preços NÃO são cotação em tempo real. Atualização ao abrir o painel e a cada 5 minutos enquanto a aba estiver ativa. Se a API falhar, mostra indisponível, nunca valores inventados.</p>
 <h3 style="margin-top:18px">✅ Cinco consultas essenciais</h3><p id="egiMorningProgress">0/5 verificadas hoje.</p><div id="egiMorningTasks"></div>
-<p class="small">A marcação é manual e fica salva neste navegador, separada do checklist histórico de 15 tarefas. Abertura dos aplicativos não prova que uma análise foi realizada.</p></section>\n<section class="card"><h2>🚀 Abrir aplicativos EGI</h2><p class="sectionnote">Os HTMLs disponíveis foram integrados a este site; alguns aplicativos ainda exigem endereço próprio. Se o app possuir uma página publicada diferente, use “Editar URL”. Os endereços personalizados ficam salvos neste navegador.</p><div id="apps"></div></section>
+<p class="small">A marcação é manual e fica salva neste navegador, separada do checklist histórico de 15 tarefas. Abertura dos aplicativos não prova que uma análise foi realizada.</p></section>\n<section class="card" id="egiCentralInline"><h2>📋 Central Unificada EGI — REL1 + REL2 + REL3</h2>
+<p>O REL1 vem diretamente dos dados coletados pelo DiaHoje. Cole apenas o REL2 do Professor e gere o relatório completo, sem abrir outro aplicativo.</p>
+<div class="actions"><button type="button" class="primary" onclick="egiPopulateCentral()">↻ Preencher REL1 automaticamente</button><a class="link" href="apps/professor-daytrade.html" target="_blank" rel="noopener">Abrir Professor para copiar REL2</a></div>
+<p class="small" id="egiCentralStatus">Aguardando a coleta do DiaHoje. Clique em Preencher REL1 automaticamente.</p>
+<iframe id="egiCentralFrame" title="Central de Relatórios EGI V1.2" src="apps/central-relatorios-v1-2.html" loading="lazy" style="width:100%;height:920px;border:1px solid #42617b;border-radius:12px;background:#0c1525;margin-top:12px"></iframe>
+</section>
+<section class="card"><h2>🚀 Abrir aplicativos EGI</h2><p class="sectionnote">Os HTMLs disponíveis foram integrados a este site; alguns aplicativos ainda exigem endereço próprio. Se o app possuir uma página publicada diferente, use “Editar URL”. Os endereços personalizados ficam salvos neste navegador.</p><div id="apps"></div></section>
 <section class="card" id="panicEGI">
 <div class="tag">EGI • V1.1 • Módulo experimental</div>
 <h2>🚨 Detector de Pré-Pânico</h2>
@@ -293,14 +299,27 @@ function egiSendMotorCentral(){
   window.open("motor-central.html","_blank","noopener");
  }catch(e){alert("Não foi possível enviar ao Motor Central: "+e.message)}
 }
-function egiCopyMorning(){
+function egiMorningReportText(){
  const lines=["DIAHOJE EGI — ABERTURA "+egiDay(),"Binance Spot • candles fechados 5m/15m/1h/4h","Consulta: "+(egiLastTime?new Date(egiLastTime).toLocaleString("pt-BR"):"pendente"),"Semáforo: "+document.getElementById("egiSemaforo").textContent,"Repique: "+document.getElementById("egiRepique").textContent,"Professor: "+document.getElementById("egiProfessorPanorama").textContent,"Observações: "+document.getElementById("egiWatchlist").textContent,"Dados: "+document.getElementById("egiDataQuality").textContent,"Mudanças: "+document.getElementById("egiHistory").textContent];
  for(const tf of egiTFs){const b=egiBreadth[tf];if(b)lines.push(tf+": "+b.up+" altas / "+b.down+" baixas / "+b.flat+" estáveis ("+b.total+"/"+egiSymbols.length+")")}
  for(const sym of egiSymbols){const rec=egiMatrix[sym]||{};lines.push(sym+" "+egiTFs.map(tf=>tf+" "+(rec[tf]?rec[tf].pct.toFixed(2)+"%":"N/D")).join(" | "))}
  lines.push("Checklist: "+egiMorningApps.map((x,i)=>(egiChecked()[i]?"[OK] ":"[PENDENTE] ")+x[0]).join("; "));
  lines.push("A amostra não representa o mercado inteiro; variações são do último candle fechado de cada timeframe, não retornos acumulados.","Sem ordens; não substitui confirmação do Professor, Destino do Capital e SetupDT.");
- const txt=lines.join("\n");
+ return lines.join("\n");
+}
+function egiCopyMorning(){
+ const txt=egiMorningReportText();
  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(()=>alert("Resumo copiado."),()=>prompt("Copie:",txt));else prompt("Copie:",txt);
+}
+function egiPopulateCentral(){
+ const status=document.getElementById('egiCentralStatus');
+ if(!egiLastTime||Object.keys(egiMatrix||{}).length===0){status.textContent='Aguarde a primeira coleta válida do DiaHoje e tente novamente.';return}
+ const frame=document.getElementById('egiCentralFrame');
+ try{
+  const doc=frame.contentDocument;if(!doc||!doc.getElementById('rel1')){status.textContent='Central ainda carregando. Clique novamente.';return}
+  const field=doc.getElementById('rel1');field.value=egiMorningReportText();field.dispatchEvent(new Event('input',{bubbles:true}));
+  status.textContent='REL1 preenchido a partir da coleta DiaHoje. Agora cole REL2 do Professor e clique em Gerar RelChat unificado no painel abaixo.';
+ }catch(e){status.textContent='Não foi possível conectar o painel embutido: '+e.message}
 }
 egiMorningRender();egiFetchMorning();setInterval(()=>{if(!document.hidden)egiFetchMorning()},300000);
 
