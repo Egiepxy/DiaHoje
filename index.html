@@ -27,14 +27,17 @@
 <h3 style="margin-top:18px">✅ Cinco consultas essenciais</h3><p id="egiMorningProgress">0/5 verificadas hoje.</p><div id="egiMorningTasks"></div>
 <p class="small">A marcação é manual e fica salva neste navegador, separada do checklist histórico de 15 tarefas. Abertura dos aplicativos não prova que uma análise foi realizada.</p></section>\n<section class="card"><h2>🚀 Abrir aplicativos EGI</h2><p class="sectionnote">Os HTMLs disponíveis foram integrados a este site; alguns aplicativos ainda exigem endereço próprio. Se o app possuir uma página publicada diferente, use “Editar URL”. Os endereços personalizados ficam salvos neste navegador.</p><div id="apps"></div></section>
 <section class="card" id="panicEGI">
-<div class="tag">EGI • V1.0 • Módulo experimental</div>
+<div class="tag">EGI • V1.1 • Módulo experimental</div>
 <h2>🚨 Detector de Pré-Pânico</h2>
 <p>Vigilância de deterioração, não previsão nem ordem. Usa <strong>somente candles fechados</strong> de BTC, ETH e 15 altcoins na Binance Spot. Dados ausentes nunca são tratados como mercado tranquilo.</p>
 <div id="panicState" class="panic-status" role="status">⚪ Não avaliado — atualize para iniciar a leitura.</div>
-<div class="panic-metrics" id="panicMetrics"></div>
+<div class="panic-metrics" id="panicMetrics"></div><div class="focus" id="panicTransition">Transições: aguardando duas leituras de candles distintos.</div>
+<h3>📚 Histórico do detector</h3><div id="panicHistory" class="small">Nenhuma leitura armazenada.</div>
+<div class="actions"><button onclick="panicHistoryExport()">⬇ Exportar histórico</button><button onclick="panicHistoryClear()">🗑 Limpar histórico</button></div>
+<p class="small">Histórico local neste navegador, limitado às últimas 120 amostras distintas. Leituras repetidas do mesmo candle de 15m não criam eventos novos. A comparação é entre observações armazenadas, não comprova causalidade.</p>
 <p id="panicExplain" class="small">Critérios iniciais heurísticos, sem validação estatística: amplitude da queda de altcoins em 5m/15m, BTC 5m/15m e volume relativo BTC 15m. Um alerta de pré-pânico não significa pânico confirmado.</p>
 <div class="actions"><button class="primary" onclick="panicRefresh()">🔄 Atualizar risco</button><button onclick="panicCopy()">📋 Copiar RelChat de risco</button><button onclick="panicDownload()">⬇ Exportar TXT</button></div>
-<p class="small">Sem cotações de Nasdaq, VIX, liquidações ou dominância de USDT nesta V1.0. Portanto, o painel não declara “pânico confirmado” automaticamente. APIs públicas podem falhar, e o navegador deve permanecer aberto para atualizações. Sem ordens e sem notificações em segundo plano.</p>
+<p class="small">Sem cotações de Nasdaq, VIX, liquidações ou dominância de USDT nesta V1.1. Portanto, o painel não declara “pânico confirmado” automaticamente. APIs públicas podem falhar, e o navegador deve permanecer aberto para atualizações. Sem ordens e sem notificações em segundo plano.</p>
 </section>
 <section class="card" id="ingest"><div class="tag">Laboratório EGI • Integrado ao MetaHj1810</div><h2>🔬 Laboratório e Central de Evidências EGI</h2><p>Cole um RelChat ou importe TXT. O painel organiza os registros e sugere itens do checklist para revisão, sem marcar tarefas automaticamente sem confirmação.</p><textarea id="reportInput" placeholder="Cole aqui o RelChat do Professor EGI, Destino do Capital, SetupDT..."></textarea><div class="actions"><button class="primary" onclick="analyzeInput()">🔎 Analisar e guardar</button><button onclick="document.getElementById('reportFile').click()">📂 Importar TXT</button><input type="file" class="hidden" id="reportFile" accept=".txt,text/plain" onchange="readReportFile(event)"><button onclick="exportEvidence()">⬇ Exportar evidências</button></div><div id="evidenceStatus" class="small" role="status">Nenhum relatório processado nesta sessão.</div><div id="evidenceList"></div><p class="small">Extração heurística de texto; não confirma qualidade do sinal, não conecta APIs externas e não envia ordens.</p></section>
 <section class="card"><h2>📝 Diário do experimento</h2><p>Escreva observações e hipóteses. O texto integra a exportação.</p><textarea id="notes" placeholder="Ex.: BTC 15m: queda perdendo força? Volume, RSI, MACD, confirmação e resultado..."></textarea><div class="actions"><button onclick="exportReport()">⬇ Salvar TXT completo</button><button onclick="copyReport()">📋 Copiar para ChatGPT</button></div><p class="small">Armazenamento local: marque, escreva e salve um TXT periodicamente. O GitHub não recebe automaticamente seu progresso.</p></section>
@@ -282,13 +285,41 @@ why=points>=4?"Várias condições de pressão vendedora coincidem. Não equival
 }
 const stamp=new Date().toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"});
 panicLatest={stamp,state,why,points,complete,breadth,b5,b15,e15,fresh,full,missing:results.filter(r=>r.error).map(r=>r.s+" "+r.tf)};
+panicSaveHistory(panicLatest);
 status.innerHTML="";const strong=document.createElement("strong");strong.textContent=state;status.append(strong);const detail=document.createElement("div");detail.className="small";detail.textContent="Leitura: "+stamp+" BRT · Cobertura "+fresh+"/"+full+" · "+(complete?points+"/5 gatilhos":"classificação suspensa");status.append(detail);
 const cards=[["Altcoins caindo 5m",breadth["5m"].pct===null?"N/D":breadth["5m"].pct.toFixed(0)+"%",breadth["5m"].down+"/"+breadth["5m"].n+" com dados"],["Altcoins caindo 15m",breadth["15m"].pct===null?"N/D":breadth["15m"].pct.toFixed(0)+"%",breadth["15m"].down+"/"+breadth["15m"].n+" com dados"],["BTC 5m",b5?panicFmt(b5.change):"N/D","Último candle fechado"],["BTC 15m",b15?panicFmt(b15.change):"N/D","Último candle fechado"],["Volume BTC 15m",b15&&b15.vol!==null?b15.vol.toFixed(2)+"×":"N/D","vs. 16 candles anteriores"],["ETH 15m",e15?panicFmt(e15.change):"N/D","Contexto informativo"]];
 metrics.innerHTML="";cards.forEach(([name,val,sub])=>{const box=document.createElement("div");box.className="panic-metric";const t=document.createElement("small");t.textContent=name;const b=document.createElement("b");b.textContent=val;const sm=document.createElement("small");sm.textContent=sub;box.append(t,b,sm);metrics.append(box)});
 explain.textContent=why+" Limiar experimental: >=80% altcoins negativas em cada TF; BTC 5m <= -0,45%; BTC 15m <= -0,90%; volume BTC 15m >=1,5× se candle negativo. Cobertura mínima 12/15 por TF. Não são métricas calibradas.";
 }catch(e){status.textContent="⚪ INDISPONÍVEL — falha na consulta: "+(e.message||e);panicLatest=null;metrics.innerHTML="";explain.textContent="Sem avaliação. Confira sua conexão e tente novamente."}finally{clearTimeout(timeout)}
 }
-function panicReport(){if(!panicLatest)return "RELCHAT EGI — PRÉ-PÂNICO V1.0\\nSem leitura válida nesta sessão.";const p=panicLatest;return ["RELCHAT EGI — PRÉ-PÂNICO V1.0 — ESTUDO, NÃO ORDEM","Coleta: "+p.stamp+" BRT","Estado: "+p.state,"Explicação: "+p.why,"Dados Binance Spot, somente candles fechados","Cobertura: "+p.fresh+"/"+p.full,"Altcoins em queda 5m: "+p.breadth["5m"].down+"/"+p.breadth["5m"].n,"Altcoins em queda 15m: "+p.breadth["15m"].down+"/"+p.breadth["15m"].n,"BTC 5m: "+(p.b5?panicFmt(p.b5.change):"N/D"),"BTC 15m: "+(p.b15?panicFmt(p.b15.change):"N/D"),"Volume BTC 15m: "+(p.b15&&p.b15.vol!==null?p.b15.vol.toFixed(2)+"x":"N/D"),"Gatilhos: "+(p.complete?p.points+"/5":"insuficiente"),"Falhas: "+(p.missing.join("; ")||"nenhuma"),"Sem VIX, futuros EUA, liquidações ou dominância USDT nesta versão.","Heurística não calibrada; não comprova pânico nem gera operação."].join("\\n")}
+function panicReport(){if(!panicLatest)return "RELCHAT EGI — PRÉ-PÂNICO V1.1\nSem leitura válida nesta sessão.";const p=panicLatest;return ["RELCHAT EGI — PRÉ-PÂNICO V1.1 — ESTUDO, NÃO ORDEM","Coleta: "+p.stamp+" BRT","Estado: "+p.state,"Explicação: "+p.why,"Dados Binance Spot, somente candles fechados","Cobertura: "+p.fresh+"/"+p.full,"Altcoins em queda 5m: "+p.breadth["5m"].down+"/"+p.breadth["5m"].n,"Altcoins em queda 15m: "+p.breadth["15m"].down+"/"+p.breadth["15m"].n,"BTC 5m: "+(p.b5?panicFmt(p.b5.change):"N/D"),"BTC 15m: "+(p.b15?panicFmt(p.b15.change):"N/D"),"Volume BTC 15m: "+(p.b15&&p.b15.vol!==null?p.b15.vol.toFixed(2)+"x":"N/D"),"Gatilhos: "+(p.complete?p.points+"/5":"insuficiente"),"Falhas: "+(p.missing.join("; ")||"nenhuma"),"Sem VIX, futuros EUA, liquidações ou dominância USDT nesta versão.","Heurística não calibrada; não comprova pânico nem gera operação."].join("\n")}
 async function panicCopy(){const content=panicReport();try{await navigator.clipboard.writeText(content);alert("RelChat copiado.")}catch{prompt("Copie o RelChat:",content)}}
 function panicDownload(){const blob=new Blob([panicReport()],{type:"text/plain;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="RelChat_PrePanico_EGI.txt";a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+
+const panicHistoryKey="EGI_PREPANICO_V11_HISTORY";
+function panicReadHistory(){try{const h=JSON.parse(localStorage.getItem(panicHistoryKey)||"[]");return Array.isArray(h)?h:[]}catch{return []}}
+function panicSaveHistory(p){
+ if(!p.complete||!p.b15||!p.b5)return panicRenderHistory();
+ const h=panicReadHistory(),sample={stamp:p.stamp,candle15:p.b15.end,candle5:p.b5.end,points:p.points,state:p.state,down5:p.breadth["5m"].down,down15:p.breadth["15m"].down,b5:p.b5.change,b15:p.b15.change,vol:p.b15.vol};
+ const i=h.findIndex(x=>x.candle15===sample.candle15);
+ if(i>=0)h[i]=sample;else h.push(sample);
+ h.sort((a,b)=>a.candle15-b.candle15);
+ try{localStorage.setItem(panicHistoryKey,JSON.stringify(h.slice(-120)))}catch(e){document.getElementById("panicHistory").textContent="Histórico não pôde ser salvo: "+e.message}
+ panicRenderHistory();
+}
+function panicRenderHistory(){
+ const h=panicReadHistory(),el=document.getElementById("panicHistory"),trend=document.getElementById("panicTransition");
+ if(!el||!trend)return;
+ el.innerHTML="";
+ if(!h.length){el.textContent="Nenhuma leitura armazenada.";trend.textContent="Transições: aguardando duas leituras de candles distintos.";return}
+ const recent=h.slice(-8).reverse();
+ recent.forEach(x=>{const line=document.createElement("div");line.style.padding="5px 0";line.style.borderBottom="1px solid #31465f";line.textContent=x.stamp+" | "+x.state+" | "+x.points+"/5 | 5m "+x.down5+"/15 | 15m "+x.down15+"/15";el.append(line)});
+ if(h.length<2){trend.textContent="Primeira leitura registrada. Uma nova leitura em candle 15m diferente permitirá comparar transições.";return}
+ const a=h[h.length-2],b=h[h.length-1],delta=b.down5-a.down5,delta15=b.down15-a.down15;
+ const signal=(b.points>a.points||delta>=5||delta15>=5)?"⚠️ Deterioração entre leituras":(b.points<a.points||delta<=-5||delta15<=-5)?"↗️ Alívio entre leituras":"↔️ Sem mudança material pelas regras iniciais";
+ trend.textContent=signal+" | gatilhos "+a.points+"→"+b.points+"/5 | altcoins caindo 5m "+a.down5+"→"+b.down5+"/15 | 15m "+a.down15+"→"+b.down15+"/15. Não é sinal de operação.";
+}
+function panicHistoryExport(){const h=panicReadHistory();const blob=new Blob([JSON.stringify({version:"EGI-PREPANICO-V1.1",exported:new Date().toISOString(),samples:h},null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="Historico_PrePanico_EGI_V1_1.json";a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+function panicHistoryClear(){if(confirm("Apagar apenas o histórico local do detector de pré-pânico?")){localStorage.removeItem(panicHistoryKey);panicRenderHistory()}}
+panicRenderHistory();
 </script></body></html>
