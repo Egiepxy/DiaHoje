@@ -166,7 +166,7 @@ function collectiveObserve(){
   const stage=phase==='QUEDA GENERALIZADA'?1:phase==='DESACELERAÇÃO COLETIVA'&&old===1?2:phase==='PRIMEIRA REAÇÃO'&&old===2?3:old;
   const alert=stage===3&&old===2;
   const evt={time,phase,down,relief,reaction,stage,alert};
-  phaseLog.push(evt);phaseLog=phaseLog.slice(-300);phaseLast=evt;
+  phaseLog.push(evt);phaseLog=phaseLog.slice(-300);phaseLast=evt;persist();
  }
  const alert=phaseLast?.alert&&phaseLast.time===time;
  return {n,down,relief,reaction,phase,alert,time,synchronized};
