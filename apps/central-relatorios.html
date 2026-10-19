@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Central de Relatórios EGI V1.0</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1525;--panel:#17263b;--line:#364960;--txt:#eaf2fc;--muted:#b2c1d1;--blue:#70c9ef}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--txt);font:15px/1.5 system-ui,Segoe UI,sans-serif;margin:0}main{max-width:1120px;margin:auto;padding:22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}h1{font-size:27px;margin:4px 0}h2{font-size:19px;margin:0 0 8px}
+p,.muted{color:var(--muted)}textarea{width:100%;min-height:170px;background:#0b1524;color:#e6efff;border:1px solid #526780;border-radius:9px;padding:12px;font:12px/1.5 Consolas,monospace;resize:vertical}
+button,a.btn{display:inline-block;background:#20516d;color:white;border:1px solid #5189a6;border-radius:8px;padding:10px 13px;font:inherit;cursor:pointer;text-decoration:none}
+button:hover,a.btn:hover{background:#2a6a8f}button:disabled{opacity:.5;cursor:not-allowed}.actions{display:flex;flex-wrap:wrap;gap:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.status{padding:9px;background:#233a51;border-radius:9px;white-space:pre-line}.good{color:#78efb8}.warn{color:#ffe099}
+small{color:var(--muted)}.head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+</style></head><body><main>
+<div class="head"><a class="btn" href="../index.html">← DiaHoje</a><a class="btn" href="professor-daytrade.html" target="_blank" rel="noopener">Abrir Professor EGI</a></div>
+<h1>📋 Central de Relatórios EGI V1.0</h1>
+<p>Une o REL1 (DiaHoje) e REL2 (Professor) sem modificar os textos originais. Importação manual, análise conjunta no ChatGPT e nenhum envio automático.</p>
+<div class="grid">
+<section class="card"><h2>REL1 — DiaHoje</h2><p>Copie o relatório do DiaHoje e cole abaixo.</p><textarea id="rel1" placeholder="DIAHOJE EGI — ABERTURA ..."></textarea><small id="meta1">Aguardando relatório.</small></section>
+<section class="card"><h2>REL2 — Professor EGI</h2><p>Copie o RelChat do Professor e cole abaixo.</p><textarea id="rel2" placeholder="SEMÁFORO TRANSIÇÃO EGI ... RELCHAT EGI ..."></textarea><small id="meta2">Aguardando relatório.</small></section>
+</div>
+<div class="card"><h2>Verificação e preparação</h2><div id="status" class="status">Aguardando os dois relatórios.</div>
+<div class="actions" style="margin-top:12px"><button id="generate">Gerar RelChat unificado</button><button id="copy" disabled>Copiar para ChatGPT</button><button id="download" disabled>Baixar TXT</button><button id="clear">Limpar campos</button></div>
+<small>O campo gerado é somente uma concatenação identificada. Horários diferentes são preservados e sinalizados; não há inferência automática de concordância ou causalidade. Os textos permanecem apenas nesta página enquanto aberta.</small></div>
+<div class="card"><h2>RELCHAT UNIFICADO</h2><textarea id="merged" readonly placeholder="Cole REL1 e REL2 e clique em Gerar RelChat unificado."></textarea></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+function meta(t,type){
+ const pattern=type===1?/Consulta:\s*([^\n\r]+)/i:/Coleta:\s*([^\n\r|]+)/i;
+ const date=t.match(pattern)?.[1]?.trim()||'horário não encontrado';
+ const candle=t.match(/Fecho 15m\s+([^|\n\r]+)/i)?.[1]?.trim()||null;
+ return {date,candle};
+}
+function validation(){
+ const a=$('rel1').value.trim(),b=$('rel2').value.trim(),m1=meta(a,1),m2=meta(b,2);
+ $('meta1').textContent=a?('Consulta: '+m1.date):'Aguardando relatório.';
+ $('meta2').textContent=b?('Coleta: '+m2.date+(m2.candle?' | Fecho 15m: '+m2.candle:'')):'Aguardando relatório.';
+ let warnings=[];
+ if(a&&!/DIAHOJE EGI/i.test(a))warnings.push('REL1 não contém o cabeçalho DIAHOJE EGI.');
+ if(b&&!/RELCHAT EGI|SEMÁFORO TRANSIÇÃO EGI/i.test(b))warnings.push('REL2 não contém o cabeçalho esperado do Professor.');
+ if(a&&b&&m1.date!=='horário não encontrado'&&m2.date!=='horário não encontrado'){
+   const p=x=>{const v=x.match(/(\d\d)\/(\d\d)\/(\d{4}),?\s*(\d\d):(\d\d)(?::(\d\d))?/);return v?Date.UTC(+v[3],+v[2]-1,+v[1],+v[4],+v[5],+(v[6]||0)):null};
+   const t1=p(m1.date),t2=p(m2.date);
+   if(t1!==null&&t2!==null){
+     const gap=Math.abs(t1-t2)/60000;
+     if(gap>5)warnings.push('Diferença de '+gap.toFixed(1)+' min entre as coletas. Comparar candles equivalentes.');
+   }else warnings.push('Datas não puderam ser comparadas automaticamente.');
+ }
+ $('status').textContent=(!a||!b?'Falta '+(!a&&!b?'REL1 e REL2':!a?'REL1':'REL2')+'. ':'Ambos os relatórios recebidos. ')+(warnings.length?'Atenção: '+warnings.join(' '):'Nenhuma divergência de horário superior a cinco minutos identificada.');
+ return {a,b,m1,m2,warnings};
+}
+function create(){
+ const v=validation();if(!v.a||!v.b){$('merged').value='';$('copy').disabled=true;$('download').disabled=true;return}
+ const stamp=new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});
+ $('merged').value='RELCHAT UNIFICADO EGI V1.0 — ESTUDO, NÃO ORDEM\nMontagem: '+stamp+
+ '\nREL1 DiaHoje: '+v.m1.date+'\nREL2 Professor: '+v.m2.date+
+ '\nAlertas de sincronização: '+(v.warnings.join(' | ')||'nenhum identificado')+
+ '\nIMPORTANTE: textos originais independentes; nenhuma operação é autorizada.\n\n'+
+ '========== INÍCIO REL1 — DIAHOJE EGI ==========\n'+v.a+
+ '\n========== FIM REL1 ==========\n\n'+
+ '========== INÍCIO REL2 — PROFESSOR EGI ==========\n'+v.b+
+ '\n========== FIM REL2 ==========\n';
+ $('copy').disabled=false;$('download').disabled=false;
+}
+$('rel1').addEventListener('input',()=>{validation();$('copy').disabled=true;$('download').disabled=true});
+$('rel2').addEventListener('input',()=>{validation();$('copy').disabled=true;$('download').disabled=true});
+$('generate').onclick=create;
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('merged').value);$('status').textContent='RelChat unificado copiado. Cole na conversa com ChatGPT.'}catch(e){$('merged').select();$('status').textContent='Cópia automática indisponível. Selecione o texto e use Ctrl+C.'}};
+$('download').onclick=()=>{const blob=new Blob([$('merged').value],{type:'text/plain;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='RelChat_Unificado_EGI_'+new Date().toISOString().slice(0,10)+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(u),2500)};
+$('clear').onclick=()=>{if(confirm('Limpar os dois relatórios colados e o resultado?')){$('rel1').value='';$('rel2').value='';$('merged').value='';$('copy').disabled=true;$('download').disabled=true;validation()}};
+</script></main></body></html>
