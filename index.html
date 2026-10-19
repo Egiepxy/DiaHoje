@@ -21,7 +21,7 @@
 <section class="card" id="egiMorning"><div class="tag">Automação inicial • Experimental</div><h2>☀️ Abertura inteligente EGI</h2>
 <p>Uma única consulta diária: panorama quantitativo + sequência dos aplicativos essenciais. O DiaHoje não interpreta automaticamente o conteúdo dos outros aplicativos. Dados informativos, nunca ordem.</p>
 <div class="focus" id="egiMorningStatus" role="status">Panorama aguardando consulta...</div>
-<div class="actions"><button class="primary" id="egiRefresh" onclick="egiFetchMorning()">🔄 Atualizar panorama</button><button onclick="egiCopyMorning()">📋 Copiar resumo</button><button onclick="egiMorningReset()">↺ Reiniciar rotina de hoje</button></div>
+<div class="actions"><button class="primary" id="egiRefresh" onclick="egiFetchMorning()">🔄 Atualizar panorama</button><button onclick="egiCopyMorning()">📋 Copiar resumo</button><button class="primary" onclick="egiSendMotorCentral()">🧠 Enviar ao Motor Central</button><button onclick="egiMorningReset()">↺ Reiniciar rotina de hoje</button></div>
 <div id="egiSemaforo" class="focus" role="status">⚪ Aguardando dados de todos os períodos.</div><div id="egiBreadth"></div><div id="egiRepique" class="focus" role="status">⚪ Repique inicial: aguardando sequência de candles fechados.</div><div class="focus" id="egiProfessorPanorama" role="status">🧠 Professor do Panorama: aguardando os quatro períodos.</div><div id="egiWatchlist"></div><div class="focus" id="egiDataQuality">Qualidade: aguardando coleta.</div><div id="egiHistory" class="small">Histórico: aguardando novas consultas.</div><div id="egiQuoteList" class="grid" style="margin-top:12px"></div>
 <p class="small">Fonte: Binance Spot pública, somente candles fechados de 5m, 15m, 1h e 4h. Cada percentual compara os dois últimos fechamentos do respectivo timeframe. Os preços NÃO são cotação em tempo real. Atualização ao abrir o painel e a cada 5 minutos enquanto a aba estiver ativa. Se a API falhar, mostra indisponível, nunca valores inventados.</p>
 <h3 style="margin-top:18px">✅ Cinco consultas essenciais</h3><p id="egiMorningProgress">0/5 verificadas hoje.</p><div id="egiMorningTasks"></div>
@@ -61,6 +61,7 @@ const taskData=[
 ["15 min","Responder às três perguntas e exportar RelChat"]
 ];
 const apps=[
+["Motor Central EGI V1.1","motor-central.html"],
 ["Professor EGI — Day Trade V1.6","apps/professor-daytrade.html"],
 ["Destino do Capital EGI V2.3","apps/destino-capital-v2-3.html"],
 ["Laboratório EGI — Central de Evidências","#ingest"],
@@ -267,6 +268,29 @@ async function egiFetchMorning(){
   status.textContent="Consulta "+new Date(stamp).toLocaleString("pt-BR")+" • "+(egiSymbols.length*egiTFs.length-errors.length)+"/"+(egiSymbols.length*egiTFs.length)+" leituras • "+(errors.length?errors.length+" indisponíveis":"todas disponíveis")+". Sem ordens.";
  }catch(e){status.textContent="Erro na consulta: "+e.message+"; não presumir direção."}
  finally{button.disabled=false}
+}
+function egiSendMotorCentral(){
+ const payload={
+  protocol:"EGI-MOTOR-V1",
+  source:"DiaHoje",
+  sourceVersion:"MetaHj1810 V2.2",
+  generatedAt:new Date().toISOString(),
+  market:{
+   state:document.getElementById("egiSemaforo")?.textContent||"N/D",
+   repique:document.getElementById("egiRepique")?.textContent||"N/D",
+   professor:document.getElementById("egiProfessorPanorama")?.textContent||"N/D",
+   quality:document.getElementById("egiDataQuality")?.textContent||"N/D",
+   history:document.getElementById("egiHistory")?.textContent||"N/D"
+  },
+  breadth:egiBreadth||{},
+  coins:egiMatrix||{},
+  note:"Sensor de panorama. Não seleciona sozinho Moeda da Vez e não gera ordem."
+ };
+ try{
+  localStorage.setItem("EGI_MOTOR_CENTRAL_INBOX_V1",JSON.stringify(payload));
+  localStorage.setItem("EGI_MOTOR_CENTRAL_LAST_SOURCE","DiaHoje");
+  window.open("motor-central.html","_blank","noopener");
+ }catch(e){alert("Não foi possível enviar ao Motor Central: "+e.message)}
 }
 function egiCopyMorning(){
  const lines=["DIAHOJE EGI — ABERTURA "+egiDay(),"Binance Spot • candles fechados 5m/15m/1h/4h","Consulta: "+(egiLastTime?new Date(egiLastTime).toLocaleString("pt-BR"):"pendente"),"Semáforo: "+document.getElementById("egiSemaforo").textContent,"Repique: "+document.getElementById("egiRepique").textContent,"Professor: "+document.getElementById("egiProfessorPanorama").textContent,"Observações: "+document.getElementById("egiWatchlist").textContent,"Dados: "+document.getElementById("egiDataQuality").textContent,"Mudanças: "+document.getElementById("egiHistory").textContent];
