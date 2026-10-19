@@ -22,7 +22,7 @@
 <p>Uma única consulta diária: panorama quantitativo + sequência dos aplicativos essenciais. O DiaHoje não interpreta automaticamente o conteúdo dos outros aplicativos. Dados informativos, nunca ordem.</p>
 <div class="focus" id="egiMorningStatus" role="status">Panorama aguardando consulta...</div>
 <div class="actions"><button class="primary" id="egiRefresh" onclick="egiFetchMorning()">🔄 Atualizar panorama</button><button onclick="egiCopyMorning()">📋 Copiar resumo</button><button onclick="egiMorningReset()">↺ Reiniciar rotina de hoje</button></div>
-<div id="egiSemaforo" class="focus" role="status">⚪ Aguardando dados de todos os períodos.</div><div id="egiBreadth"></div><div class="focus" id="egiProfessorPanorama" role="status">🧠 Professor do Panorama: aguardando os quatro períodos.</div><div id="egiWatchlist"></div><div class="focus" id="egiDataQuality">Qualidade: aguardando coleta.</div><div id="egiHistory" class="small">Histórico: aguardando novas consultas.</div><div id="egiQuoteList" class="grid" style="margin-top:12px"></div>
+<div id="egiSemaforo" class="focus" role="status">⚪ Aguardando dados de todos os períodos.</div><div id="egiBreadth"></div><div id="egiRepique" class="focus" role="status">⚪ Repique inicial: aguardando sequência de candles fechados.</div><div class="focus" id="egiProfessorPanorama" role="status">🧠 Professor do Panorama: aguardando os quatro períodos.</div><div id="egiWatchlist"></div><div class="focus" id="egiDataQuality">Qualidade: aguardando coleta.</div><div id="egiHistory" class="small">Histórico: aguardando novas consultas.</div><div id="egiQuoteList" class="grid" style="margin-top:12px"></div>
 <p class="small">Fonte: Binance Spot pública, somente candles fechados de 5m, 15m, 1h e 4h. Cada percentual compara os dois últimos fechamentos do respectivo timeframe. Os preços NÃO são cotação em tempo real. Atualização ao abrir o painel e a cada 5 minutos enquanto a aba estiver ativa. Se a API falhar, mostra indisponível, nunca valores inventados.</p>
 <h3 style="margin-top:18px">✅ Cinco consultas essenciais</h3><p id="egiMorningProgress">0/5 verificadas hoje.</p><div id="egiMorningTasks"></div>
 <p class="small">A marcação é manual e fica salva neste navegador, separada do checklist histórico de 15 tarefas. Abertura dos aplicativos não prova que uma análise foi realizada.</p></section>\n<section class="card"><h2>🚀 Abrir aplicativos EGI</h2><p class="sectionnote">Os HTMLs disponíveis foram integrados a este site; alguns aplicativos ainda exigem endereço próprio. Se o app possuir uma página publicada diferente, use “Editar URL”. Os endereços personalizados ficam salvos neste navegador.</p><div id="apps"></div></section>
@@ -124,6 +124,26 @@ const egiTFs=["5m","15m","1h","4h"];
 let egiMatrix={},egiBreadth={};
 function egiHistoryLoad(){try{const v=JSON.parse(localStorage.getItem("egi_panorama_history_v1")||"[]");return Array.isArray(v)?v:[]}catch{return []}}
 function egiDirection(v){return !v?"N/D":v.pct>0?"ALTA":v.pct<0?"BAIXA":"ESTÁVEL"}
+function egiDetectRepique(matrix,breadth){
+ const old=egiHistoryLoad().at(-1);
+ const previous5=old?.coins||{},new5=egiSymbols.map(s=>matrix[s]?.["5m"]).filter(Boolean);
+ const validPairs=egiSymbols.filter(s=>previous5[s]?.["5m"]&&matrix[s]?.["5m"]&&previous5[s]["5m"].end!==matrix[s]["5m"].end);
+ const transitioned=validPairs.filter(s=>previous5[s]["5m"].pct<0&&matrix[s]["5m"].pct>0);
+ const b5=breadth["5m"],b15=breadth["15m"],b1=breadth["1h"];
+ const priorDown=validPairs.filter(s=>previous5[s]["5m"].pct<0).length;
+ const enough=b5.total>=16&&b15.total>=16&&b1.total>=16;
+ let msg="⚪ SEM ALERTA NOVO — acompanhamento em andamento.";
+ if(!enough)msg="⚪ DADOS INSUFICIENTES — repique não classificado.";
+ else if(validPairs.length<12)msg="⚪ AGUARDANDO NOVOS CANDLES 5m — sem antecipação prospectiva confiável.";
+ else if(priorDown>=Math.ceil(validPairs.length*.6)&&transitioned.length>=Math.ceil(validPairs.length*.5)&&b5.up/b5.total>=.7&&b15.up/b15.total<.7)
+ msg="🟡 REPIQUE INICIAL DETECTADO — "+transitioned.length+"/"+validPairs.length+" moedas viraram BAIXA→ALTA no 5m após fraqueza; 15m ainda não confirma amplitude. OBSERVAR; NÃO É ENTRADA.";
+ else if(b5.up/b5.total>=.75&&b15.up/b15.total>=.7)
+ msg="🔵 RECUPERAÇÃO CURTA PROPAGADA — maioria positiva em 5m e 15m; verificar estrutura, volume e contexto, sem ordem.";
+ else if(b5.up/b5.total>=.7&&b15.up/b15.total<.6)
+ msg="🟡 POSSÍVEL REPIQUE EM ANDAMENTO — 5m amplo e 15m dividido; início não demonstrado neste intervalo.";
+ else if(b5.down/b5.total>=.7)msg="🔴 FRAQUEZA CURTA PREDOMINANTE — maioria negativa no 5m.";
+ return msg;
+}
 function egiHistoryUpdate(matrix,stamp){
  const history=egiHistoryLoad(),snapshot={at:stamp,coins:{}};
  for(const sym of egiSymbols){snapshot.coins[sym]={};for(const tf of egiTFs){const v=matrix[sym]?.[tf];if(v)snapshot.coins[sym][tf]={pct:v.pct,end:v.end}}}
@@ -196,6 +216,7 @@ async function egiFetchMorning(){
   const ages=egiTFs.flatMap(tf=>egiSymbols.map(sym=>matrix[sym]?.[tf]).filter(Boolean).map(x=>stamp-x.end));
   const maxAge=ages.length?Math.max(...ages):null;
   document.getElementById("egiDataQuality").textContent="Qualidade dos dados: "+(egiSymbols.length*egiTFs.length-errors.length)+"/"+(egiSymbols.length*egiTFs.length)+" leituras completas • "+(maxAge===null?"idade indisponível":"maior idade de candle fechado "+Math.round(maxAge/60000)+" min")+" • "+(errors.length?"ausentes: "+errors.join(", "):"sem dados ausentes")+"; não equivale a qualidade preditiva.";
+  document.getElementById("egiRepique").textContent=egiDetectRepique(matrix,breadth);
   egiHistoryUpdate(matrix,stamp);
 
 
@@ -229,7 +250,7 @@ async function egiFetchMorning(){
  finally{button.disabled=false}
 }
 function egiCopyMorning(){
- const lines=["DIAHOJE EGI — ABERTURA "+egiDay(),"Binance Spot • candles fechados 5m/15m/1h/4h","Consulta: "+(egiLastTime?new Date(egiLastTime).toLocaleString("pt-BR"):"pendente"),"Semáforo: "+document.getElementById("egiSemaforo").textContent,"Professor: "+document.getElementById("egiProfessorPanorama").textContent,"Observações: "+document.getElementById("egiWatchlist").textContent,"Dados: "+document.getElementById("egiDataQuality").textContent,"Mudanças: "+document.getElementById("egiHistory").textContent];
+ const lines=["DIAHOJE EGI — ABERTURA "+egiDay(),"Binance Spot • candles fechados 5m/15m/1h/4h","Consulta: "+(egiLastTime?new Date(egiLastTime).toLocaleString("pt-BR"):"pendente"),"Semáforo: "+document.getElementById("egiSemaforo").textContent,"Repique: "+document.getElementById("egiRepique").textContent,"Professor: "+document.getElementById("egiProfessorPanorama").textContent,"Observações: "+document.getElementById("egiWatchlist").textContent,"Dados: "+document.getElementById("egiDataQuality").textContent,"Mudanças: "+document.getElementById("egiHistory").textContent];
  for(const tf of egiTFs){const b=egiBreadth[tf];if(b)lines.push(tf+": "+b.up+" altas / "+b.down+" baixas / "+b.flat+" estáveis ("+b.total+"/"+egiSymbols.length+")")}
  for(const sym of egiSymbols){const rec=egiMatrix[sym]||{};lines.push(sym+" "+egiTFs.map(tf=>tf+" "+(rec[tf]?rec[tf].pct.toFixed(2)+"%":"N/D")).join(" | "))}
  lines.push("Checklist: "+egiMorningApps.map((x,i)=>(egiChecked()[i]?"[OK] ":"[PENDENTE] ")+x[0]).join("; "));
