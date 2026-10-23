@@ -14,7 +14,7 @@
 <section class="panel"><div class="controls">
 <label>Moeda<select id="symbol"><option>BTCUSDT</option><option>ETHUSDT</option><option>SOLUSDT</option><option>LINKUSDT</option><option>ZECUSDT</option><option>PEPEUSDT</option></select></label>
 <label>Novo ativo (cripto / ouro / petróleo / ações)<input id="newSymbol" type="text" maxlength="24" placeholder="AVAXUSDT" autocomplete="off" spellcheck="false" style="width:165px;text-transform:uppercase"></label>
-<label>Classe<select id="assetType"><option value="crypto">Cripto</option><option value="external">Ouro / petróleo / ações (CSV)</option></select></label><button id="addSymbol" type="button" title="Cadastrar moeda na lista">＋ Cadastrar</button><button id="removeSymbol" type="button" title="Excluir da lista somente a moeda personalizada selecionada">− Excluir</button>
+<label>Classe<select id="assetType"><option value="crypto">Cripto</option><option value="external">Ouro / petróleo / ações</option></select></label><button id="addSymbol" type="button" title="Cadastrar moeda na lista">＋ Cadastrar</button><button id="removeSymbol" type="button" title="Excluir qualquer ativo selecionado da lista deste navegador">− Excluir</button>
 <label>Tipo de análise<select id="analysisMode"><option value="historical">Similaridade histórica</option><option value="trend">Continuidade / tendência</option><option value="reversal">Possível reversão</option><option value="confluence">Confluência prudente</option></select></label>
 <label>Timeframe<select id="tf"><option value="5m">5m</option><option value="15m" selected>15m</option><option value="1h">1h</option><option value="4h">4h</option></select></label>
 <label>Janela do padrão<select id="window"><option value="20">20 candles</option><option value="30" selected>30 candles</option><option value="50">50 candles</option><option value="60">60 candles</option></select></label>
@@ -51,10 +51,49 @@ function isExternal(sym){return externalSymbols().includes(sym)}
 const symbolStorageKey='egi_grafico_symbols_v1';
 const sideState={rows:[],scanning:false};
 function normalizeSymbol(value,type='crypto'){let v=String(value||'').trim().toUpperCase().replace(/[\s/\-_]/g,'');if(type==='crypto'&&/^[A-Z0-9]{2,15}$/.test(v)&&!/(USDT|USDC|BTC|ETH|BRL)$/.test(v))v+='USDT';return v}
-function initSymbols(){const saved=kv(symbolStorageKey);const extras=Array.isArray(saved)?saved.filter(x=>typeof x==='string'&&/^[A-Z0-9]{2,24}$/.test(x)&&!defaultSymbols.includes(x)):[];for(const sym of [...new Set([...externalDefaults,...extras])])if(!defaultSymbols.includes(sym))$('symbol').add(new Option(sym,sym));}
-function addSymbol(){const type=$('assetType').value,symbol=normalizeSymbol($('newSymbol').value,type);if(!/^[A-Z0-9]{2,24}$/.test(symbol)){status('Digite um código válido. Exemplos: AVAX, XAUUSD, UKOIL, SPCX, MU, SNDK.','warn');return}if(![...$('symbol').options].some(o=>o.value===symbol))$('symbol').add(new Option(symbol,symbol));if(type==='external'){const ex=[...new Set([...externalSymbols(),symbol])];store(externalKey,ex)}persistSymbols();$('symbol').value=symbol;$('symbol').dispatchEvent(new Event('change'));$('newSymbol').value='';chooseMarketForSymbol();status(isExternal(symbol)?`${symbol} cadastrado. Verifique a fonte sugerida; código e instrumento precisam corresponder à corretora.`:`${symbol} cadastrado/selecionado. Clique em Coletar candles.`,'good')}
-function persistSymbols(){refreshSide();return store(symbolStorageKey,[...$('symbol').options].map(o=>o.value).filter(x=>!defaultSymbols.includes(x)))}
-function removeSymbol(){const symbol=$('symbol').value;if([...defaultSymbols,...externalDefaults].includes(symbol)){status('Os ativos originais são fixos. Selecione uma moeda cadastrada para excluir.','warn');return}if(!confirm(`Excluir ${symbol} da lista personalizada? O histórico de consultas não será apagado.`))return;$('symbol').remove($('symbol').selectedIndex);store(externalKey,externalSymbols().filter(x=>x!==symbol));persistSymbols();$('symbol').value=defaultSymbols[0];$('symbol').dispatchEvent(new Event('change'));status(`${symbol} excluído da lista. O histórico de consultas foi preservado.`,'good')}
+function initSymbols(){
+ const saved=kv(symbolStorageKey);
+ const base=[...defaultSymbols,...externalDefaults];
+ // Migra listas antigas (que guardavam apenas extras) sem perder cadastros.
+ const list=Array.isArray(saved)&&saved.every(x=>typeof x==='string')?
+   (saved.some(x=>base.includes(x))?[...new Set(saved)]:[...new Set([...base,...saved])]):base;
+ const clean=list.filter(x=>/^[A-Z0-9]{2,24}$/.test(x));
+ $('symbol').replaceChildren();
+ for(const sym of clean)$('symbol').add(new Option(sym,sym));
+ if(!$('symbol').options.length)$('symbol').add(new Option('BTCUSDT','BTCUSDT'));
+ refreshSide();
+}
+function addSymbol(){
+ const type=$('assetType').value,symbol=normalizeSymbol($('newSymbol').value,type);
+ if(!/^[A-Z0-9]{2,24}$/.test(symbol)){status('Digite um código válido: AVAX, XAUUSD, UKOIL, SPCS, MU ou SNDK.','warn');return}
+ const exists=[...$('symbol').options].some(o=>o.value===symbol);
+ if(!exists)$('symbol').add(new Option(symbol,symbol));
+ if(type==='external')store(externalKey,[...new Set([...externalSymbols(),symbol])]);
+ persistSymbols();
+ $('symbol').value=symbol;$('symbol').dispatchEvent(new Event('change'));
+ $('newSymbol').value='';
+ status(exists?symbol+' já estava cadastrado; selecionado.':symbol+' cadastrado neste navegador. A fonte será verificada ao coletar candles.','good');
+}
+function persistSymbols(){
+ const list=[...$('symbol').options].map(o=>o.value);
+ const ok=store(symbolStorageKey,list);
+ refreshSide();
+ if(!ok)status('Não foi possível salvar a lista neste navegador. Exporte sua lista para não perdê-la.','warn');
+ return ok;
+}
+function removeSymbol(){
+ const symbol=$('symbol').value;
+ if(!symbol)return;
+ if(!confirm('Excluir '+symbol+' somente da lista deste navegador? Histórico e outros apps serão preservados.'))return;
+ $('symbol').remove($('symbol').selectedIndex);
+ store(externalKey,externalSymbols().filter(x=>x!==symbol));
+ sideState.rows=sideState.rows.filter(r=>r.symbol!==symbol);
+ if(!$('symbol').options.length)$('symbol').add(new Option('BTCUSDT','BTCUSDT'));
+ $('symbol').selectedIndex=0;
+ persistSymbols();
+ $('symbol').dispatchEvent(new Event('change'));
+ status(symbol+' excluído da lista local. Histórico preservado.','good');
+}
 function kv(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function store(key,x){try{localStorage.setItem(key,JSON.stringify(x));return true}catch{return false}}
 function ema(a,n){let e=null,k=2/(n+1);for(const c of a){e=e===null?c:c*k+e*(1-k)}return e}
