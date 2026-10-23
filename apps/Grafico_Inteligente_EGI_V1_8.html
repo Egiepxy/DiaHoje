@@ -67,7 +67,7 @@ const exchangeName={binance:'Binance Spot',mexc:'MEXC Spot',mexc_futures:'MEXC F
 function marketSymbol(symbol,ex){
   if(ex==='mexc_futures'){
     const special={UKOIL:'UKOIL_USDT',BRENT:'UKOIL_USDT',USOIL:'USOIL_USDT',XAUUSD:'XAU_USDT',GOLD:'XAU_USDT'};
-    if(special[symbol] && special[symbol]!==symbol && symbol==='BRENT')throw Error('BRENT não é automaticamente igual a UKOIL. Selecione UKOIL para consultar o contrato UKOIL_USDT.');
+    // BRENT é o nome comercial OIL(BRENT) usado pela MEXC para o contrato UKOIL_USDT.\n    // É um futuro perpétuo, não a cotação spot do petróleo Brent.
     return special[symbol]||(/^[A-Z0-9]+USDT$/.test(symbol)?symbol.replace(/USDT$/,'_USDT'):symbol.replace(/^(.*)_USDT$/,'$1_USDT'));
   }
   // Bybit names must be exact: tokenized names are never silently rewritten.
@@ -147,7 +147,7 @@ async function load(){
  try{
   const symbol=$('symbol').value,tf=$('tf').value;
   const {raw,ex}=await automaticCandles(symbol,tf);
-  reset(raw,`${exchangeName[ex]} · ${marketSymbol(symbol,ex)} · fonte confirmada`);
+  reset(raw,`${exchangeName[ex]} · ${marketSymbol(symbol,ex)}${symbol==='BRENT'&&ex==='mexc_futures'?' (OIL/BRENT — contrato perpétuo MEXC)':''} · fonte confirmada`);
   store(`egi_bars_${ex}_${symbol}_${tf}`,raw);
  }catch(e){
   status('Não foi possível coletar '+$('symbol').value+': '+e.message+' Nenhum preço foi inventado.','warn');
