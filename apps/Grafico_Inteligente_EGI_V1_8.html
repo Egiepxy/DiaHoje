@@ -71,6 +71,7 @@ function marketSymbol(symbol,ex){
     return special[symbol]||(/^[A-Z0-9]+USDT$/.test(symbol)?symbol.replace(/USDT$/,'_USDT'):symbol.replace(/^(.*)_USDT$/,'$1_USDT'));
   }
   // Bybit names must be exact: tokenized names are never silently rewritten.
+  if(ex==='bybit_linear' && symbol==='SPCX')return 'SPCXUSDT';
   if(ex.startsWith('bybit') && ['BRENT','GOLD','XAUUSD','USOIL','UKOIL','XTIUSD'].includes(symbol))throw Error('Símbolo não mapeado para Bybit: informe o código exato do instrumento na corretora ou use CSV.');
   return symbol;
 }
