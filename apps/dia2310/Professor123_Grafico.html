@@ -1,0 +1,528 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Professor Contexto + Setup 1-2-3 EGI V1.2.10 — Gráfico Inteligente</title><style>
+:root{color-scheme:dark;font-family:system-ui,Segoe UI,Arial;color:#eaf1fc;background:#081320}*{box-sizing:border-box}body{margin:0}header{background:#10233c;padding:18px 4%;border-bottom:1px solid #35516c}h1{margin:0;font-size:22px}small,.muted{color:#a8bbd2}main{max-width:1100px;margin:20px auto;padding:0 14px}.card{background:#12233a;border:1px solid #344d68;border-radius:14px;padding:17px;margin:13px 0}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#bdcee2}input,select,button{font:inherit;background:#0c1b2d;color:#ecf4ff;border:1px solid #406080;padding:10px;border-radius:8px}button{cursor:pointer;font-weight:650}button:hover{background:#235080}.primary{background:#225a92}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.kpi{background:#192d46;border-radius:10px;padding:14px}.kpi strong{display:block;font-size:18px;margin-top:5px}.good{color:#45d8a2}.bad{color:#ff8493}.warn{color:#ffcf76}pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;background:#0a192a;padding:14px;border-radius:10px;font-family:ui-monospace,Consolas,monospace;font-size:12px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #344d68;padding:9px;text-align:left}.scroll{overflow-x:auto}canvas{width:100%;height:310px;background:#0b1b2e;border-radius:10px}details{margin:14px 0}summary{cursor:pointer}.notice{border-left:4px solid #f5c46a;padding:10px;background:#382c1d}input[type=file]{max-width:260px}@media(max-width:580px){h1{font-size:18px}.card{padding:12px}canvas{height:260px}}
+details[open]>summary{margin-bottom:12px}#manual123 p,#manual123 li{line-height:1.6}#manual123 h3{margin-top:20px;color:#cfe3fc}#manual123 a:hover{text-decoration:underline}
+
+/* GRÁFICO EGI VISUAL 1.2.10 — totalmente local, sem bibliotecas externas */
+.egi-visual-card{background:linear-gradient(150deg,#10263e,#122238 65%);border-color:#385976;overflow:hidden}
+.egi-vis-head{display:flex;align-items:start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.egi-vis-head h2{margin:0 0 5px;font-size:19px;letter-spacing:.1px}
+.egi-v-state{border-radius:100px;padding:6px 12px;font-weight:750;font-size:12px;letter-spacing:.35px;background:#25364b;color:#ced9e8;white-space:nowrap}
+.egi-v-state.up{color:#50e5b9;background:#153e39}.egi-v-state.down{color:#ff92a1;background:#472b3c}.egi-v-state.mixed{color:#ffd48d;background:#48402c}
+.egi-v-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:9px 0 12px}
+.egi-v-buttons{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.egi-v-buttons button{padding:7px 11px;min-height:37px}.egi-v-buttons select{padding:7px 9px;min-height:37px}
+.egi-v-checks{display:flex;flex-wrap:wrap;gap:9px 14px;align-items:center}
+.egi-v-checks label{display:flex;align-items:center;gap:5px;flex-direction:row;font-size:12px;color:#d7e6f4;cursor:pointer}
+.egi-v-checks input{accent-color:#55b5f9;width:16px;height:16px;margin:0}
+.egi-v-chart-wrap{position:relative;background:#091725;border:1px solid #25415e;border-radius:13px;overflow:hidden}
+.egi-v-chart-wrap #chart{display:block;width:100%;height:465px;background:#091725;border:0;border-radius:0;touch-action:pan-y;cursor:crosshair}
+.egi-v-tooltip{position:absolute;z-index:5;white-space:pre-line;pointer-events:none;max-width:min(245px,90%);background:rgba(17,38,59,.96);border:1px solid #597795;box-shadow:0 9px 25px #0006;border-radius:9px;padding:9px 11px;line-height:1.4;font:11px/1.4 ui-monospace,Consolas,monospace;color:#e9f4ff}
+.egi-v-tooltip[hidden]{display:none}
+.egi-v-axis{display:flex;align-items:center;gap:12px;margin:12px 0 4px}.egi-v-axis input{flex:1;min-width:45px;accent-color:#58a6fa;padding:0}.egi-v-axis .muted{font-size:11px}
+.egi-v-legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.egi-v-legend span{font-size:11px;color:#b8cce2;display:inline-flex;align-items:center;gap:6px}.egi-v-dot{display:inline-block;width:9px;height:9px;border-radius:3px}.egi-v-bar{height:4px;width:14px;display:inline-block;border-radius:6px}
+.egi-v-caption{margin-top:10px;color:#9bb4cb;font-size:12px;line-height:1.5}.egi-v-info{font-size:12px;min-height:34px;line-height:1.5;padding:9px 11px;background:#0b1a2b;border:1px solid #243f59;border-radius:8px;color:#cee3f8}
+.egi-v-extra{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;margin-top:10px}.egi-v-extra button{padding:8px 12px;font-size:12px}
+@media(max-width:640px){.egi-vis-head h2{font-size:17px}.egi-v-chart-wrap #chart{height:410px}.egi-v-buttons{width:100%;justify-content:flex-start}.egi-v-checks{gap:9px}.egi-v-axis{flex-wrap:wrap}.egi-v-caption{font-size:11px}}
+@media(max-width:390px){.egi-v-chart-wrap #chart{height:385px}.egi-v-buttons button{padding:7px 9px}}
+</style></head><body><header><h1>🧪 Professor Contexto + Setup 1-2-3 EGI <small>V1.2.10 Visual</small></h1><small>HTML independente · Candles fechados · Sinais em estudo, sem ordens</small></header><main>
+<div class="card"><div class="row"><label>Moeda / par<input id="symbol" value="BTCUSDT" maxlength="24" placeholder="BTCUSDT"></label><label>Mercado<select id="market"><option value="binance">Binance Spot</option><option value="bybit">Bybit Spot</option><option value="mexc">MEXC Spot</option><option value="csv">Somente CSV</option></select></label><label>Período<select id="tf"><option>5m</option><option selected>15m</option><option>30m</option><option>1h</option><option>4h</option><option>1d</option></select></label><label>MME do contexto<input id="period" type="number" value="21" min="5" max="100"></label><label>Folga do gatilho (ATR)<input id="buffer" type="number" value="0.10" min="0" max="1" step="0.05"></label><button id="load" class="primary">↻ Coletar e analisar</button><button id="analyze">Analisar dados atuais</button></div><p id="state" class="muted">Selecione a moeda e clique em Coletar e analisar.</p><div class="notice">A coleta exige acesso à internet e disponibilidade da API pública. Se a conexão direta falhar, importe CSV. Nenhuma cotação será inventada.<div id="storageNotice" class="muted" style="font-size:12px;margin-top:5px"></div></div><details><summary>📁 Importar CSV de candles fechados</summary><p class="muted">CSV com colunas timestamp,open,high,low,close,volume; tempo ISO ou Unix em ms. Aceita vírgula ou ponto e vírgula como separador. Os candles precisam estar completos e ordenados; a validação descarta barras abertas com base no relógio.</p><input type="file" id="csv" accept=".csv,text/csv"></details></div>
+<section class="card"><div class="metrics"><div class="kpi">Contexto <strong id="context">—</strong></div><div class="kpi">Preço fechado <strong id="price">—</strong></div><div class="kpi">RSI 14 <strong id="rsi">—</strong></div><div class="kpi">MME do contexto <strong id="ma">—</strong></div><div class="kpi">Padrões históricos <strong id="count">—</strong></div></div></section>
+<section class="card egi-visual-card" id="egiGraficoVisual">
+<div class="egi-vis-head"><div><h2>📈 Gráfico EGI — Setup 1-2-3</h2><small id="vizHeaderSymbol" class="muted">Selecione um par e colete candles fechados</small></div><span id="vizDirection" class="egi-v-state mixed">AGUARDANDO DADOS</span></div>
+<div class="egi-v-toolbar">
+  <div class="egi-v-buttons"><label for="vizBars" style="display:inline">Janela</label><select id="vizBars" aria-label="Candles visíveis"><option value="40">40 candles</option><option value="75" selected>75 candles</option><option value="120">120 candles</option><option value="200">200 candles</option></select><button id="vizPlus" type="button" title="Aproximar">＋ Zoom</button><button id="vizMinus" type="button" title="Afastar">－ Zoom</button><button id="vizLatest" type="button">⟲ Mais recentes</button></div>
+  <div class="egi-v-checks"><label><input type="checkbox" id="vizVolume" checked> Volume</label><label><input type="checkbox" id="vizRSI" checked> RSI 14</label><label><input type="checkbox" id="vizMarks" checked> Sinais 1-2-3</label><label><input type="checkbox" id="vizLevels" checked> Gatilhos</label></div>
+</div>
+<div id="chartWrap" class="egi-v-chart-wrap"><canvas id="chart" role="img" aria-label="Candles históricos fechados, MME, volume, RSI e marcações de Setup 1-2-3"></canvas><div id="chartTooltip" class="egi-v-tooltip" hidden></div></div>
+<div class="egi-v-axis"><small class="muted" id="vizPosition">Exibindo candles mais recentes</small><input id="vizOffset" type="range" min="0" max="0" value="0" step="1" aria-label="Percorrer candles históricos"></div>
+<div class="egi-v-legend"><span><i class="egi-v-dot" style="background:#43dab0"></i>Alta / LONG</span><span><i class="egi-v-dot" style="background:#fa7d94"></i>Baixa / SHORT</span><span><i class="egi-v-bar" style="background:#6daeff"></i>MME de contexto</span><span><i class="egi-v-bar" style="background:#d6b6ff"></i>RSI 14</span><span><i class="egi-v-bar" style="background:#fabd73;border-top:1px dashed"></i>Linhas de gatilho</span></div>
+<div class="egi-v-extra"><small class="muted" id="vizBarCount">Sem candles carregados</small><button id="vizSave" type="button">📷 Salvar gráfico PNG</button></div>
+<p id="vizContext" class="egi-v-caption">Contexto e níveis aparecem após a coleta.</p>
+<div class="egi-v-info" id="vizInfo">Toque em um candle para ver abertura, máxima, mínima, fechamento, volume e sinais.</div>
+<p class="egi-v-caption">Somente candles fechados da fonte selecionada ou CSV. Triângulos representam <b>formações observacionais</b>, não entradas; níveis de gatilho são hipóteses pendentes, nunca ordens. Zoom e histórico não alteram a análise.</p>
+</section>
+<section class="card"><h2>🧠 Professor — contexto e padrão atual</h2><pre id="report">Aguardando candles...</pre><div class="row"><button id="copy">Copiar parecer para ChatGPT</button><button id="export">Exportar ocorrências CSV</button></div></section>
+<section class="card" id="v12Panel"><h2>🎯 Radar do Próximo Gatilho — V1.2.9</h2><p class="muted">Busca padrões recentes, inclusive sem formação no último candle. O botão Atualizar radar + coletar busca candles novos; Analisar dados atuais apenas recalcula dados já baixados.</p><div class="row"><label>Validade do padrão (candles)<input type="number" min="1" max="30" value="8" id="life123"></label><label>Histórico exibido<input type="number" min="3" max="30" value="10" id="num123"></label><button id="update123" type="button">↻ Atualizar radar + coletar</button></div><pre id="next123">Aguardando coleta...</pre><h3>Últimos padrões detectados</h3><div class="scroll"><table><thead><tr><th>Formado</th><th>Tipo</th><th>Contexto</th><th>Gatilho</th><th>Situação</th></tr></thead><tbody id="recent123"><tr><td colspan="5">Aguardando dados</td></tr></tbody></table></div><h3>Auditoria exploratória por contexto</h3><pre id="audit123">Sem dados.</pre><p class="muted">Os resultados históricos usam a métrica observacional de 10 candles após a confirmação, sem contabilizar execução, stop, taxas ou slippage. Não representam retorno líquido ou probabilidade futura.</p></section>
+<section class="card"><details id="historyDetails"><summary style="cursor:pointer;font-weight:750;font-size:18px">📊 Laboratório histórico: alinhado × contrário — mostrar/recolher</summary><p class="muted">Lista as últimas ocorrências, sem usar candles futuros para detectar o padrão. A coluna posterior mede movimento após 10 candles apenas quando existem 10 candles completos depois da confirmação do gatilho. É observação, não lucro de trade, sem stop, custos ou slippage.</p><div class="scroll"><table><thead><tr><th>Candle 3 (UTC)</th><th>Padrão</th><th>Contexto</th><th>Gatilho</th><th>Resultado 10 candles após gatilho*</th></tr></thead><tbody id="rows"><tr><td colspan="5">Aguardando dados.</td></tr></tbody></table></div><small class="muted">*Confirmação: primeiro fechamento posterior ultrapassando o preço-gatilho em até 5 candles. Resultado calculado desde o fechamento de confirmação até o fechamento de 10 candles seguintes; pode incluir variação adversa intraperíodo não medida.</small></details></section>
+<section class="card" id="manual123"><details><summary style="cursor:pointer;font-weight:750;font-size:18px">📘 Manual Técnico EGI — Contexto + Setup 1-2-3 (abrir/recolher)</summary>
+<p class="muted"><strong>Versão do manual: 1.0 · 23/10/2026.</strong> Material de estudo e validação. O laboratório não recomenda nem executa ordens.</p>
+<h3>1. Objetivo do laboratório</h3><p>Separar três coisas: (A) a direção e a saúde da tendência, (B) o desenho 1-2-3 formado por candles fechados e (C) a confirmação posterior do gatilho. Um padrão não é uma operação. O detector exibe sinais alinhados, contrários e em transição para permitir pesquisa, sem ocultar os sinais contrários.</p>
+<h3>2. Regras técnicas do padrão</h3><p><b>Compra (LONG):</b> candle 2 faz mínima inferior às dos candles 1 e 3; candle 3 supera a máxima do candle 2. <b>Venda (SHORT):</b> candle 2 faz máxima superior às dos candles 1 e 3; candle 3 perde a mínima do candle 2. São configurações de três candles fechados. A detecção não garante rompimento ou sustentação.</p>
+<p><b>Contexto:</b> preço acima da MME21 e inclinação positiva → alta; abaixo da MME21 e inclinação negativa → baixa; divergências e estados indefinidos → transição. O período da média é configurável. RSI14 é contextual, não uma confirmação suficiente isoladamente. A MME21 é uma referência, não uma lei de mercado.</p>
+<p><b>Gatilho experimental:</b> máxima do candle 3 mais folga em ATR para LONG; mínima do candle 3 menos folga em ATR para SHORT. Stop hipotético além do extremo do candle 2. A entrada só pode ser <i>avaliada</i> após candle posterior fechado cruzar o nível, com volume, volatilidade, execução e contexto revistos. A folga de ATR é um parâmetro de estudo, não otimizado.</p>
+<h3>3. Interpretando a tela</h3><ol><li><b>Coletar e analisar:</b> consulta candles na fonte selecionada e recalcula o parecer.</li><li><b>Analisar dados atuais:</b> recalcula os dados em memória; não busca novos preços.</li><li><b>Atualizar radar + coletar:</b> busca novamente candles fechados. Se o último candle não mudou, a leitura pode permanecer idêntica; não é necessariamente falha.</li><li><b>Radar do Próximo Gatilho:</b> acompanha formações recentes até o prazo configurado, mostrando distância e idade. Um padrão pode expirar, perder contexto ou ser invalidado.</li><li><b>Histórico e RelGPT:</b> contêm observações, não resultado financeiro de ordens executadas.</li></ol>
+<h3>4. Parecer técnico do Professor EGI</h3><p><strong>Minha avaliação:</strong> a separação entre contexto, padrão e gatilho é um avanço metodológico útil. O maior mérito é não confundir uma formação gráfica com ordem, nem esconder sinais contra a tendência. O principal risco é a falsa sensação de precisão: sinais podem ser correlacionados, a tendência pode mudar após a formação e um resultado histórico favorável não prova robustez futura.</p>
+<p><strong>Dados observados no teste enviado (BTCUSDT 15m, 23/10/2026):</strong> alinhado 69 padrões / 46,38% positivos / movimento médio −0,087%; contrário 62 / 38,71% / −0,137%; transição 15 / 33,33% / −0,111%. São observações históricas do aplicativo, com janela e critérios próprios; não são backtest executável nem P&amp;L. A aparente vantagem relativa do grupo alinhado não comprova expectativa de lucro; todos os movimentos médios informados foram negativos.</p>
+<p><strong>Exemplo de acompanhamento:</strong> um LONG alinhado formado às 10h45 possuía gatilho em 82.070,039286, enquanto o preço fechado às 11h15 era 81.669,62. Como o contexto já estava em transição e o gatilho permanecia pendente, a leitura prudente foi <b>AGUARDAR</b>, não perseguir o preço. Esses números são históricos do relatório do usuário, não cotações atuais.</p>
+<h3>5. Protocolo de validação sugerido</h3><ol><li>Trabalhar apenas com candles fechados, congelar previamente regras e parâmetros, e manter fonte, horário e fuso por registro.</li><li>Guardar todos os eventos com horário de formação, direção, contexto de formação, contexto no gatilho, prazo e motivo da não confirmação.</li><li>Separar resultados por ativo, timeframe e regime de mercado; medir alinhado × contrário sem apagar exemplos perdedores.</li><li>Simular gatilho, stop, alvo e custos; quando stop e alvo ocorrerem dentro do mesmo candle, marcar ambiguidade ou usar hipótese conservadora, nunca presumir a sequência conveniente.</li><li>Medir quantidade de trades, taxa de acerto, ganho/perda médio em R, expectativa, fator de lucro, drawdown e concentração de resultados. Testar fora da amostra e em períodos de estresse.</li><li>Validar contra estratégias simples de referência e verificar sensibilidade a mudanças pequenas da MME, ATR, prazo e custos. Só depois considerar integração ao SetupDT, preservando decisão e risco independentes.</li></ol>
+<h3>6. Limitações e alertas</h3><p>Amostras históricas podem estar selecionadas, eventos próximos não são independentes, APIs podem falhar e candles agregados podem esconder a ordem intrabar. A estatística atual de “movimento após 10 candles” não mede slippage, taxas, spread ou execução. Nem taxa de acerto maior nem contexto alinhado justificam entrada automática. STOP hipotético não elimina perda maior em gaps e movimentos bruscos.</p>
+<h3>7. Origem e biblioteca de estudos</h3><p><b>Live de referência:</b> vídeo sobre sinal + contexto de mercado e exemplo de Setup 1-2-3. <a href="https://youtu.be/hVq5TgaDjOo?si=sk_5rRWpfKMnw1i5" target="_blank" rel="noopener noreferrer" style="color:#86bcff">▶ Assistir à live original (YouTube)</a>.</p><p><b>Frase EGI:</b> “O contexto prepara o terreno; o padrão chama a atenção; o candle fechado confirma. Só uma auditoria honesta revela se existe vantagem.”</p>
+</details></section>
+
+<section class="card" id="scanSetup123"><h2>🔄 Varredura EGI — lista do SetupDT</h2>
+<p class="muted">Importe a lista de moedas exportada pelo SetupDT em TXT, CSV ou JSON, ou cole a lista no campo. Verifica uma moeda por vez, somente com a página aberta. As fontes públicas Spot podem não incluir todos os contratos de futuros.</p>
+<div class="row"><label>Importar lista SetupDT<input id="setupListFile" type="file" accept=".txt,.csv,.json"></label><label>Intervalo entre ciclos (min)<input id="scanMinutes" type="number" value="15" min="5" max="1440"></label><label>Limite de ativos por ciclo<input id="scanLimit" type="number" min="1" max="120" value="20"></label></div>
+<textarea id="setupList" rows="3" placeholder="BTCUSDT, ETHUSDT, SOLUSDT, LINKUSDT" style="width:100%;background:#0c1b2d;color:#ecf4ff;border:1px solid #406080;border-radius:8px;padding:10px"></textarea>
+<div class="row"><button id="runScan" class="primary" type="button">▶ Varredura agora</button><button id="autoScan" type="button">↻ Ligar loop</button><button id="stopScan" type="button">■ Parar</button><button id="scanToSetup" type="button">Abrir SetupDT ↗</button></div><pre id="scanStatus">Pronto. Importe a lista do SetupDT antes de varrer.</pre>
+<p class="muted">Intervalo mínimo de 5 minutos, com consultas sequenciais para reduzir limite de API. Nenhuma varredura funciona com a aba fechada. Duplicatas são descartadas pelo ativo, mercado, período, direção e candle de formação.</p></section>
+<section class="card" id="egiWhipsaw"><h2>🔁 Detector de Alternância — Arame Farpado EGI V1.2.9</h2>
+<p class="muted">Avalia mudanças LONG/SHORT no mesmo ativo e timeframe dentro da janela definida, apenas a partir de padrões efetivamente detectados. Alerta informativo: não bloqueia sinais. A alternância pode indicar ruído ou transição, não comprova falso rompimento.</p>
+<div class="row"><label>Janela (candles)<input id="whipWindow" type="number" min="2" max="30" value="6"></label><label>Alternâncias para alerta<input id="whipMin" type="number" min="1" max="10" value="2"></label><button id="whipRecalc" type="button">Atualizar detector</button></div>
+<pre id="whipOutput">Colete candles ou faça a varredura para identificar alternâncias.</pre></section>
+<section class="card" id="egiExecutive128"><h2>🧠 Central de Inteligência EGI V1.2.9 — Resumo do Professor</h2><p class="muted">Prioriza padrões pendentes por proximidade, alinhamento e alternâncias. Ranking para investigação, nunca ordem. Os dados da biblioteca podem estar defasados.</p><div class="row"><button type="button" class="primary" id="summaryCopy128">📋 Copiar RESUMO para ChatGPT</button><button type="button" id="summaryRefresh128">↻ Atualizar resumo</button></div><pre id="summaryOutput128" style="white-space:pre-wrap;overflow-wrap:anywhere">Preparando resumo dos sinais salvos...</pre></section>
+<section class="card" id="allRel123"><h2>📋 Central RelGPT — COPIAR TODOS OS RELATÓRIOS</h2><p class="muted">Reúne o parecer atual, radar, auditoria, detector de alternância, andamento do loop e biblioteca. Apenas um clique para copiar e colar no ChatGPT. Inclui horários e avisos quando os dados não são simultâneos.</p><div class="row"><label>Quantidade de sinais da biblioteca no relatório <input id="bundleLimit" type="number" min="10" max="4000" value="300"></label><button type="button" class="primary" id="bundleCopy">📋 Copiar TODOS para ChatGPT</button><button type="button" id="bundlePreview">Gerar / visualizar</button><button type="button" id="bundleTxt">💾 Baixar TXT completo</button></div><p id="bundleState" class="muted">Pronto. Os dados são locais e não são enviados automaticamente ao ChatGPT.</p><textarea id="bundleOutput" rows="10" readonly style="width:100%;background:#0c1b2d;color:#ecf4ff;border:1px solid #406080;border-radius:8px;padding:10px" placeholder="Clique em Gerar / visualizar para reunir tudo."></textarea></section>
+<section class="card" id="egiEvolution129"><h2>🧭 Professor de Evolução + Episódios EGI V1.2.9</h2><p class="muted">Consolida episódios de alternância sem apagar sinais. Audita início e fechamento dos candles e simula o desfecho após rompimento, exclusivamente com candles fechados. Histórico não equivale a operações executadas.</p><div class="row"><button id="evoRefresh129" type="button">↻ Atualizar evolução</button><button id="evoCopy129" type="button">📋 Copiar parecer de evolução</button><button id="evoCsv129" type="button">💾 Exportar evolução CSV</button></div><pre id="evoOutput129" style="white-space:pre-wrap;overflow-wrap:anywhere">Execute uma varredura para atualizar os sinais.</pre></section>
+<section class="card" id="signalLog123"><h2>📚 Biblioteca de Sinais — apreciação posterior</h2>
+<p class="muted">Registra sinais observados durante a varredura, inclusive contrários e pendentes. Registros ficam neste navegador; não são operações executadas nem resultados financeiros.</p>
+<div class="row"><button id="downloadSignalsCsv" type="button">Exportar CSV</button><button id="downloadSignalsJson" type="button">Exportar JSON</button><button id="clearSignals" type="button">Limpar biblioteca</button></div>
+<div id="signalLogCount" class="muted">0 sinais</div><div class="scroll"><table><thead><tr><th>Formação</th><th>Ativo</th><th>TF</th><th>Direção</th><th>Contexto</th><th>Gatilho</th><th>Estado observado</th><th>Alternância</th></tr></thead><tbody id="signalLogRows"><tr><td colspan="8">Nenhum sinal registrado</td></tr></tbody></table></div>
+</section>
+</main><script>
+'use strict';
+// Fallback apenas para navegadores que bloqueiam storage em arquivos locais (content:// / file://).
+// Quando disponível, mantemos as chaves originais no localStorage para preservar a biblioteca EGI.
+const egiStore=(()=>{
+ const backup=new Map();let available=true;
+ try {window.localStorage.setItem('__egi_storage_probe__','ok');window.localStorage.removeItem('__egi_storage_probe__')}catch(_){available=false}
+ return {hasStorage:()=>available,
+ getItem(k){if(available){try{return window.localStorage.getItem(k)}catch(_){available=false}}return backup.get(k)??null},
+ setItem(k,v){if(available){try{window.localStorage.setItem(k,String(v));return}catch(_){available=false}}backup.set(k,String(v))},
+ removeItem(k){if(available){try{window.localStorage.removeItem(k);return}catch(_){available=false}}backup.delete(k)} };
+})();
+const $=id=>document.getElementById(id);
+if(!egiStore.hasStorage())$('storageNotice').textContent='⚠ Armazenamento local bloqueado neste modo. Exportar a biblioteca é essencial: sinais novos podem sumir quando fechar o arquivo. Para histórico persistente, abra via HTTPS (GitHub/Render).';
+let bars=[],occ=[],source='';const tfMs={'5m':300000,'15m':900000,'30m':1800000,'1h':3600000,'4h':14400000,'1d':86400000};const nf=x=>Number.isFinite(x)?x.toLocaleString('pt-BR',{maximumFractionDigits:6}):'—';const setStatus=(msg,kind='muted')=>{$('state').textContent=msg;$('state').className=kind};
+function clean(input){const dt=tfMs[$('tf').value],now=Date.now(),sorted=input.map(x=>({t:+x.t,o:+x.o,h:+x.h,l:+x.l,c:+x.c,v:+x.v})).filter(x=>Object.values(x).every(Number.isFinite)&&x.o>0&&x.c>0&&x.h>=Math.max(x.o,x.c,x.l)&&x.l<=Math.min(x.o,x.c)&&x.l>0&&x.t>1e11&&x.t+dt<=now).sort((a,b)=>a.t-b.t);const out=[];for(const x of sorted){if(out.length&&x.t===out.at(-1).t)out[out.length-1]=x;else out.push(x)}return out.slice(-1000)}
+function emaSeries(arr,p){let a=[],e=null,k=2/(p+1);for(const v of arr){e=e===null?v:e+(v-e)*k;a.push(e)}return a}function rsi(arr,n=14){if(arr.length<n+1)return NaN;let up=0,down=0;for(let i=1;i<=n;i++){let d=arr[i]-arr[i-1];up+=Math.max(0,d);down+=Math.max(0,-d)}up/=n;down/=n;for(let i=n+1;i<arr.length;i++){let d=arr[i]-arr[i-1];up=(up*(n-1)+Math.max(d,0))/n;down=(down*(n-1)+Math.max(-d,0))/n}return down===0?100:100-100/(1+up/down)}function atrAt(d,i){if(i<15)return NaN;let t=0;for(let j=i-13;j<=i;j++){const x=d[j],prev=d[j-1].c;t+=Math.max(x.h-x.l,Math.abs(x.h-prev),Math.abs(x.l-prev))}return t/14}
+async function collect(){const m=$('market').value,s=$('symbol').value.toUpperCase().replace(/[^A-Z0-9]/g,''),tf=$('tf').value;if(!s)throw Error('Informe um par válido.');if(m==='csv')throw Error('Selecione um arquivo CSV.');let url,decode;if(m==='binance'){url=`https://api.binance.com/api/v3/klines?symbol=${s}&interval=${tf}&limit=1000`;decode=j=>j.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}))}else if(m==='bybit'){const tfBy={'5m':'5','15m':'15','30m':'30','1h':'60','4h':'240','1d':'D'};url=`https://api.bybit.com/v5/market/kline?category=spot&symbol=${s}&interval=${tfBy[tf]}&limit=1000`;decode=j=>{if(j.retCode!==0)throw Error(j.retMsg||'Bybit indisponível');return j.result.list.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}))}}else {const tfMex={'5m':'5m','15m':'15m','30m':'30m','1h':'60m','4h':'4h','1d':'1d'};url=`https://api.mexc.com/api/v3/klines?symbol=${s}&interval=${tfMex[tf]}&limit=1000`;decode=j=>j.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}))}const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),14000);try{let res=await fetch(url,{signal:ctrl.signal});if(!res.ok)throw Error('HTTP '+res.status);let json=await res.json();if(!Array.isArray(json)&&m==='binance')throw Error(json.msg||'Formato inválido');bars=clean(decode(json));source=m+' Spot';if(bars.length<80)throw Error('Menos de 80 candles fechados válidos');}finally{clearTimeout(timer)}}
+$('load').onclick=async()=>{setStatus('Coletando candles...', 'warn');try{await collect();analyze();setStatus('Fonte: '+source+' · '+bars.length+' candles fechados.','good')}catch(e){setStatus('Coleta não realizada: '+e.message+'. Experimente outra fonte ou CSV.','bad')}};
+function parseCSV(text){const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/).filter(Boolean),sep=lines[0].split(';').length>lines[0].split(',').length?';':',';const keys=lines.shift().split(sep).map(x=>x.trim().toLowerCase()),idx=k=>keys.indexOf(k);if(['timestamp','open','high','low','close','volume'].some(k=>idx(k)<0))throw Error('Colunas exigidas: timestamp,open,high,low,close,volume');return lines.map(line=>{const x=line.split(sep),date=x[idx('timestamp')],t=/^\d+$/.test(date)?Number(date):Date.parse(date);return {t:t<1e11?t*1000:t,o:Number(x[idx('open')]),h:Number(x[idx('high')]),l:Number(x[idx('low')]),c:Number(x[idx('close')]),v:Number(x[idx('volume')])}})}
+$('csv').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const t=await f.text();bars=clean(parseCSV(t));if(bars.length<80)throw Error('CSV precisa conter pelo menos 80 candles fechados válidos');source='CSV local';analyze();setStatus('CSV importado: '+bars.length+' candles fechados.','good')}catch(err){setStatus('CSV inválido: '+err.message,'bad')}};
+function analyze(){if(bars.length<80){setStatus('Colete pelo menos 80 candles fechados.','warn');return}const period=Number($('period').value),buf=Number($('buffer').value);if(!Number.isInteger(period)||period<5||period>100||!Number.isFinite(buf)||buf<0||buf>1){setStatus('MME/folga inválida','bad');return}const ma=emaSeries(bars.map(x=>x.c),period);occ=[];let lastContext='TRANSIÇÃO',lastPatterns=[];for(let i=Math.max(period*2,40);i<bars.length;i++){let a=bars[i-2],b=bars[i-1],c=bars[i],ctx=c.c>ma[i]&&ma[i]>ma[i-3]?'ALTA':c.c<ma[i]&&ma[i]<ma[i-3]?'BAIXA':'TRANSIÇÃO';const atr=atrAt(bars,i);if(i===bars.length-1)lastContext=ctx;const tests=[['LONG',b.l<a.l&&b.l<c.l&&c.h>b.h],['SHORT',b.h>a.h&&b.h>c.h&&c.l<b.l]];for(const [dir,ok] of tests){if(!ok)continue;let trigger=dir==='LONG'?c.h+atr*buf:c.l-atr*buf,stop=dir==='LONG'?b.l-atr*buf:b.h+atr*buf,alignment=ctx==='TRANSIÇÃO'?'TRANSIÇÃO':(ctx==='ALTA'&&dir==='LONG'||ctx==='BAIXA'&&dir==='SHORT')?'ALINHADO':'CONTRÁRIO';const item={i,dir,ctx,alignment,trigger,stop,result:null,hit:null};for(let j=i+1;j<=Math.min(i+5,bars.length-1);j++){if(dir==='LONG'?bars[j].c>trigger:bars[j].c<trigger){item.hit=j;break}}if(item.hit!==null&&item.hit+10<bars.length){item.result=(bars[item.hit+10].c/bars[item.hit].c-1)*100*(dir==='LONG'?1:-1)}occ.push(item);if(i===bars.length-1)lastPatterns.push(item)}}
+ const last=bars.at(-1),latest=occ.filter(x=>x.i===bars.length-1),r=rsi(bars.slice(-150).map(x=>x.c));$('context').textContent=lastContext;$('context').className=lastContext==='ALTA'?'good':lastContext==='BAIXA'?'bad':'warn';$('price').textContent=nf(last.c);$('rsi').textContent=nf(r);$('ma').textContent=nf(ma.at(-1));$('count').textContent=occ.length;
+ let out=['PROFESSOR CONTEXTO + SETUP 1-2-3 EGI V1.2.9 — ESTUDO, NÃO ORDEM','Ativo: '+$('symbol').value.toUpperCase()+' | '+$('tf').value+' | Fonte: '+source,'Último candle fechado: '+new Date(last.t+tfMs[$('tf').value]).toLocaleString('pt-BR'),'CONTEXTO: '+lastContext+' | MME'+period+' '+nf(ma.at(-1))+' | RSI14 '+nf(r), 'Padrões 1-2-3 no candle atual: '+(latest.length?latest.map(x=>x.dir+' ('+x.alignment+')').join(', '):'nenhum')];for(const x of latest){const risk=Math.abs(x.trigger-x.stop);out.push(x.dir+' '+x.alignment+' | gatilho '+nf(x.trigger)+' | invalidação/stop hipotético '+nf(x.stop)+' | alvo 1R '+nf(x.dir==='LONG'?x.trigger+risk:x.trigger-risk))}out.push('Regra: padrão não é entrada. Exigir candle posterior FECHADO rompendo gatilho e considerar volume, contexto e risco.','Padrões contrários ao contexto continuam visíveis para investigação.','Nenhuma ordem enviada e nenhuma rentabilidade futura garantida.');$('report').textContent=out.join('\n');$('rows').replaceChildren();for(const x of occ.slice(-80).reverse()){const tr=document.createElement('tr');for(const v of [new Date(bars[x.i].t).toISOString().slice(0,16),x.dir,x.alignment,nf(x.trigger),x.hit===null?'Sem gatilho até 5 candles':x.result===null?'Gatilho; horizonte incompleto':nf(x.result)+'%']){const td=document.createElement('td');td.textContent=v;tr.appendChild(td)}$('rows').appendChild(tr)}draw(ma)}
+$('analyze').onclick=()=>analyze();$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('report').textContent);setStatus('Parecer copiado.','good')}catch(e){setStatus('Copie o relatório manualmente.','warn')}};$('export').onclick=()=>{if(!occ.length){setStatus('Nenhuma ocorrência para exportar.','warn');return}const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"',cols=['candle3_utc','direcao','contexto','concordancia','gatilho','stop_hipotetico','indice_confirmacao','retorno_10_candles_pct'];let lines=[cols.join(',')];for(const x of occ){let vals=[new Date(bars[x.i].t).toISOString(),x.dir,x.ctx,x.alignment,x.trigger,x.stop,x.hit,x.result];lines.push(vals.map(esc).join(','))}let a=document.createElement('a'),url=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'}));a.href=url;a.download='Setup123_EGI_estudo.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)};
+// EGI VISUAL V1.2.10 — canvas local; usa unicamente candles FECHADOS já existentes em bars.
+const egiV={visible:75,shift:0,hover:null,box:null,ma:[],raf:0};
+const egiVSafe = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+function egiVF(x){ if(!Number.isFinite(x))return '—'; const z=Math.abs(x); const dig=z>=100?2:z>=1?4:z>=0.01?6:8;return x.toLocaleString('pt-BR',{maximumFractionDigits:dig}); }
+function egiVRSI(a,n=14){const out=Array(a.length).fill(null);if(a.length<=n)return out;let up=0,dn=0;for(let k=1;k<=n;k++){const diff=a[k]-a[k-1];up+=Math.max(0,diff);dn+=Math.max(0,-diff)}up/=n;dn/=n;for(let k=n;k<a.length;k++){if(k>n){const diff=a[k]-a[k-1];up=(up*(n-1)+Math.max(0,diff))/n;dn=(dn*(n-1)+Math.max(0,-diff))/n;}out[k]=dn===0?100:100-100/(1+up/dn)}return out}
+function egiVRound(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+function egiVText(ctx,text,x,y,color,size=11,align='left',weight='400') {ctx.fillStyle=color;ctx.font=weight+' '+size+'px system-ui, Segoe UI, Arial';ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y)}
+function egiVLine(ctx,x1,y1,x2,y2,color,width=1,dashes=[]){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dashes);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore()}
+function egiVTint(ctx,x,y,col,up){ctx.fillStyle=col;ctx.beginPath();if(up){ctx.moveTo(x,y-5);ctx.lineTo(x-4.5,y+3);ctx.lineTo(x+4.5,y+3)}else{ctx.moveTo(x,y+5);ctx.lineTo(x-4.5,y-3);ctx.lineTo(x+4.5,y-3)}ctx.closePath();ctx.fill()}
+function egiVStyle(){return{vol:$('vizVolume').checked,rsi:$('vizRSI').checked,marks:$('vizMarks').checked,levels:$('vizLevels').checked}}
+function egiVStatus(status,align){$('vizHeaderSymbol').textContent=$('symbol').value.toUpperCase()+' · '+$('tf').value+' · '+source;const el=$('vizDirection');el.textContent=status;el.className='egi-v-state '+(status==='ALTA'?'up':status==='BAIXA'?'down':'mixed');$('vizContext').textContent=align;}
+function egiVPending(){const life=Math.max(1,Math.min(30,Number($('life123').value)||8));const last=bars.length-1;if(last<0)return[];return occ.filter(z=>last-z.i<=life&&last-z.i>=0&&eventState(z,life)==='PENDENTE').sort((a,b)=>Math.abs(bars[last].c/a.trigger-1)-Math.abs(bars[last].c/b.trigger-1)).slice(0,2)}
+function draw(ma){
+ if(Array.isArray(ma))egiV.ma=ma;
+ const el=$('chart'),wrap=$('chartWrap');if(!el||!wrap)return;
+ const w=Math.max(280,el.clientWidth||wrap.clientWidth||500),h=Math.max(280,el.clientHeight||440),dpr=Math.min(2.5,window.devicePixelRatio||1);
+ el.width=Math.round(w*dpr);el.height=Math.round(h*dpr);const ctx=el.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ ctx.fillStyle='#091725';ctx.fillRect(0,0,w,h);
+ const nAll=bars.length,V=egiVStyle();
+ $('vizBarCount').textContent=nAll?nAll+' candles fechados carregados':'Sem candles carregados';
+ if(nAll===0){const gridX=40;for(let j=0;j<7;j++)egiVLine(ctx,gridX,50+j*42,w-20,50+j*42,'rgba(124,166,204,.12)');egiVText(ctx,'GRÁFICO EGI · SEM DADOS',w/2,h/2-12,'#cedef0',14,'center','700');egiVText(ctx,'Colete candles ou importe CSV para visualizar.',w/2,h/2+17,'#86a0b9',w<390?10:12,'center');$('vizOffset').max=0;$('vizOffset').value=0;$('vizPosition').textContent='Nenhum candle exibido';$('vizInfo').textContent='Os preços e desenhos só aparecem depois da coleta de candles fechados.';egiV.box=null;return}
+ egiV.shift=egiVSafe(egiV.shift,0,Math.max(0,nAll-egiV.visible));
+ const end=Math.max(1,nAll-egiV.shift),start=Math.max(0,end-egiV.visible),arr=bars.slice(start,end),n=arr.length;
+ $('vizOffset').max=Math.max(0,nAll-egiV.visible);$('vizOffset').value=egiV.shift;
+ $('vizPosition').textContent=egiV.shift===0?'Exibindo candles mais recentes':'Exibindo histórico: '+egiV.shift+' candles atrás';
+ const pl=w<480?11:15,pr=w<480?65:85,pw=w-pl-pr,top=34,bottomAxis=29,panelGap=10,extra=(V.vol?Math.max(48,h*.145):0)+(V.rsi?Math.max(66,h*.17):0)+(V.vol?panelGap:0)+(V.rsi?panelGap:0);
+ const priceH=Math.max(120,h-top-bottomAxis-extra-12),priceB=top+priceH;
+ const volT=priceB+(V.vol?panelGap:0),volH=V.vol?Math.max(48,h*.145):0;
+ const rsiT=(V.vol?volT+volH:priceB)+(V.rsi?panelGap:0),rsiH=V.rsi?Math.max(66,h*.17):0;
+ let lo=Math.min(...arr.map(z=>z.l)),hi=Math.max(...arr.map(z=>z.h)),span=Math.max(hi-lo,Math.abs(hi)*.00005),pad=span*.105;lo-=pad;hi+=pad;
+ const xx=k=>pl+(k-start+.5)*pw/n,yp=v=>top+(hi-v)/(hi-lo)*priceH;
+ const latest=bars[end-1],nowLatest=nAll-egiV.shift-1;
+ const cb=Number($('period').value)||21;
+ const pend=egiV.shift===0&&V.levels?egiVPending():[];
+ const rsiS=V.rsi?egiVRSI(bars.map(z=>z.c)):[];
+ for(let j=0;j<=4;j++){const py=top+(priceH/4)*j;egiVLine(ctx,pl,py,pl+pw,py,'rgba(135,171,205,.15)');egiVText(ctx,egiVF(hi-(hi-lo)*(j/4)),w-pr+8,py,'#8da6c2',w<400?9:10)}
+ for(let j=0;j<=5;j++){const px=pl+pw*j/5;egiVLine(ctx,px,top,px,priceB,'rgba(135,171,205,.07)')}
+ const colUp='#43dab0',colDown='#fa7d94',cw=pw/n,bodyW=Math.max(1.5,Math.min(14,cw*.65));
+ if(V.vol){
+  const maxV=Math.max(1,...arr.map(z=>z.v));
+  ctx.fillStyle='rgba(21,43,66,.40)';ctx.fillRect(pl,volT,pw,volH);
+  egiVText(ctx,'VOLUME',pl+5,volT+9,'#8ca6c2',9,'left','700');
+  for(let j=0;j<n;j++){let b=arr[j],x=xx(start+j),up=b.c>=b.o,volHeight=Math.max(1,(b.v/maxV)*(volH-17));ctx.fillStyle=up?'rgba(67,218,176,.57)':'rgba(250,125,148,.59)';ctx.fillRect(x-bodyW/2,volT+volH-volHeight,bodyW,volHeight)}
+ }
+ if(V.rsi){
+  ctx.fillStyle='rgba(17,39,61,.60)';ctx.fillRect(pl,rsiT,pw,rsiH);
+  const ry=rv=>rsiT+9+(100-rv)/100*(rsiH-18);
+  for(const v of [30,50,70]){egiVLine(ctx,pl,ry(v),pl+pw,ry(v),v===50?'rgba(135,171,205,.13)':'rgba(248,190,115,.30)',1,v===50?[]:[3,5]);egiVText(ctx,String(v),w-pr+8,ry(v),'#91a7bb',10)}
+  ctx.strokeStyle='#d6b6ff';ctx.lineWidth=1.75;ctx.beginPath();let first=true;for(let j=0;j<n;j++){const r=rsiS[start+j];if(!Number.isFinite(r)){first=true;continue}if(first){ctx.moveTo(xx(start+j),ry(r));first=false}else ctx.lineTo(xx(start+j),ry(r))}ctx.stroke();egiVText(ctx,'RSI 14',pl+6,rsiT+10,'#d6b6ff',10,'left','700');
+ }
+ // MMEs and candles have separate drawing passes for legibility.
+ const maVals=egiV.ma.length===bars.length?egiV.ma:emaSeries(bars.map(x=>x.c),cb);
+ ctx.save();ctx.beginPath();ctx.rect(pl,top,pw,priceH);ctx.clip();
+ ctx.strokeStyle='#6daeff';ctx.lineWidth=1.85;ctx.beginPath();let started=false;for(let j=0;j<n;j++){const val=maVals[start+j];if(!Number.isFinite(val)){started=false;continue}if(!started){ctx.moveTo(xx(start+j),yp(val));started=true}else ctx.lineTo(xx(start+j),yp(val))}ctx.stroke();
+ for(let j=0;j<n;j++){const b=arr[j],x=xx(start+j),up=b.c>=b.o,c=up?colUp:colDown;
+  ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,yp(b.h));ctx.lineTo(x,yp(b.l));ctx.stroke();
+  const bodyTop=Math.min(yp(b.c),yp(b.o)),bodyH=Math.max(1.3,Math.abs(yp(b.c)-yp(b.o)));ctx.fillRect(x-bodyW/2,bodyTop,bodyW,bodyH);
+ }
+ if(V.marks){const byIndex=new Map();for(const p of occ){if(p.i<start||p.i>=end)continue;const k=p.i+'|'+p.dir;if(!byIndex.has(k))byIndex.set(k,p)}for(const p of byIndex.values()){const b=bars[p.i],x=xx(p.i),up=p.dir==='LONG',ref=yp(up?b.l:b.h)+(up?9:-9);const y=egiVSafe(ref,top+7,priceB-7);egiVTint(ctx,x,y,up?colUp:colDown,up)}}
+ ctx.restore();
+ if(pend.length){let row=0;for(const p of pend){const yy=yp(p.trigger);if(yy<top||yy>priceB)continue;const cl=p.dir==='LONG'?colUp:colDown;egiVLine(ctx,pl,yy,pl+pw,yy,cl,1,[5,4]);const tag=(p.dir==='LONG'?'▲ L ':'▼ S ')+egiVF(p.trigger);ctx.font='700 10px system-ui';const tw=Math.min(pw-10,ctx.measureText(tag).width+12);ctx.fillStyle='#172b42';egiVRound(ctx,pl+pw-tw-3,egiVSafe(yy-18-row*14,top+3,priceB-17),tw,16,4);ctx.fill();egiVText(ctx,tag,pl+pw-7,egiVSafe(yy-10-row*14,top+11,priceB-9),cl,10,'right','700');row++}}
+ if(egiV.shift===0){const py=yp(bars.at(-1).c);if(py>=top&&py<=priceB){egiVLine(ctx,pl,py,pl+pw,py,'rgba(206,224,245,.36)',1,[3,5]);ctx.fillStyle='#284866';egiVRound(ctx,pl+pw+3,py-9,pr-6,18,5);ctx.fill();egiVText(ctx,egiVF(bars.at(-1).c),w-pr+6,py,'#e4f1ff',10,'left','700')}}
+ const tfn=tfMs[$('tf').value]||900000;
+ const tc=Math.min(5,n-1);for(let k=0;k<=tc;k++){const i=start+Math.floor((n-1)*k/tc),x=xx(i);if(i>=end)continue;const dt=new Date(bars[i].t+tfn);const label=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});egiVText(ctx,w<460?label.slice(-5):label,x,h-13,'#7f9ebc',w<420?9:10,'center')}
+ // Hover or tap: guide across every panel with an OHLC detail tooltip.
+ if(egiV.hover!==null&&egiV.hover>=start&&egiV.hover<end){const index=egiV.hover,px=xx(index),b=bars[index];egiVLine(ctx,px,top,px,h-bottomAxis+6,'rgba(223,236,250,.52)',1,[3,4]);const py=yp(b.c);egiVLine(ctx,pl,py,pl+pw,py,'rgba(223,236,250,.30)',1,[2,4]);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px,py,2.4,0,Math.PI*2);ctx.fill();}
+ egiV.box={start,end,n,pl,pr,pw,top,priceB,priceH,w,h,xx,yp};
+ const last=bars.at(-1),lastContext=last.c>maVals.at(-1)&&maVals.at(-1)>maVals[Math.max(0,maVals.length-4)]?'ALTA':last.c<maVals.at(-1)&&maVals.at(-1)<maVals[Math.max(0,maVals.length-4)]?'BAIXA':'TRANSIÇÃO';
+ egiVStatus(lastContext,(pend.length?pend.map(p=>p.dir+' '+egiVF(p.trigger)).join(' · '):'Sem gatilho pendente na janela')+' · MME '+cb);
+ if(egiV.hover===null){$('vizInfo').textContent='Último fechamento: '+new Date(last.t+tfn).toLocaleString('pt-BR')+' · '+egiVF(last.c)+' · volume '+last.v.toLocaleString('pt-BR',{maximumFractionDigits:2})+'. Toque em um candle para inspecionar.'}
+}
+function egiVUpdateCross(ev){if(!egiV.box)return;const rect=$('chart').getBoundingClientRect();const p=egiV.box,x=ev.clientX-rect.left;const scaledX=x*(p.w/rect.width);if(scaledX<p.pl||scaledX>p.pl+p.pw){return}
+ const rel=(scaledX-p.pl)/p.pw,idx=egiVSafe(p.start+Math.floor(rel*p.n),p.start,p.end-1);egiV.hover=idx;const b=bars[idx];const tfn=tfMs[$('tf').value]||900000;const r=egiVRSI(bars.slice(0,idx+1).map(b=>b.c)).at(-1);const pats=occ.filter(z=>z.i===idx).map(z=>z.dir+' '+z.alignment).join(', ')||'nenhum';const tip=$('chartTooltip');tip.textContent=new Date(b.t+tfn).toLocaleString('pt-BR')+' · FECHADO\nO '+egiVF(b.o)+'  H '+egiVF(b.h)+'\nL '+egiVF(b.l)+'  C '+egiVF(b.c)+'\nVolume '+b.v.toLocaleString('pt-BR',{maximumFractionDigits:2})+' · RSI '+(Number.isFinite(r)?r.toFixed(1):'—')+'\nSetup 1-2-3: '+pats;tip.hidden=false;
+ const tx=ev.clientX-rect.left,ty=ev.clientY-rect.top;tip.style.left=egiVSafe(tx+14,6,rect.width-Math.min(245,rect.width-12)-6)+'px';tip.style.top=egiVSafe(ty-120,6,rect.height-116)+'px';
+ $('vizInfo').textContent='Candle selecionado: '+new Date(b.t+tfn).toLocaleString('pt-BR')+' | Fechamento '+egiVF(b.c)+' | '+pats+'.';draw(null)
+}
+function egiVRedraw(){if(egiV.raf)return;egiV.raf=requestAnimationFrame(()=>{egiV.raf=0;draw(null)})}
+function egiVInit(){
+ $('vizBars').value=String(egiV.visible);
+ $('vizBars').addEventListener('change',e=>{egiV.visible=Number(e.target.value);egiV.shift=0;egiV.hover=null;$('chartTooltip').hidden=true;egiVRedraw()});
+ $('vizPlus').onclick=()=>{const sizes=[40,75,120,200],i=sizes.indexOf(egiV.visible);egiV.visible=sizes[Math.max(0,i-1)];$('vizBars').value=String(egiV.visible);egiV.hover=null;egiVRedraw()};
+ $('vizMinus').onclick=()=>{const sizes=[40,75,120,200],i=sizes.indexOf(egiV.visible);egiV.visible=sizes[Math.min(sizes.length-1,i+1)];$('vizBars').value=String(egiV.visible);egiV.hover=null;egiVRedraw()};
+ $('vizLatest').onclick=()=>{egiV.shift=0;egiV.hover=null;$('chartTooltip').hidden=true;egiVRedraw()};
+ for(const name of ['vizVolume','vizRSI','vizMarks','vizLevels'])$(name).addEventListener('change',()=>egiVRedraw());
+ $('vizOffset').addEventListener('input',e=>{egiV.shift=Number(e.target.value);egiV.hover=null;$('chartTooltip').hidden=true;egiVRedraw()});
+ $('chart').addEventListener('pointermove',e=>{if(e.pointerType==='mouse')egiVUpdateCross(e)});
+ $('chart').addEventListener('pointerdown',e=>{egiVUpdateCross(e)});
+ $('chart').addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){egiV.hover=null;$('chartTooltip').hidden=true;egiVRedraw()}});
+ $('vizSave').onclick=()=>{const a=document.createElement('a');a.download='EGI_Grafico_'+$('symbol').value.toUpperCase()+'_'+$('tf').value+'_'+new Date().toISOString().slice(0,10)+'.png';a.href=$('chart').toDataURL('image/png');a.click()};
+ window.addEventListener('resize',egiVRedraw);
+ for(const id of ['symbol','tf','market'])$(id).addEventListener('change',()=>{egiV.shift=0;egiV.hover=null;egiV.ma=[];$('chartTooltip').hidden=true;egiVRedraw()});
+ draw(null);
+}
+egiVInit();
+
+
+function radar123(){
+ const box=$('next123'),tbody=$('recent123'),aud=$('audit123');
+ if(!bars.length){box.textContent='Colete candles antes de avaliar.';return}
+ const life=Math.max(1,Math.min(30,Number($('life123').value)||8)),count=Math.max(3,Math.min(30,Number($('num123').value)||10));
+ const lastIdx=bars.length-1,last=bars[lastIdx],live=[];
+ const rows=occ.slice(-count).reverse();tbody.replaceChildren();
+ for(const x of rows){
+   const age=lastIdx-x.i;let stateText='EXPIRADO';
+   if(x.hit!==null){stateText='CONFIRMADO no fechamento +'+(x.hit-x.i)}
+   else if(age<=life){
+     const sameDirection= x.dir==='LONG' ? last.c>x.stop : last.c<x.stop;
+     const invalidBefore=bars.slice(x.i+1).some(b=> x.dir==='LONG'? b.c<=x.stop:b.c>=x.stop);
+     if(invalidBefore)stateText='INVALIDADO por fechamento';
+     else if(sameDirection){stateText='PENDENTE ('+age+'/'+life+')';live.push(x)}
+     else stateText='INVALIDADO';
+   }
+   const tr=document.createElement('tr');
+   for(const value of [new Date(bars[x.i].t+tfMs[$('tf').value]).toLocaleString('pt-BR'),x.dir,x.alignment,nf(x.trigger),stateText]){const td=document.createElement('td');td.textContent=String(value);tr.appendChild(td)}tbody.appendChild(tr)
+ }
+ if(!rows.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='Nenhum padrão encontrado no histórico disponível.';tr.appendChild(td);tbody.appendChild(tr)}
+ const allPending=occ.filter(x=>x.hit===null&&lastIdx-x.i<=life&&bars.slice(x.i+1).every(b=>x.dir==='LONG'?b.c>x.stop:b.c<x.stop));
+ allPending.sort((a,b)=>Math.abs(last.c/a.trigger-1)-Math.abs(last.c/b.trigger-1));
+ if(!allPending.length){box.textContent='AGUARDAR: nenhum padrão recente pendente e não invalidado dentro da validade de '+life+' candles. Um sinal antigo não deve ser tratado como entrada atual.'}
+ else{const x=allPending[0],gap=Math.abs(last.c/x.trigger-1)*100;
+ box.textContent='PADRÃO MAIS PRÓXIMO: '+x.dir+' ('+x.alignment+')\nContexto na formação: '+x.ctx+'\nFormado: '+new Date(bars[x.i].t+tfMs[$('tf').value]).toLocaleString('pt-BR')+'\nGatilho: '+nf(x.trigger)+' | Preço fechado: '+nf(last.c)+'\nDistância absoluta: '+nf(gap)+'% | Idade: '+(lastIdx-x.i)+'/'+life+' candles\nSTOP estrutural hipotético: '+nf(x.stop)+'\nStatus: EM OBSERVAÇÃO — aguardar rompimento em candle futuro fechado. Não antecipar entrada.';
+ }
+ const samples=(name)=>occ.filter(x=>x.alignment===name&&x.hit!==null&&Number.isFinite(x.result));
+ const desc=(name)=>{const a=samples(name);if(!a.length)return name+': nenhuma amostra com horizonte completo';const avg=a.reduce((sum,x)=>sum+x.result,0)/a.length,pos=a.filter(x=>x.result>0).length;return name+': '+a.length+' observações | '+pos+' positivas ('+nf(pos/a.length*100)+'%) | movimento médio '+nf(avg)+'% (não é P&L)'};
+ aud.textContent=[desc('ALINHADO'),desc('CONTRÁRIO'),desc('TRANSIÇÃO'),'Atenção: padrões correlacionados e amostra selecionada. Comparação sem custos e sem simulação de stop.'].join('\n');
+}
+const analyzeOriginal123=analyze;
+analyze=function(){analyzeOriginal123();if(bars.length>=80){radar123();const r=$('report');r.textContent+='\n\n=== RADAR DO PRÓXIMO GATILHO ===\n'+$('next123').textContent+'\n\n=== AUDITORIA EXPLORATÓRIA ===\n'+$('audit123').textContent;setStatus('Análise atualizada com os '+bars.length+' candles já coletados. Para cotação nova, clique em Coletar e analisar.','good')}};
+$('update123').onclick=async()=>{
+ const btn=$('update123'),oldText=btn.textContent,previous=bars.length ? bars.at(-1).t : null;
+ btn.disabled=true;btn.textContent='⏳ Coletando dados novos...';
+ setStatus('Radar: buscando candles fechados novos na corretora...','warn');
+ try{
+   await collect();
+   analyze();
+   const newest=bars.length ? bars.at(-1).t : null;
+   const same=previous!==null && newest===previous;
+   const msg=same
+    ? 'Radar recalculado. Nenhum candle novo fechado desde a última coleta. Último candle: '
+    : 'Radar atualizado com coleta nova. Último candle fechado: ';
+   setStatus(msg+(newest===null?'indisponível':new Date(newest+tfMs[$('tf').value]).toLocaleString('pt-BR'))+' · '+bars.length+' candles · '+source,'good');
+ }catch(e){
+   setStatus('Falha ao atualizar radar pela API: '+e.message+'. Última análise permanece visível; ela pode estar desatualizada.','bad');
+ }finally{btn.disabled=false;btn.textContent=oldText}
+};
+$('life123').onchange=radar123;
+$('num123').onchange=radar123;
+for(const id of ['symbol','tf','market'])$(id).addEventListener('change',()=>{bars=[];occ=[];$('next123').textContent='Seleção alterada: colete novos candles.';$('audit123').textContent='Aguardando nova coleta.';$('recent123').innerHTML='<tr><td colspan="5">Aguardando nova coleta</td></tr>';$('report').textContent='Seleção alterada: colete dados antes de analisar.';setStatus('Ativo/mercado/timeframe alterado. Clique em Coletar e analisar.','warn')});
+
+// VV V1.2.9: A lista importada e os sinais permanecem no navegador local.
+const SETUP123_LOG='egi_setup123_signals_v124'; // preservar histórico da V1.2.4
+const SETUP123_LIST='egi_setup123_setupdt_list_v124';
+let scanRunning=false,scanLoop=false,scanCancel=false,scanTimer=null;
+const symClean=x=>String(x||'').trim().toUpperCase().replace(/[\s\-_\/]/g,'');
+function parseSetupList(raw){
+ let arr=[];
+ try { const d=JSON.parse(raw);
+   const unpack=z=>{
+     if(typeof z==='string')return [z];
+     if(Array.isArray(z))return z.flatMap(unpack);
+     if(z&&typeof z==='object'){
+       if(z.symbol||z.asset||z.coin||z.moeda||z.pair)return [z.symbol||z.asset||z.coin||z.moeda||z.pair];
+       for(const key of ['moedas','coins','symbols','assets','watchlist','list','ativos','pairs','data'])if(z[key])return unpack(z[key]);
+     }
+     return [];
+   };arr=unpack(d);
+ }catch(_){
+   let v=raw.replace(/\r/g,'').trim();
+   const lines=v.split('\n').filter(Boolean),first=lines[0]||'';
+   if(lines.length>1&&/symbol|moeda|asset|coin|ativo/i.test(first)){
+     const delim=first.includes(';')?';':',';
+     const cols=first.split(delim).map(x=>x.toLowerCase().trim());const ix=cols.findIndex(x=>/symbol|moeda|asset|coin|ativo/.test(x));
+     arr=lines.slice(1).map(x=>(x.split(delim)[Math.max(ix,0)]||''));
+   }else arr=v.split(/[\s,;|]+/);
+ }
+ return [...new Set(arr.map(symClean).filter(x=>/^[A-Z0-9]{3,22}$/.test(x)&&!/^(SYMBOL|MOEDA|COIN|ASSET|ATIVO)$/.test(x)))];
+}
+function normalizeSpotPair(raw){
+ const x=symClean(raw);
+ if(/^(USDT|USDC|BTC|ETH|FDUSD)$/.test(x))return x==='BTC'||x==='ETH'?x+'USDT':x;
+ if(/(USDT|USDC|FDUSD|BUSD|BTC|ETH)$/.test(x)&&x.length>6)return x;
+ return x+'USDT';
+}
+function currentSetupList(){return parseSetupList($('setupList').value)}
+function scanMsg(v){$('scanStatus').textContent=v}
+$('setupListFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;
+ if(f.size>2e6){scanMsg('Arquivo de lista acima de 2MB.');return}
+ const a=parseSetupList(await f.text());$('setupList').value=a.join(', ');egiStore.setItem(SETUP123_LIST,$('setupList').value);
+ scanMsg('Lista SetupDT carregada: '+a.length+' ativos. O loop completa USDT automaticamente quando necessário; pares inexistentes são informados como erro.');};
+$('setupList').value=egiStore.getItem(SETUP123_LIST)||'';
+$('setupList').addEventListener('change',()=>egiStore.setItem(SETUP123_LIST,$('setupList').value));
+$('scanToSetup').onclick=()=>window.open('https://setupdt.onrender.com/','_blank','noopener');
+function savedSignals(){try{return JSON.parse(egiStore.getItem(SETUP123_LOG)||'[]')}catch(_){return []}}
+function writeSignals(a){try{egiStore.setItem(SETUP123_LOG,JSON.stringify(a.slice(-4000)));return true}catch(_){scanMsg('Memória local cheia ou bloqueada. Exporte a biblioteca em CSV/JSON.');return false}}
+function eventState(x,life){
+ // Classificar o primeiro evento após a formação; evitar olhar apenas o último fechamento.
+ const max=Math.min(bars.length-1,x.i+life);
+ for(let j=x.i+1;j<=max;j++){
+  const c=bars[j].c;
+  const invalid=x.dir==='LONG'?c<=x.stop:c>=x.stop;
+  const confirmed=x.dir==='LONG'?c>x.trigger:c<x.trigger;
+  if(invalid)return 'INVALIDADO';
+  if(confirmed)return 'ROMPEU (candle fechado)';
+ }
+ return bars.length-1-x.i>life?'EXPIRADO':'PENDENTE';
+}
+function egiWhipEvents(list,windowCandles,minTurns){
+ const groups=new Map();
+ for(const x of list){
+  if(!x.asset||!x.tf||!x.formation||!['LONG','SHORT'].includes(x.direction))continue;
+  const k=x.asset+'|'+x.market+'|'+x.tf; if(!groups.has(k))groups.set(k,[]); groups.get(k).push(x);
+ }
+ const diagnostics=new Map();
+ for(const [k,g] of groups){g.sort((a,b)=>Date.parse(a.formation)-Date.parse(b.formation));
+  const unit=tfMs[g[0].tf]||900000;
+  for(let i=0;i<g.length;i++){
+   let turns=0,chain=[g[i]],lastDir=g[i].direction;
+   for(let j=i-1;j>=0;j--){
+    if((Date.parse(g[i].formation)-Date.parse(g[j].formation))/unit>windowCandles)break;
+    if(g[j].direction!==lastDir){turns++;lastDir=g[j].direction;chain.push(g[j])}
+   }
+   diagnostics.set(g[i].key,{turns,alert:turns>=minTurns,trail:chain.map(x=>x.direction).reverse().join(' → ')});
+  }
+ }
+ return diagnostics;
+}
+function updateWhipsaw(){
+ const data=savedSignals(),windowCandles=Math.max(2,Math.min(30,Number($('whipWindow').value)||6)),minTurns=Math.max(1,Math.min(10,Number($('whipMin').value)||2));
+ const d=egiWhipEvents(data,windowCandles,minTurns),alerts=[...data].filter(x=>d.get(x.key)?.alert).slice(-8).reverse();
+ $('whipOutput').textContent='Padrões guardados: '+data.length+' | janela '+windowCandles+' candles | limiar '+minTurns+' inversões.\n'+(alerts.length?alerts.map(x=>x.asset+' '+x.tf+' '+x.formation+' | '+d.get(x.key).trail+' ('+d.get(x.key).turns+' trocas)').join('\n'):(data.length?'Sem alternâncias acima do limiar no histórico salvo.':'Nenhum sinal salvo: execute uma varredura e verifique a Biblioteca de Sinais.'))+'\nAlerta de contexto, não confirmação de trade. Histórico local não contém necessariamente todas as formações intermediárias.';
+ return d;
+}
+$('whipRecalc').onclick=()=>{renderSignals();$('whipOutput').textContent+='\n✅ Detector recalculado às '+new Date().toLocaleTimeString('pt-BR')+' com '+savedSignals().length+' registros locais. Para buscar candles novos use Atualizar radar + coletar ou Varredura agora.';};
+function storeScanSignals(sym,tf,market){
+ const life=Math.max(1,Math.min(30,Number($('life123').value)||8));const all=savedSignals();let n=0;
+ const recent=occ.filter(x=>x.i>=bars.length-25);
+ for(const x of recent){const t=bars[x.i]?.t;if(!Number.isFinite(t))continue;
+ const key=[sym,market,tf,x.dir,t].join('|'),stateNow=eventState(x,life);
+ const old=all.find(z=>z.key===key);
+ if(old){old.status=stateNow;old.lastSeen=new Date().toISOString();old.lastPrice=bars.at(-1).c;old.candleOpenUtc=new Date(t).toISOString();old.candleCloseUtc=new Date(t+tfMs[tf]).toISOString();old.evolution=egiReplay129(x,life);continue}
+ all.push({key,asset:sym,market,tf,formation:new Date(t+tfMs[tf]).toISOString(),direction:x.dir,context:x.ctx,alignment:x.alignment,trigger:x.trigger,stop:x.stop,status:stateNow,created:new Date().toISOString(),lastSeen:new Date().toISOString(),lastPrice:bars.at(-1).c,candleOpenUtc:new Date(t).toISOString(),candleCloseUtc:new Date(t+tfMs[tf]).toISOString(),evolution:egiReplay129(x,life)});n++;
+ }
+ writeSignals(all);renderSignals();return n;
+}
+function renderSignals(){const data=savedSignals(),root=$('signalLogRows');root.replaceChildren();$('signalLogCount').textContent=data.length+' sinais salvos (exibindo até 100 mais recentes)';const diagnostic=updateWhipsaw();
+ for(const x of data.slice(-100).reverse()){
+ const row=document.createElement('tr');for(const value of [x.formation,x.asset,x.tf,x.direction,x.alignment,x.trigger===undefined?'—':nf(x.trigger),x.status,diagnostic.get(x.key)?.alert?'⚠ ARAME FARPADO ('+diagnostic.get(x.key).turns+' inversões)':diagnostic.get(x.key)?.turns?'Troca '+diagnostic.get(x.key).turns:'—']){const td=document.createElement('td');td.textContent=String(value??'—');row.appendChild(td)}root.appendChild(row)
+ }
+ if(!data.length){root.innerHTML='<tr><td colspan="8">Nenhum sinal registrado</td></tr>'}
+}
+function exportScanFile(format){const data=savedSignals();if(!data.length){scanMsg('Não existem sinais salvos para exportar.');return}
+ let content,mime,name;if(format==='json'){content=JSON.stringify(data,null,2);mime='application/json';name='EGI_Setup123_sinais.json'}else{
+ const keys=['formation','asset','market','tf','direction','context','alignment','trigger','stop','status','lastPrice','lastSeen'];
+ const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';content=[keys.join(';'),...data.map(x=>keys.map(k=>esc(x[k])).join(';'))].join('\n');mime='text/csv';name='EGI_Setup123_sinais.csv';}
+ const u=URL.createObjectURL(new Blob([content],{type:mime+';charset=utf-8'})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);
+}
+$('downloadSignalsCsv').onclick=()=>exportScanFile('csv');$('downloadSignalsJson').onclick=()=>exportScanFile('json');
+$('clearSignals').onclick=()=>{if(confirm('Apagar sinais desta biblioteca local? Exporte primeiro se desejar guardar.')){egiStore.removeItem(SETUP123_LOG);renderSignals()}};
+async function scanCycle(){
+ if(scanRunning)return;const list=currentSetupList(),limit=Math.max(1,Math.min(120,Number($('scanLimit').value)||20)),selected=list.slice(0,limit);
+ if(!selected.length){scanMsg('Importe a lista de moedas do SetupDT antes de iniciar a varredura.');scanLoop=false;return}
+ if($('market').value==='csv'){scanMsg('Escolha Binance/MEXC/Bybit Spot para varrer. CSV é manual.');scanLoop=false;return}
+ scanRunning=true;scanCancel=false;let ok=0,fail=0,added=0;const errors=[];
+ const initial=$('symbol').value; const market=$('market').value; const tf=$('tf').value;
+ for(let i=0;i<selected.length;i++){
+  if(scanCancel)break;
+  const originalSym=selected[i],sym=normalizeSpotPair(originalSym);$('symbol').value=sym;
+  scanMsg('Varredura '+(i+1)+'/'+selected.length+': '+originalSym+' → '+sym+' | '+ok+' OK; '+fail+' erros; '+added+' novos sinais.');
+  try{await collect();analyze();added+=storeScanSignals(sym,tf,market);ok++}catch(e){fail++;errors.push(sym+': '+String(e.message).slice(0,100))}
+  if(i<selected.length-1)await new Promise(resolve=>setTimeout(resolve,350));
+ }
+ // Permanece no último ativo analisado; a tela indica qual foi.
+ scanRunning=false;scanMsg('Ciclo encerrado: '+ok+'/'+selected.length+' ativos analisados; '+added+' sinais novos; '+fail+' falhas. Último ativo exibido: '+$('symbol').value+'. '+(errors.length?'Erros: '+errors.slice(0,6).join(' | '):'')+(scanLoop?' Próximo ciclo agendado enquanto esta página estiver aberta.':''));
+ try{egiStore.setItem('egi123_last_scan_v128',JSON.stringify({at:new Date().toISOString(),text:$('scanStatus').textContent,ok,fail,added,assets:selected.length}))}catch(_){}
+ refreshSummary128();
+ if(scanLoop&&!scanCancel){const min=Math.max(5,Math.min(1440,Number($('scanMinutes').value)||15));scanTimer=setTimeout(()=>scanCycle(),min*60000)}
+}
+$('runScan').onclick=()=>{scanLoop=false;clearTimeout(scanTimer);scanCycle()};
+$('autoScan').onclick=()=>{if(scanRunning){scanMsg('Varredura atual em andamento; ligue o loop após terminar.');return}scanLoop=true;scanMsg('Loop habilitado (somente com página aberta).');scanCycle()};
+$('stopScan').onclick=()=>{scanCancel=true;scanLoop=false;clearTimeout(scanTimer);scanMsg('Interrupção solicitada. A consulta atual poderá terminar antes de parar.')};
+renderSignals();
+
+
+function summaryText128(){
+ const data=savedSignals(),limit=Number($('whipMin').value)||2,windowCandles=Number($('whipWindow').value)||6;
+ const d=egiWhipEvents(data,windowCandles,limit),now=new Date();
+ const statuses={};for(const x of data)statuses[x.status||'INDEFINIDO']=(statuses[x.status||'INDEFINIDO']||0)+1;
+ const pending=data.filter(x=>x.status==='PENDENTE'&&Number.isFinite(Number(x.trigger))&&Number.isFinite(Number(x.lastPrice))&&Number(x.lastPrice)>0).map(x=>({...x,dist:100*Math.abs(Number(x.trigger)-Number(x.lastPrice))/Number(x.lastPrice),turns:d.get(x.key)?.turns||0}));
+ pending.sort((a,b)=>a.dist-b.dist);
+ const score=x=>(x.alignment==='ALINHADO'?0:x.alignment==='TRANSIÇÃO'?1:2)+(x.turns>=limit?2:0);
+ const preferred=[...pending].sort((a,b)=>score(a)-score(b)||a.dist-b.dist).slice(0,10);
+ const alertCoins=[...new Set(data.filter(x=>d.get(x.key)?.alert).map(x=>x.asset))].slice(0,25);
+ let scan=null;try{scan=JSON.parse(egiStore.getItem('egi123_last_scan_v128')||'null')}catch(_){}
+ const line=x=>x.asset+' '+x.tf+' '+x.direction+' | '+x.alignment+' | distância '+x.dist.toFixed(3)+'% | inversões '+x.turns+' | formou '+x.formation+' | observado '+x.lastSeen;
+ const out=[
+ 'RESUMO DO PROFESSOR — SETUP 1-2-3 EGI V1.2.9 — ESTUDO, NÃO ORDEM',
+ 'Gerado: '+now.toLocaleString('pt-BR')+' | Biblioteca local: '+data.length+' sinais (não são trades)',
+ 'Situações: '+Object.entries(statuses).map(([k,v])=>k+' '+v).join(' | '),
+ 'Pendentes: '+pending.length+' | Moedas com inversões na janela: '+alertCoins.length,
+ '', '=== DESTAQUES PARA INVESTIGAÇÃO (prioridade heurística, não compra/venda) ===',
+ ...(preferred.length?preferred.map((x,i)=>(i+1)+'. '+line(x)):['Nenhum sinal pendente com preço e gatilho válidos.']),
+ '', '=== PENDENTES MAIS PRÓXIMOS DO GATILHO ===',
+ ...(pending.length?pending.slice(0,10).map((x,i)=>(i+1)+'. '+line(x)):['Nenhum pendente válido.']),
+ '', '=== POSSÍVEL ARAME FARPADO ===',alertCoins.join(', ')||'Sem alerta pela configuração atual.',
+ '', '=== ÚLTIMA VARREDURA CONCLUÍDA ===',scan?(scan.at+' | '+scan.text):'Sem varredura concluída preservada nesta versão; a biblioteca pode ter sido criada antes.',
+ '', '=== RESSALVAS ===',
+ 'Dados de ativos diferentes podem ter horários diferentes. As distâncias são calculadas sobre o último preço SALVO para cada sinal, não cotação atual.',
+ 'ROMPEU não significa acerto, entrada executada nem lucro. Eventos sobrepostos não são trades independentes. Conferir candle posterior fechado, volume e contexto 1h/4h.',
+ 'Não forçar entrada e não ocultar padrões contrários. Informações insuficientes: AGUARDAR.'
+ ];return out.join('\n');
+}
+function refreshSummary128(){const t=summaryText128();$('summaryOutput128').textContent=t;return t;}
+$('summaryRefresh128').onclick=refreshSummary128;
+$('summaryCopy128').onclick=async()=>{const t=refreshSummary128();try{await navigator.clipboard.writeText(t);$('bundleState').textContent='✅ Resumo do Professor copiado. Cole no ChatGPT.'}catch(_){$('bundleOutput').value=t;$('bundleOutput').focus();$('bundleOutput').select();$('bundleState').textContent='Cópia bloqueada: texto selecionado, pressione Ctrl+C.'}};
+const oldRenderSignals128=renderSignals;
+renderSignals=function(){oldRenderSignals128();refreshSummary128()};
+refreshSummary128();
+// Central RelGPT: agregador local, preserva todos os módulos e não transmite dados.
+function bundleRelGPT123(){
+ const str=id=>{const el=$(id);return el?String(el.textContent||'').trim():''};
+ const data=savedSignals();
+ const max=Math.max(10,Math.min(4000,Number($('bundleLimit').value)||300));
+ const subset=data.slice(-max).reverse();
+ const diag=egiWhipEvents(data,Math.max(2,Math.min(30,Number($('whipWindow').value)||6)),Math.max(1,Math.min(10,Number($('whipMin').value)||2)));
+ const out=[
+  'RELATÓRIO INTEGRADO — PROFESSOR CONTEXTO + SETUP 1-2-3 EGI V1.2.9',
+  'Gerado no navegador em: '+new Date().toLocaleString('pt-BR'),
+  'Modo: estudo, não ordem. Sinais não são operações executadas. Nenhum resultado futuro garantido.',
+  'OBSERVAÇÃO: os horários de ativos diferentes podem não coincidir; histórico local pode estar incompleto.',
+  '', '=== 1. RESUMO EXECUTIVO ===',summaryText128(),
+  '', '=== 2. PARECER DO ATIVO EXIBIDO ===',(str('report').split('=== RADAR DO PRÓXIMO GATILHO ===')[0].trim()||'Sem parecer atual.'),
+  '', '=== 3. RADAR DO PRÓXIMO GATILHO ===',str('next123')||'Sem radar atualizado.',
+  '', '=== 4. AUDITORIA EXPLORATÓRIA ===',str('audit123')||'Sem auditoria.',
+  '', '=== 5. DETECTOR DE ALTERNÂNCIA ===',str('whipOutput')||'Sem cálculo de alternância.',
+  '', '=== 6. ESTADO DA VARREDURA NA TELA ===',str('scanStatus')||'Sem varredura.',
+  '', '=== 7. BIBLIOTECA DE SINAIS ===',
+  'Sinais salvos no navegador: '+data.length+' | incluídos neste texto: '+subset.length+' mais recentes.',
+  ...(subset.length?subset.map((x,i)=>[
+    i+1+'. '+(x.asset||'?')+' '+(x.tf||'?')+' '+(x.direction||'?'),
+    'Formado: '+(x.formation||'?')+' | mercado: '+(x.market||'?')+' | contexto: '+(x.context||'?')+' | alinhamento: '+(x.alignment||'?'),
+    'Gatilho: '+(x.trigger??'?')+' | stop estrutural hipotético: '+(x.stop??'?'),
+    'Estado: '+(x.status||'sem avaliação')+' | última observação: '+(x.lastSeen||'?')+' | preço da última observação: '+(x.lastPrice??'?'),
+    'Alternâncias na janela: '+(diag.get(x.key)?.turns??0)
+   ].join('\n')):['Nenhum sinal armazenado ainda.']),
+  '', '=== PEDIDO AO CHATGPT ===',
+  'Analise os relatórios, agrupe sinais por ativo e timeframe, destaque mudanças de contexto, gatilhos pendentes, sinais opostos, episódios de arame farpado e dados desatualizados.',
+  'Não trate padrões observacionais como ordens nem invente P&L. Informe o que falta para validar confirmação por candle fechado, volume e risco.'
+ ];
+ return out.join('\n');
+}
+function bundleBuild(){const t=bundleRelGPT123();$('bundleOutput').value=t;$('bundleState').textContent='Relatório preparado: '+savedSignals().length+' sinais locais; '+t.length+' caracteres; gerado às '+new Date().toLocaleTimeString('pt-BR')+'.';return t}
+$('bundlePreview').onclick=bundleBuild;
+$('bundleCopy').onclick=async()=>{
+ const t=bundleBuild();try{await navigator.clipboard.writeText(t);$('bundleState').textContent='✅ TODOS os relatórios copiados ('+t.length+' caracteres). Abra o ChatGPT e pressione Ctrl+V / Colar.'}
+ catch(e){const a=$('bundleOutput');a.focus();a.select();try{if(document.execCommand('copy')){$('bundleState').textContent='✅ Copiado por método alternativo. Cole no ChatGPT.';return}}catch(_){}$('bundleState').textContent='⚠ O navegador impediu cópia automática. O texto está selecionado: pressione Ctrl+C e cole no ChatGPT.'}
+};
+$('bundleTxt').onclick=()=>{const t=bundleBuild(),url=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='RelGPT_Setup123_EGI_Todos_'+new Date().toISOString().slice(0,10)+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)};
+
+
+function egiReplay129(pattern,life){
+ const start=pattern.i,dir=pattern.dir,trig=pattern.trigger,stop=pattern.stop;
+ const risk=Math.abs(trig-stop);
+ if(!Number.isFinite(risk)||risk<=0)return {phase:'SEM RISCO VÁLIDO',resultR:null};
+ const target=dir==='LONG'?trig+risk:trig-risk;
+ const last=Math.min(bars.length-1,start+life);
+ let confirmedAt=-1,confirmedClose=null;
+ for(let j=start+1;j<=last;j++){
+  const c=bars[j].c;
+  if(dir==='LONG'?c<=stop:c>=stop)return {phase:'INVALIDOU ANTES DO GATILHO',resultR:null,endUtc:new Date(bars[j].t+tfMs[$('tf').value]).toISOString()};
+  if(dir==='LONG'?c>trig:c<trig){confirmedAt=j;confirmedClose=c;break}
+ }
+ if(confirmedAt<0)return {phase:(bars.length-1-start>life?'EXPIROU SEM GATILHO':'PENDENTE'),resultR:null};
+ // Entrada observacional no fechamento de confirmação; 1R a partir de entrada efetiva hipotética, mantendo stop estrutural.
+ const actualRisk=Math.abs(confirmedClose-stop);
+ const actualTarget=dir==='LONG'?confirmedClose+actualRisk:confirmedClose-actualRisk;
+ for(let j=confirmedAt+1;j<bars.length;j++){
+  const c=bars[j];const hitStop=dir==='LONG'?c.l<=stop:c.h>=stop;
+  const hitTarget=dir==='LONG'?c.h>=actualTarget:c.l<=actualTarget;
+  if(hitStop&&hitTarget)return {phase:'AMBÍGUO (ALVO E STOP NO MESMO CANDLE)',resultR:null,confirmedUtc:new Date(bars[confirmedAt].t+tfMs[$('tf').value]).toISOString(),endUtc:new Date(c.t+tfMs[$('tf').value]).toISOString()};
+  if(hitStop||hitTarget)return {phase:hitStop?'STOP HIPOTÉTICO':'ALVO 1R HIPOTÉTICO',resultR:hitStop?-1:1,confirmedUtc:new Date(bars[confirmedAt].t+tfMs[$('tf').value]).toISOString(),endUtc:new Date(c.t+tfMs[$('tf').value]).toISOString()};
+ }
+ return {phase:'ROMPEU; RESULTADO EM ABERTO',resultR:null,confirmedUtc:new Date(bars[confirmedAt].t+tfMs[$('tf').value]).toISOString()};
+}
+function egiEpisodes129(data){
+ const diag=egiWhipEvents(data,Math.max(2,Number($('whipWindow').value)||6),Math.max(1,Number($('whipMin').value)||2));
+ const groups=new Map();
+ for(const x of data){if(!x.formation||!diag.get(x.key)?.alert)continue;
+ const k=[x.asset,x.market,x.tf].join('|');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)}
+ const episodes=[];
+ for(const [k,g] of groups){g.sort((a,b)=>Date.parse(a.formation)-Date.parse(b.formation));let ep=null;
+ for(const x of g){const t=Date.parse(x.formation),span=(tfMs[x.tf]||900000)*Math.max(2,Number($('whipWindow').value)||6);
+ if(!ep||t-ep.last>span){ep={asset:x.asset,tf:x.tf,start:x.formation,end:x.formation,last:t,count:0,maxTurns:0,open:true};episodes.push(ep)}
+ ep.count++;ep.end=x.formation;ep.last=t;ep.maxTurns=Math.max(ep.maxTurns,diag.get(x.key).turns);
+ } }
+ return episodes;
+}
+function egiEvolutionText129(){
+ const data=savedSignals(),ep=egiEpisodes129(data),phases=new Map();let audited=0,possibleFuture=0,results=[];
+ for(const x of data){const y=x.evolution;
+ if(y){audited++;phases.set(y.phase,(phases.get(y.phase)||0)+1);if(y.resultR!==null&&Number.isFinite(y.resultR))results.push(y.resultR)}
+ const close=x.candleCloseUtc||x.formation;if(Date.parse(close)>Date.now()+60000)possibleFuture++;
+ }
+ const recent=ep.slice(-10).reverse().map(x=>x.asset+' '+x.tf+' · '+x.start+' → '+x.end+' · '+x.count+' avisos agrupados, '+x.maxTurns+' trocas');
+ const lines=['PROFESSOR DE EVOLUÇÃO EGI V1.2.9 — ESTUDO, NÃO ORDEM',
+ 'Sinais totais: '+data.length+' | replay com candles: '+audited+' | resultado hipotético definido: '+results.length,
+ 'Avisos com fechamento no futuro (verificar relógio/fuso): '+possibleFuture,
+ 'REGRA DE TEMPO: candleOpenUtc é abertura em UTC; candleCloseUtc é abertura + duração do timeframe; somente barras fechadas entram na coleta.',
+ 'FASES: '+([...phases].map(([k,v])=>k+' '+v).join(' | ')||'sem replay; realize nova varredura'),
+ 'EPISÓDIOS DE ARAME FARPADO AGRUPADOS: '+ep.length,
+ ...(recent.length?recent:['Nenhum episódio acima do limiar configurado.']),
+ 'AUDITORIA: sinais sobrepostos, não independentes. Resultado 1R hipotético ignora custos, slippage e spread. Se alvo e stop ocorrerem no mesmo candle, resultado fica AMBÍGUO.',
+ 'Histórico anterior preservado sem inventar replay retroativo; varra novamente os ativos para calcular a evolução dos sinais reconhecidos.'];
+ return lines.join('\n');
+}
+function egiRefresh129(){$('evoOutput129').textContent=egiEvolutionText129()}
+$('evoRefresh129').onclick=egiRefresh129;
+$('evoCopy129').onclick=async()=>{egiRefresh129();try{await navigator.clipboard.writeText($('evoOutput129').textContent);setStatus('Parecer de evolução copiado.','good')}catch(e){setStatus('Copie o parecer de evolução manualmente.','warn')}};
+$('evoCsv129').onclick=()=>{const rows=savedSignals(),cols=['key','asset','tf','direction','candleOpenUtc','candleCloseUtc','formation','status','phase','resultR','confirmedUtc','endUtc'];let arr=[cols.join(';')];for(const x of rows){let vals=[x.key,x.asset,x.tf,x.direction,x.candleOpenUtc||'',x.candleCloseUtc||x.formation,x.formation,x.status,x.evolution?.phase||'',x.evolution?.resultR??'',x.evolution?.confirmedUtc||'',x.evolution?.endUtc||''];arr.push(vals.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(';'))}const a=document.createElement('a'),u=URL.createObjectURL(new Blob([arr.join('\n')],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='EGI_123_evolucao_v129.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),3000)};
+const egiOldRender129=renderSignals;
+renderSignals=function(){egiOldRender129();egiRefresh129()};
+const oldBundle129=bundleRelGPT123;
+bundleRelGPT123=function(){return oldBundle129()+'\n\n=== PROFESSOR DE EVOLUÇÃO V1.2.9 ===\n'+egiEvolutionText129()};
+egiRefresh129();
+</script></body></html>
