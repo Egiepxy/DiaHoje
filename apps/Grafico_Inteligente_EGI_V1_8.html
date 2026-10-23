@@ -20,7 +20,7 @@
 <label>Janela do padrão<select id="window"><option value="20">20 candles</option><option value="30" selected>30 candles</option><option value="50">50 candles</option><option value="60">60 candles</option></select></label>
 <label>Resultado após<select id="horizon"><option value="5">5 candles</option><option value="10" selected>10 candles</option><option value="20">20 candles</option></select></label>
 <label>Servidor histórico MEXC (opcional)<input id="apiServer" placeholder="https://seu-servidor.onrender.com" style="min-width:220px" title="Vazio = tentar rota /api/kline no mesmo domínio e depois API direta"></label>
-<label>Mercado<select id="exchange"><option value="binance" selected>Binance Spot</option><option value="mexc">MEXC Spot</option><option value="mexc_futures">MEXC Futuros (UKOIL)</option><option value="bybit_spot">Bybit Spot</option><option value="bybit_linear">Bybit Futuros USDT</option></select></label>
+<label>Mercado<select id="exchange"><option value="auto" selected>Automático (verificar fontes)</option><option value="binance">Binance Spot</option><option value="mexc">MEXC Spot</option><option value="mexc_futures">MEXC Futuros (UKOIL)</option><option value="bybit_spot">Bybit Spot</option><option value="bybit_linear">Bybit Futuros USDT</option></select></label>
 <button class="primary" id="load">↻ Coletar candles</button><button id="analyze">⌕ Buscar padrões</button><button id="plan">✧ Gerar plano</button><button class="primary" id="analyzeAll">✦ Analisar tudo e montar plano</button>
 </div><div id="analysisDesc" class="analysis-desc">Similaridade histórica: compara janelas, sem transformar ocorrências em sinal confirmado.</div><p id="status" class="muted" aria-live="polite">Selecione uma moeda e clique em “Coletar candles”.</p><div class="hint">Estudo, não recomendação de operação. Mercados sugeridos não garantem listagem dos instrumentos. Percentuais são frequências passadas, não probabilidades garantidas. Nenhuma ordem é enviada.</div></section>
 <details class="panel" open><summary>📐 Indicadores e padrões gráficos — escolha o que mostrar</summary>
@@ -123,24 +123,39 @@ function recommendedMarket(symbol){
   if(['SPCX','SPCS','MU','SNDK','XTIUSD'].includes(symbol))return 'bybit_linear';
   return null;
 }
-function chooseMarketForSymbol(){
- const symbol=$('symbol').value,preferred=recommendedMarket(symbol),current=$('exchange').value;
- if(preferred && ['binance','mexc'].includes(current)){
-   $('exchange').value=preferred;
-   $('exchange').dispatchEvent(new Event('change'));
-   status(`${symbol}: mercado alterado para ${exchangeName[preferred]} como primeira tentativa. A cotação depende da existência do contrato com ESSE código.`, 'warn');
+function chooseMarketForSymbol(){return $('exchange').value;}
+function candidateMarkets(symbol){
+ const preferred=recommendedMarket(symbol);
+ if(preferred==='mexc_futures')return ['mexc_futures'];
+ if(preferred==='bybit_linear')return ['bybit_linear'];
+ return ['binance','mexc','mexc_futures','bybit_spot','bybit_linear'];
+}
+async function automaticCandles(symbol,tf,limit=1000){
+ const selected=$('exchange').value,markets=selected==='auto'?candidateMarkets(symbol):[selected],errors=[];
+ for(const ex of markets){
+  try{
+   const raw=await marketCandles(symbol,tf,ex,limit);
+   const candles=barsClean(raw,step());
+   if(candles.length<30)throw Error('Candles fechados insuficientes');
+   return {raw,ex};
+  }catch(e){errors.push(exchangeName[ex]+': '+e.message);}
  }
+ throw Error('Nenhuma fonte validada para '+symbol+'. '+errors.join(' | '));
 }
 async function load(){
- const btn=$('load');btn.disabled=true;status('Verificando instrumento e consultando candles fechados...');
- try{chooseMarketForSymbol();const symbol=$('symbol').value,tf=$('tf').value,ex=$('exchange').value;
- const parsed=await marketCandles(symbol,tf,ex);reset(parsed,`${exchangeName[ex]} · ${marketSymbol(symbol,ex)} · API pública`);
- store(`egi_bars_${ex}_${symbol}_${tf}`,parsed);
- }catch(e){const msg=e.name==='TypeError'||/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'Conexão bloqueada ou indisponível no navegador (possível CORS/rede). O símbolo pode existir na corretora. Teste via servidor ou importe CSV.':e.name==='AbortError'?'API excedeu o tempo de resposta. Tente novamente.':e.message;status(`Não foi possível coletar ${$('symbol').value} em ${exchangeName[$('exchange').value]}: ${msg} Nenhum preço foi inventado.`, 'warn')}finally{btn.disabled=false}
+ const btn=$('load');btn.disabled=true;status('Procurando fonte válida e candles fechados...');
+ try{
+  const symbol=$('symbol').value,tf=$('tf').value;
+  const {raw,ex}=await automaticCandles(symbol,tf);
+  reset(raw,`${exchangeName[ex]} · ${marketSymbol(symbol,ex)} · fonte confirmada`);
+  store(`egi_bars_${ex}_${symbol}_${tf}`,raw);
+ }catch(e){
+  status('Não foi possível coletar '+$('symbol').value+': '+e.message+' Nenhum preço foi inventado.','warn');
+ }finally{btn.disabled=false;}
 }
 function symbolsAll(){return [...$('symbol').options].map(o=>o.value)}
 function refreshSide(){if(!$('sideList'))return;const filter=$('sideFilter').value,needle=$('sideSearch').value.trim().toUpperCase(),rows=sideState.rows;let data=symbolsAll().filter(sym=>sym.includes(needle)).map(sym=>rows.find(r=>r.symbol===sym)||{symbol:sym,pending:true});if(filter!=='all')data=data.filter(r=>!r.pending&&!r.error&&({bull:r.ema9>r.ema21,bear:r.ema9<r.ema21,oversold:r.rsi<35,overbought:r.rsi>65,rise:r.change>0,fall:r.change<0,volume:r.volrel>1.2})[filter]);data.sort((a,b)=>((b.pending?0:1)-(a.pending?0:1))||(b.change??-Infinity)-(a.change??-Infinity));$('sideList').replaceChildren();for(const r of data){let b=document.createElement('button');b.className='coin'+($('symbol').value===r.symbol?' active':'');const left=document.createElement('span'),right=document.createElement('span');left.textContent=r.symbol;right.style.textAlign='right';if(r.error)right.textContent='Sem dados';else if(r.pending)right.textContent='Sem leitura';else{right.textContent=`${r.change>=0?'+':''}${fmt(r.change*100,2)}%`;right.className=r.change>=0?'good':'bad';const detail=document.createElement('small');detail.textContent=`RSI ${fmt(r.rsi,0)} · Vol ${fmt(r.volrel,1)}×`;right.appendChild(detail)}b.append(left,right);b.title=r.error||('Fonte: '+(r.source||'aguardando')+' · selecionar e coletar gráfico');b.onclick=()=>{$('symbol').value=r.symbol;$('symbol').dispatchEvent(new Event('change'));chooseMarketForSymbol();refreshSide();load()};$('sideList').appendChild(b)}if(!data.length)$('sideList').textContent='Nenhuma moeda atende ao critério nesta amostra.'}
-async function scanSide(){if(sideState.scanning)return;sideState.scanning=true;$('sideScan').disabled=true;const syms=symbolsAll(),tf=$('tf').value,ex=$('exchange').value,interval=step();sideState.rows=[];refreshSide();let ok=0,fail=0;for(let i=0;i<syms.length;i++){const sym=syms[i];$('sideStatus').textContent=`Varredura: ${i+1}/${syms.length} · ${ok} avaliadas · ${fail} falhas`;try{const selectedEx=recommendedMarket(sym)||ex;const raw=await marketCandles(sym,tf,selectedEx,90);const d=barsClean(raw,interval);if(d.length<30)throw Error('Poucos candles fechados');const a=d.map(x=>x.c),v=d.map(x=>x.v),volavg=v.slice(-21,-1).reduce((x,y)=>x+y,0)/20||1;sideState.rows.push({symbol:sym,source:exchangeName[selectedEx],rsi:rsi(a),ema9:ema(a.slice(-50),9),ema21:ema(a.slice(-50),21),change:a.at(-1)/a.at(-6)-1,volrel:v.at(-1)/volavg});ok++}catch(e){sideState.rows.push({symbol:sym,error:e.message});fail++}refreshSide()}$('sideStatus').textContent=`Varredura: ${ok}/${syms.length} ativos · ${fail} indisponíveis · ${tf} · ${exchangeName[ex]}`;sideState.scanning=false;$('sideScan').disabled=false}
+async function scanSide(){if(sideState.scanning)return;sideState.scanning=true;$('sideScan').disabled=true;const syms=symbolsAll(),tf=$('tf').value,ex=$('exchange').value,interval=step();sideState.rows=[];refreshSide();let ok=0,fail=0;for(let i=0;i<syms.length;i++){const sym=syms[i];$('sideStatus').textContent=`Varredura: ${i+1}/${syms.length} · ${ok} avaliadas · ${fail} falhas`;try{const result=await automaticCandles(sym,tf,90);const selectedEx=result.ex,raw=result.raw;const d=barsClean(raw,interval);if(d.length<30)throw Error('Poucos candles fechados');const a=d.map(x=>x.c),v=d.map(x=>x.v),volavg=v.slice(-21,-1).reduce((x,y)=>x+y,0)/20||1;sideState.rows.push({symbol:sym,source:exchangeName[selectedEx],rsi:rsi(a),ema9:ema(a.slice(-50),9),ema21:ema(a.slice(-50),21),change:a.at(-1)/a.at(-6)-1,volrel:v.at(-1)/volavg});ok++}catch(e){sideState.rows.push({symbol:sym,error:e.message});fail++}refreshSide()}$('sideStatus').textContent=`Varredura: ${ok}/${syms.length} ativos · ${fail} indisponíveis · ${tf} · fontes verificadas por ativo`;sideState.scanning=false;$('sideScan').disabled=false}
 function chosenBias(defaultBias,d,r,e9,e21){const mode=$('analysisMode').value,returns=d.at(-1).c/d.at(-6).c-1,h=state.matches,share=h.length?h.filter(x=>x.ret>0).length/h.length:null,base=e9>e21&&r>50?'LONG em observação':e9<e21&&r<50?'SHORT em observação':'AGUARDAR — indicadores divergentes';if(mode==='historical')return base;if(mode==='trend')return e9>e21&&r>=50&&returns>0?'LONG em observação':e9<e21&&r<=50&&returns<0?'SHORT em observação':'AGUARDAR — continuidade não alinhada';if(mode==='reversal')return e9<e21&&r>50&&returns>0?'LONG reversão em observação':e9>e21&&r<50&&returns<0?'SHORT reversão em observação':'AGUARDAR — reversão sem evidência';if(share===null||h.length<8)return 'AGUARDAR — pouca memória histórica';if(share>=.6&&e9>e21&&r>50)return 'LONG em observação';if(share<=.4&&e9<e21&&r<50)return 'SHORT em observação';return 'AGUARDAR — divergência entre histórico e indicadores'}
 function feature(data,s,e){const closes=data.slice(s,e+1).map(x=>x.c),bars=data.slice(s,e+1);let raw=[];for(let i=1;i<closes.length;i++)raw.push(Math.log(closes[i]/closes[i-1]));let scale=Math.sqrt(raw.reduce((a,b)=>a+b*b,0)/Math.max(raw.length,1))||.000001;const shape=raw.map(x=>Math.max(-4,Math.min(4,x/scale)));const v=bars.map(x=>x.v),av=v.reduce((a,b)=>a+b,0)/v.length||1;const vol=v.map(x=>Math.min(5,x/av));const rr=rsi(data.slice(Math.max(0,s-40),e+1).map(x=>x.c));return {shape,vol,rr:Number.isFinite(rr)?rr:50,scale}}
 function distance(a,b){let x=0;for(let i=0;i<a.shape.length;i++)x+=(a.shape[i]-b.shape[i])**2;x/=a.shape.length;let v=0;for(let i=0;i<a.vol.length;i++)v+=(a.vol[i]-b.vol[i])**2;v/=a.vol.length;let rs=((a.rr-b.rr)/50)**2;return Math.sqrt(x*.78+v*.12+rs*.10)}
