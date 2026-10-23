@@ -1,0 +1,11 @@
+{
+  "name": "diahoje-setupegi-mexc",
+  "version": "54.3.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
