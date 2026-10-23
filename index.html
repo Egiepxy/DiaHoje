@@ -1051,18 +1051,7 @@ loadHistory();
 <!-- Atalhos fixos: preservam o Motor Central e funcionam no celular -->
 <nav class="egi-quick-launch" aria-label="Abrir aplicativos EGI">
   <a href="./apps/SetupEgiP_V54_OIL_Arrancada_Exaustao_Reversao.html" target="_blank" rel="noopener noreferrer" title="Abrir SetupEgiP V54 em outra aba">📊 SetupEgiP V54 ↗</a>
-  <button type="button" onclick="egiOpenGrafico()" title="Abrir Gráfico Inteligente EGI">📈 Gráfico Inteligente ↗</button>
+  <a href="./apps/Grafico_Inteligente_EGI_V1_8.html" target="_blank" rel="noopener noreferrer" title="Abrir Gráfico Inteligente EGI V1.8">📈 Gráfico Inteligente ↗</a>
 </nav>
-<div id="egiGraphLinkStatus" hidden role="status" style="position:fixed;right:12px;bottom:110px;z-index:9999;max-width:310px;padding:10px;background:#2b2530;color:white;border:1px solid #f7c948;border-radius:9px;font-size:12px"></div>
-<script>
-function egiOpenGrafico(){
-  // Não pedir URL ao usuário: somente abre um endereço HTTPS já salvo.
-  let url='';
-  try{url=localStorage.getItem('egi_grafico_inteligente_url')||'';}catch(e){}
-  if(/^https:\/\//i.test(url)){window.open(url,'_blank','noopener,noreferrer');return;}
-  const msg=document.getElementById('egiGraphLinkStatus');
-  if(msg){msg.hidden=false;msg.textContent='Gráfico Inteligente: arquivo/endereço ainda não localizado no DiaHoje. Nenhum link foi inventado.';}
-}
-</script>
 </body>
 </html>
