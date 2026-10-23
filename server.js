@@ -41,6 +41,7 @@ http.createServer(async(req,res)=>{
     if(selected.length<210)throw Error('Histórico insuficiente ('+selected.length+' candles fechados)');
     const clean={};
     keys.forEach(k=>clean[k]=selected.map(i=>Number(data[k][i])));
+    clean.open=selected.map(i=>Array.isArray(data.open)&&Number.isFinite(Number(data.open[i]))?Number(data.open[i]):Number(data.close[Math.max(0,i-1)]));
     send(res,200,{success:true,data:{...clean,source:'MEXC Futures via servidor SetupEgiP',requestedSymbol:symbol,referenceSymbol:symbol}});
     return;
   }
