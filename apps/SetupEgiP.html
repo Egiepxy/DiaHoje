@@ -67,7 +67,7 @@ button:active{transform:scale(.985)}
 <div class="wrap">
 <div class="card">
   <h1>SetupEgiP V54</h1>
-  <div class="versionHero"><div class="versionLabel">VERSÃO ATUAL</div><div class="versionNumber">V54</div><div class="versionBuild">Build V54.2 • radar recolhível + diagnóstico de integração MEXC</div></div>
+  <div class="versionHero"><div class="versionLabel">VERSÃO ATUAL</div><div class="versionNumber">V54</div><div class="versionBuild">Build V54.3 • API histórica Render EGI</div></div>
   <div class="muted"><span id="headerAsset">OIL (Brent)</span> • MEXC • WebSocket ao vivo + histórico via servidor seguro</div>
 </div>
 
@@ -671,8 +671,9 @@ async function fetchWithTimeout(url,ms=10000){
    let j=await r.json();if(j.success===false)throw new Error(j.message||'erro MEXC');return j;
  }finally{clearTimeout(tm)}
 }
+const EGI_HIST_API='https://diahoje-egi-api.onrender.com';
 function proxyUrls(url){
- return [{name:'Servidor SetupEgiP V54',url}];
+ return [{name:'Render DiaHoje EGI',url:EGI_HIST_API+url}];
 }
 async function waitTickerFor(symbol,generation,ms=6500){
  const until=Date.now()+ms;
@@ -1491,7 +1492,7 @@ async function v46Get(path){
   const endpoint=path.startsWith('kline/')?'/api/kline?symbol='+encodeURIComponent(decodeURIComponent(path.slice(6).split('?')[0]))+'&interval='+encodeURIComponent(new URLSearchParams(path.split('?')[1]||'').get('interval')||'Hour4'):url;
   try{
     const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),18000);
-    let res;try{res=await fetch(endpoint,{cache:'no-store',signal:controller.signal});}
+    let res;try{res=await fetch(EGI_HIST_API+endpoint,{cache:'no-store',signal:controller.signal});}
     catch(e){throw Error(e.name==='AbortError'?'Consulta excedeu 18 segundos':e.message)}
     finally{clearTimeout(timeout)}
     if(!res.ok)throw Error('Servidor HTTP '+res.status);
