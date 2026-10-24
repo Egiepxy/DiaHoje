@@ -3,7 +3,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const PORT=Number(process.env.PORT)||3000, ROOT=path.resolve(__dirname);
 const intervals={Min5:300,Min15:900,Min60:3600,Hour4:14400,Day1:86400};
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon'};
-function send(res,status,obj){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(obj));}
+function send(res,status,obj){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':'https://egiepxy.github.io','Vary':'Origin'});res.end(JSON.stringify(obj));}
 async function mexc(endpoint){
  const c=new AbortController(),timeout=setTimeout(()=>c.abort(),14500);
  try{
