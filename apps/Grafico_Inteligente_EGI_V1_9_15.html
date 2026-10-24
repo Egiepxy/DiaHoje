@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gráfico Inteligente EGI V1.9.15 — Binance Spot + Futuros</title>
+<style>
+:root{color-scheme:dark;--bg:#0a1120;--panel:#111d31;--panel2:#182940;--stroke:#2b4059;--text:#eaf2fc;--muted:#98afca;--green:#31d5a0;--red:#ff7684;--yellow:#ffcf70;--blue:#6caaff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,Arial}header{padding:16px 20px;background:#111d31;border-bottom:1px solid var(--stroke);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}h1{font-size:19px;margin:0}h2{font-size:16px;margin:0 0 12px}h3{font-size:14px;margin:0 0 8px}p{line-height:1.5}small,.muted{color:var(--muted)}.indicator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;margin-top:12px}.indicator-grid label{font-size:12px;display:flex;align-items:center;gap:7px;background:#182940;border:1px solid #2b4059;border-radius:8px;padding:9px;cursor:pointer}.indicator-grid input{accent-color:#6caaff;cursor:pointer}main{max-width:1600px;margin:auto;padding:16px}.controls{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.controls label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}input,select,button,textarea{font:inherit;color:var(--text);background:#14243a;border:1px solid var(--stroke);border-radius:8px;padding:9px 11px}select{min-width:90px}button{cursor:pointer;font-weight:600}button:hover{background:#244366}button.primary{background:#245a93;border-color:#377fc6}button:disabled{opacity:.5;cursor:wait}.panel{background:var(--panel);border:1px solid var(--stroke);border-radius:12px;padding:15px;margin-bottom:13px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.metric{padding:10px;border-radius:9px;background:var(--panel2)}.metric strong{display:block;font-size:17px;margin-top:5px}.tag{border:1px solid var(--stroke);border-radius:100px;padding:4px 9px;color:var(--muted);font-size:12px}.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}.chartWrap{position:relative;width:100%;height:300px}canvas{display:block;width:100%;height:100%;touch-action:pan-y}.legend{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid var(--stroke);padding:9px;text-align:left}th{color:var(--muted)}.overflow{overflow:auto}textarea{width:100%;min-height:145px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12px}details>summary{cursor:pointer;font-weight:600;margin-bottom:10px}#status{min-height:23px;line-height:1.5}.hint{padding:10px 12px;border-left:3px solid var(--yellow);background:#302719;border-radius:6px;color:#f6dfb3}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.kpi{font-weight:700}.footer{font-size:12px;color:var(--muted);text-align:center;padding:14px}.patternTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}input[type=file]{max-width:240px}.lines{line-height:1.8}@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.chartWrap{height:275px}main{padding:9px}.panel{padding:11px}}
+
+.workspace{display:grid;grid-template-columns:265px minmax(0,1fr);gap:12px;max-width:1770px;margin:auto;padding:12px}.workspace main{min-width:0;padding:0}.sidebar{align-self:start;position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto}.sidebar label{display:block;margin:10px 0 5px;color:var(--muted);font-size:12px}.sidebar select,.sidebar input{width:100%}.side-list{display:flex;flex-direction:column;gap:5px;margin-top:10px}.coin{display:flex;width:100%;justify-content:space-between;text-align:left;gap:5px;font-size:12px;align-items:center;padding:8px}.coin.active{outline:1px solid var(--blue)}.coin small{display:block;font-size:10px}.side-note{font-size:11px;color:var(--muted);line-height:1.5}.mini-status{font-size:12px;color:var(--muted);margin:8px 0}.analysis-desc{font-size:12px;color:var(--muted);margin-top:6px}body.sidebar-hidden .workspace{grid-template-columns:1fr}body.sidebar-hidden .sidebar{display:none}@media(max-width:1000px){.workspace{grid-template-columns:1fr}.sidebar{position:static;max-height:none}.side-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}} 
+</style>
+</head><body>
+<header><div><h1>📈 Gráfico Inteligente EGI <span class="tag">V1.9.15 · Importação SetupDT</span></h1><small>Candles fechados · sem ordens · análise estatística exploratória</small></div><span class="tag" id="sourceBadge">Fonte: aguardando coleta</span></header>
+<div class="workspace"><aside class="sidebar panel" id="sidebar"><h2>🔎 Garimpo de moedas</h2><p class="side-note">Pesquisa somente as moedas cadastradas, usando candles fechados. Sem sinais operacionais.</p><label for="sideFilter">Critério de seleção</label><select id="sideFilter"><option value="all">Todas / ordem por força recente</option><option value="bull">MME9 acima da MME21</option><option value="bear">MME9 abaixo da MME21</option><option value="oversold">RSI abaixo de 35</option><option value="overbought">RSI acima de 65</option><option value="rise">Alta nos últimos 5 candles</option><option value="fall">Queda nos últimos 5 candles</option><option value="volume">Volume acima da média 20</option></select><label for="sideSearch">Localizar na lista</label><input id="sideSearch" placeholder="BTC, SOL, LINK..."><div class="row" style="margin-top:9px"><button id="sideScan" class="primary" style="flex:1">↻ Varredura</button><button id="sideToggle" title="Recolher lateral" type="button">◂</button></div><div id="sideStatus" class="mini-status">Clique em Varredura para avaliar a lista.</div><div id="sideList" class="side-list"></div><p class="side-note">Os filtros dependem dos dados carregados nesta varredura. Falhas de API são exibidas, não classificadas como sinal.</p></aside><main><div class="row" style="margin-bottom:8px"><button id="showSidebar" style="display:none">☰ Abrir garimpo lateral</button></div>
+<section class="panel"><div class="controls">
+<label>Moeda<select id="symbol"><option>BTCUSDT</option><option>ETHUSDT</option><option>SOLUSDT</option><option>LINKUSDT</option><option>ZECUSDT</option><option>PEPEUSDT</option></select></label>
+<label>Novo ativo (cripto / ouro / petróleo / ações)<input id="newSymbol" type="text" maxlength="24" placeholder="AVAXUSDT" autocomplete="off" spellcheck="false" style="width:165px;text-transform:uppercase"></label>
+<label>Classe<select id="assetType"><option value="crypto">Cripto</option><option value="external">Ouro / petróleo / ações</option></select></label><button id="addSymbol" type="button" title="Cadastrar moeda na lista">＋ Cadastrar</button><button id="removeSymbol" type="button" title="Excluir qualquer ativo selecionado da lista deste navegador">− Excluir</button>
+<label>Tipo de análise<select id="analysisMode"><option value="historical">Similaridade histórica</option><option value="trend">Continuidade / tendência</option><option value="reversal">Possível reversão</option><option value="confluence">Confluência prudente</option></select></label>
+<label>Timeframe<select id="tf"><option value="5m">5m</option><option value="15m" selected>15m</option><option value="1h">1h</option><option value="4h">4h</option></select></label>
+<label>Janela do padrão<select id="window"><option value="20">20 candles</option><option value="30" selected>30 candles</option><option value="50">50 candles</option><option value="60">60 candles</option></select></label>
+<label>Resultado após<select id="horizon"><option value="5">5 candles</option><option value="10" selected>10 candles</option><option value="20">20 candles</option></select></label>
+<label>Servidor histórico MEXC (opcional)<input id="apiServer" placeholder="https://seu-servidor.onrender.com" style="min-width:220px" title="Vazio = tentar rota /api/kline no mesmo domínio e depois API direta"></label>
+<label>Mercado<select id="exchange"><option value="auto" selected>Automático (verificar fontes)</option><option value="binance">Binance Spot</option><option value="binance_futures">Binance Futuros USDT-M</option><option value="mexc">MEXC Spot</option><option value="mexc_futures">MEXC Futuros (UKOIL)</option><option value="bybit_spot">Bybit Spot</option><option value="bybit_linear">Bybit Futuros USDT</option></select></label>
+<button class="primary" id="load">↻ Coletar candles</button>
+</div>
+<details class="panel" id="binanceCatalogPanel"><summary>🔎 Pesquisar todos os ativos Binance Spot / Futuros</summary>
+<div class="row" style="margin-top:10px">
+<label>Catálogo<select id="binanceCatalogMarket"><option value="binance">Binance Spot</option><option value="binance_futures">Binance Futuros USDⓈ-M</option></select></label>
+<button type="button" id="binanceCatalogLoad">↻ Carregar lista oficial</button>
+<label>Pesquisar símbolo / base / cotação<input id="binanceCatalogQuery" type="search" placeholder="Ex.: SOL, BTC, USDT, BRL" autocomplete="off"></label>
+<label>Cotação<select id="binanceCatalogQuote"><option value="">Todas</option><option value="USDT" selected>USDT</option><option value="USDC">USDC</option><option value="BTC">BTC</option><option value="ETH">ETH</option><option value="BRL">BRL</option></select></label>
+</div>
+<div class="row"><label style="flex:1;min-width:220px">Resultados oficiais (até 100 por página)<select id="binanceCatalogResults" size="7" style="min-height:150px"></select></label></div>
+<div class="row"><button type="button" id="binanceCatalogPrev">← Anterior</button><button type="button" id="binanceCatalogNext">Próxima →</button><button type="button" class="primary" id="binanceCatalogUse">＋ Selecionar ativo no gráfico</button></div>
+<p class="muted" id="binanceCatalogStatus" aria-live="polite">Clique em “Carregar lista oficial”. Mercado e listagem são verificados; nenhum instrumento é inventado.</p>
+</details>
+<div class="row"><button id="analyze">⌕ Buscar padrões</button><button id="plan">✧ Gerar plano</button><button class="primary" id="analyzeAll">✦ Analisar tudo e montar plano</button>
+</div><div id="analysisDesc" class="analysis-desc">Similaridade histórica: compara janelas, sem transformar ocorrências em sinal confirmado.</div><p id="status" class="muted" aria-live="polite">Selecione uma moeda e clique em “Coletar candles”.</p><div class="hint">Estudo, não recomendação de operação. Mercados sugeridos não garantem listagem dos instrumentos. Percentuais são frequências passadas, não probabilidades garantidas. Nenhuma ordem é enviada.</div></section>
+<details class="panel" open><summary>📐 Indicadores e padrões gráficos — escolha o que mostrar</summary>
+<div id="indicators" class="indicator-grid"></div><div class="row" style="margin:10px 0"><button type="button" id="indBasic">Perfil básico</button><button type="button" id="indTrend">Perfil tendência</button><button type="button" id="indShapes">Perfil padrões gráficos</button><button type="button" id="indAll">Mostrar todos</button><button type="button" id="indClear">Limpar indicadores</button></div>
+<div id="indicatorRead" class="muted" style="font-size:12px">Os desenhos são heurísticas geométricas para estudo. LTA, LTB e triângulos não são rompimentos confirmados.</div>
+</details><div class="panel"><strong>🕯️ Padrões de candles</strong><p class="muted" style="margin:6px 0">Pontos verdes: viés de alta · vermelhos: viés de baixa · amarelos: neutro. Identificação experimental, não confirmação de sinal.</p><div id="candlesRead" class="muted" style="font-size:12px">Ative os padrões e colete candles para ver os resultados.</div></div><section class="metrics panel" id="metrics"><div class="metric">Preço <strong id="last">—</strong></div><div class="metric">RSI 14 <strong id="rsi">—</strong></div><div class="metric">MME 9/21 <strong id="ema">—</strong></div><div class="metric">Candles fechados <strong id="count">—</strong></div><div class="metric">Padrões encontrados <strong id="found">—</strong></div></section>
+<section class="grid"><div class="panel"><div class="legend"><h2>Gráfico atual</h2><button id="zoomCurrent" title="Ampliar ou restaurar">⛶ Ampliar</button></div><div class="chartWrap"><canvas id="currentCanvas"></canvas></div><small>Últimos 85 candles fechados (230 com MME200); linhas do plano, quando disponíveis, são apenas hipóteses.</small></div><div class="panel"><div class="legend"><h2>Semelhança histórica <span id="matchLabel" class="tag">aguardando</span></h2><div class="row"><button id="prev">←</button><button id="next">→</button><button id="zoomMatch">⛶ Ampliar</button></div></div><div class="chartWrap"><canvas id="matchCanvas"></canvas></div><small>À esquerda do traço vertical: padrão similar. À direita: candles que ocorreram depois (visíveis somente porque o caso é histórico).</small></div></section>
+<section class="grid"><div class="panel"><h2>Memória histórica: resultados observados</h2><div id="summary" class="lines muted">Execute uma busca para visualizar a amostra.</div><p class="muted" style="font-size:12px">Critério: retorno do fechamento após o horizonte escolhido. Janela atual nunca usa candles futuros. Casos históricos são não sobrepostos e precisam ter resultado posterior conhecido. Taxas não incorporam custos nem execução.</p></div><div class="panel"><h2>Plano do Professor EGI</h2><div id="planOutput" class="lines muted">Após coletar candles, clique em “Gerar plano”.</div></div></section>
+<section class="panel" id="egiRiskAudit"><h2>🛡️ Auditor de Estratégias EGI — VV</h2>
+<p class="muted">A lição da live: lucro e taxa de acerto não bastam. Analise o drawdown e a dependência dos maiores trades. Cole resultados <strong>em ordem cronológica</strong>, um por linha, em % do saldo antes de cada operação (ex.: -2,91 ou 20,59). Não use os percentuais da live como se fossem operações reais.</p>
+<div class="controls"><label>Capital inicial (unidade livre)<input id="egiAuditCapital" type="number" min="0.01" step="100" value="1000"></label><label>Máximo drawdown de alerta (%)<input id="egiAuditLimit" type="number" min="1" max="99" value="20"></label><label>Maior concentração tolerada (%)<input id="egiAuditConcentration" type="number" min="1" max="100" value="50"></label></div>
+<div class="row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><label>📥 Importar arquivo do SetupDT (JSON de sinais ou CSV de operações encerradas)<input type="file" id="egiSetupImport" accept=".json,.csv,text/csv,application/json"></label><button type="button" id="egiExportImported">Exportar registros importados</button></div><pre id="egiSetupImportStatus" class="muted" style="white-space:pre-wrap">Aguardando arquivo. Sinais importados não são lucros nem operações executadas.</pre>
+<div class="row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><button type="button" id="egiLoadSaved">Carregar registros EGI</button><label>Registro salvo<select id="egiSavedPick"><option value="">Carregue os registros</option></select></label><label>Resultado realizado (%)<input type="number" id="egiSavedReturn" step="0.01" placeholder="Ex.: -1,25"></label><button type="button" id="egiRecordReturn">Registrar resultado</button><button type="button" id="egiPullOutcomes">Usar resultados registrados</button></div><p class="muted" id="egiSavedStatus">Consultas salvas não são operações. Registre resultados efetivamente realizados, ou importe um histórico real. Não calcularemos P&L de sinais sem resultado.</p>
+<textarea id="egiAuditTrades" rows="6" style="width:100%" placeholder="Cole retornos realizados em %, por ordem cronológica; um por linha. Exemplo:&#10;-1.0&#10;2.5&#10;-0.8"></textarea>
+<div class="row" style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" id="egiAuditBtn">Calcular auditoria</button><button type="button" id="egiAuditCopy">Copiar parecer</button><button type="button" id="egiAuditReset">Limpar</button></div>
+<pre id="egiAuditOutput" class="muted" style="white-space:pre-wrap;word-break:break-word">Nenhum resultado analisado. Informe operações reais ou de backtest separadamente.</pre>
+<p class="muted">Cálculo sobre retornos por trade, sem taxas adicionais e sem depósitos/saques. Ganhos concentrados são avaliados pela contribuição bruta dos maiores trades vencedores; isso não substitui o teste de remover trades da curva. Não estima o comportamento futuro.</p></section>
+<section class="panel" id="egiVisual"><h2>🖼️ Analista Visual EGI — Dois Prints (VV)</h2>
+<p class="muted">Anexe dois prints: um de tendência maior e outro da entrada. Esta versão apenas organiza as imagens para revisão e produz um roteiro de análise; <strong>não executa IA visual no navegador</strong>.</p>
+<div class="controls"><label>Print 1 · Contexto (1h/4h)<input id="egiImgBig" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Print 2 · Movimento (5m/15m)<input id="egiImgSmall" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<label>Observação / hipótese<input id="egiVisualNote" type="text" maxlength="500" placeholder="Ex.: possível pullback, quero validar o SHORT"></label></div>
+<div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">
+<div><div class="muted">Contexto maior</div><img id="egiPreviewBig" alt="Prévia do gráfico maior" style="display:none;max-width:100%;max-height:240px;object-fit:contain"></div>
+<div><div class="muted">Entrada / gatilho</div><img id="egiPreviewSmall" alt="Prévia do gráfico curto" style="display:none;max-width:100%;max-height:240px;object-fit:contain"></div></div>
+<div class="row" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><button type="button" id="egiVisualPrepare">Preparar parecer para ChatGPT</button><button type="button" id="egiVisualCopy">Copiar roteiro</button><button type="button" id="egiVisualClear">Limpar prints</button></div>
+<pre id="egiVisualOutput" style="white-space:pre-wrap;word-break:break-word" class="muted">Inclua dois prints e clique em Preparar parecer.</pre>
+<p class="muted">Para interpretação visual real: copie o roteiro e anexe os dois prints na conversa do ChatGPT. As imagens não são enviadas automaticamente e não ficam salvas no servidor.</p></section>
+<section class="panel" id="egiZonePanel"><div class="legend"><h2>🎯 Zonas de Decisão EGI — VV</h2><button id="egiZoneBtn" type="button">Analisar zona</button></div><p class="muted">Suporte e resistência locais, rompimento ou faixa de indecisão. Candles fechados; critérios exploratórios, sem ordem.</p><div id="egiZoneResult" class="lines">Colete candles e clique em Analisar zona.</div></section>
+<section class="panel"><h2>Top padrões semelhantes</h2><div class="overflow"><table><thead><tr><th>#</th><th>Início do padrão (BRT)</th><th>Similaridade heurística</th><th>Fechamento após horizonte</th><th>Máx. favorável (LONG)</th><th>Máx. contrária (LONG)</th></tr></thead><tbody id="patternRows"><tr><td colspan="6" class="muted">Nenhum resultado ainda.</td></tr></tbody></table></div></section>
+<section class="panel"><div class="legend"><h2>RelGPT — copiar para ChatGPT / Professor</h2><div class="row"><button id="copy">Copiar relatório</button><button id="save">Salvar consulta</button><button id="export">Exportar histórico</button></div></div><textarea id="report" readonly placeholder="O relatório aparecerá aqui quando houver análise."></textarea></section>
+<details class="panel"><summary>⚙️ Dados, arquivo CSV, histórico e metodologia</summary>
+<div class="row"><label>Importar CSV (timestamp,open,high,low,close,volume): <input type="file" id="csv" accept=".csv,.txt,text/csv"></label><button id="cached">Usar última coleta salva</button><button id="clearHistory">Apagar histórico local de consultas</button></div><p class="muted">A importação exige ao menos 80 candles, em ordem cronológica. O sistema descarta a última barra caso ela ainda esteja aberta. Para CSV, timestamps Unix em milissegundos ou datas ISO, com intervalos coerentes com o timeframe.</p><p class="muted">Método V1: normaliza retornos logarítmicos recentes e compara por distância média; inclui forma dos candles, RSI e volume relativo. A similaridade é um índice heurístico, não uma probabilidade. As janelas históricas são escolhidas de modo não sobreposto para reduzir dependência. O banco V1 usa armazenamento local no navegador, com limite de ~1000 candles por coleta; histórico de consultas pode ser exportado em JSON. Um banco maior e validação fora da amostra são etapas seguintes.</p><div class="row"><span class="tag" id="histCount">0 consultas salvas</span><span class="tag">Sem API key</span><span class="tag">Sem execução automática</span></div></details>
+<div class="footer">EGI · Detector de padrões experimental · Testar em períodos independentes antes de usar como suporte operacional.</div>
+</main></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), state={data:[],matches:[],idx:0,plan:null,source:'',symbol:'',tf:'',results:[]};
+const fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString('pt-BR',{maximumFractionDigits:d,minimumFractionDigits:d}):'—';
+const pct=(n)=>Number.isFinite(n)?`${n>=0?'+':''}${fmt(n*100,2)}%`:'—';
+const date=(ms)=>new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',dateStyle:'short',timeStyle:'short'});
+const step=()=>({'5m':300000,'15m':900000,'1h':3600000,'4h':14400000})[$('tf').value];
+function status(s,kind=''){const el=$('status');el.textContent=s;el.className=kind||'muted'}
+const defaultSymbols=['BTCUSDT','ETHUSDT','SOLUSDT','LINKUSDT','ZECUSDT','PEPEUSDT','PAXGUSDT','CLUSDT','BZUSDT','SPCXUSDT','MUUSDT','SNDKUSDT'];
+const externalDefaults=['XAUUSD','GOLD','XTIUSD','USOIL','UKOIL','BRENT','SPCX','SPCS','MU','SNDK'];
+const externalKey='egi_grafico_external_v1';
+function externalSymbols(){return kv(externalKey)||externalDefaults}
+function isExternal(sym){return externalSymbols().includes(sym)}
+const symbolStorageKey='egi_grafico_symbols_v1';
+const sideState={rows:[],scanning:false};
+function normalizeSymbol(value,type='crypto'){let v=String(value||'').trim().toUpperCase().replace(/[\s/\-_]/g,'');if(type==='crypto'&&/^[A-Z0-9]{2,15}$/.test(v)&&!/(USDT|USDC|BTC|ETH|BRL)$/.test(v))v+='USDT';return v}
+function initSymbols(){
+ const saved=kv(symbolStorageKey);
+ const base=[...defaultSymbols,...externalDefaults];
+ // Migra listas antigas (que guardavam apenas extras) sem perder cadastros.
+ const list=Array.isArray(saved)&&saved.every(x=>typeof x==='string')?
+   (saved.some(x=>base.includes(x))?[...new Set(saved)]:[...new Set([...base,...saved])]):base;
+ const clean=[...new Set([...list,'PAXGUSDT','CLUSDT','BZUSDT','SPCXUSDT','MUUSDT','SNDKUSDT'])].filter(x=>/^[A-Z0-9]{2,24}$/.test(x));
+ $('symbol').replaceChildren();
+ for(const sym of clean)$('symbol').add(new Option(sym,sym));
+ if(!$('symbol').options.length)$('symbol').add(new Option('BTCUSDT','BTCUSDT'));
+ refreshSide();
+}
+function addSymbol(){
+ const type=$('assetType').value,symbol=normalizeSymbol($('newSymbol').value,type);
+ if(!/^[A-Z0-9]{2,24}$/.test(symbol)){status('Digite um código válido: AVAX, XAUUSD, UKOIL, SPCS, MU ou SNDK.','warn');return}
+ const exists=[...$('symbol').options].some(o=>o.value===symbol);
+ if(!exists)$('symbol').add(new Option(symbol,symbol));
+ if(type==='external')store(externalKey,[...new Set([...externalSymbols(),symbol])]);
+ persistSymbols();
+ $('symbol').value=symbol;$('symbol').dispatchEvent(new Event('change'));
+ $('newSymbol').value='';
+ status(exists?symbol+' já estava cadastrado; selecionado.':symbol+' cadastrado neste navegador. A fonte será verificada ao coletar candles.','good');
+}
+function persistSymbols(){
+ const list=[...$('symbol').options].map(o=>o.value);
+ const ok=store(symbolStorageKey,list);
+ refreshSide();
+ if(!ok)status('Não foi possível salvar a lista neste navegador. Exporte sua lista para não perdê-la.','warn');
+ return ok;
+}
+function removeSymbol(){
+ const symbol=$('symbol').value;
+ if(!symbol)return;
+ if(!confirm('Excluir '+symbol+' somente da lista deste navegador? Histórico e outros apps serão preservados.'))return;
+ $('symbol').remove($('symbol').selectedIndex);
+ store(externalKey,externalSymbols().filter(x=>x!==symbol));
+ sideState.rows=sideState.rows.filter(r=>r.symbol!==symbol);
+ if(!$('symbol').options.length)$('symbol').add(new Option('BTCUSDT','BTCUSDT'));
+ $('symbol').selectedIndex=0;
+ persistSymbols();
+ $('symbol').dispatchEvent(new Event('change'));
+ status(symbol+' excluído da lista local. Histórico preservado.','good');
+}
+function kv(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
+function store(key,x){try{localStorage.setItem(key,JSON.stringify(x));return true}catch{return false}}
+function ema(a,n){let e=null,k=2/(n+1);for(const c of a){e=e===null?c:c*k+e*(1-k)}return e}
+function rsi(a,n=14){if(a.length<n+1)return NaN;let g=0,l=0;for(let i=1;i<=n;i++){const d=a[i]-a[i-1];g+=Math.max(0,d);l+=Math.max(0,-d)}g/=n;l/=n;for(let i=n+1;i<a.length;i++){let d=a[i]-a[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n}return l===0?(g===0?50:100):100-100/(1+g/l)}
+function barsClean(rows,interval){const now=Date.now();let a=rows.map(x=>({t:Number(x.t),o:Number(x.o),h:Number(x.h),l:Number(x.l),c:Number(x.c),v:Number(x.v)})).filter(x=>Object.values(x).every(Number.isFinite)&&x.t>0&&x.o>0&&x.h>=Math.max(x.o,x.c)&&x.l<=Math.min(x.o,x.c)&&x.v>=0&&x.t+interval<=now).sort((a,b)=>a.t-b.t);return a.filter((x,i)=>i===0||x.t!==a[i-1].t).slice(-1400)}
+function reset(data,source){state.data=barsClean(data,step());state.matches=[];state.idx=0;state.plan=null;state.source=source;state.symbol=$('symbol').value;state.tf=$('tf').value;$('sourceBadge').textContent=source;$('found').textContent='—';$('summary').textContent='Execute uma busca para visualizar a amostra.';$('patternRows').innerHTML='<tr><td colspan="6">Sem busca recente</td></tr>';$('planOutput').textContent='Clique em “Gerar plano”.';$('report').value='';if(state.data.length<80)throw Error(`Somente ${state.data.length} candles fechados; são necessários pelo menos 80.`);updateMetrics();render();status(`${state.data.length} candles fechados de ${state.symbol} ${state.tf} · ${source} · último fechamento: ${date(state.data.at(-1).t+step())}`,'good')}
+function updateMetrics(){const d=state.data;if(!d.length)return;let a=d.map(x=>x.c),p=a.at(-1),e9=ema(a.slice(-120),9),e21=ema(a.slice(-120),21);$('last').textContent=fmt(p,p<1?7:2);$('rsi').textContent=fmt(rsi(a.slice(-150)),1);$('ema').textContent=e9>e21?'9 acima 21':'9 abaixo 21';$('count').textContent=fmt(d.length,0)}
+async function fetchJson(url){const ac=new AbortController(),tid=setTimeout(()=>ac.abort(),11000);try{let r=await fetch(url,{signal:ac.signal,cache:'no-store'});if(!r.ok)throw Error(`HTTP ${r.status}`);let j=await r.json();if(!Array.isArray(j))throw Error(j.msg||'Resposta inesperada');return j}finally{clearTimeout(tid)}}
+const exchangeName={binance:'Binance Spot',binance_futures:'Binance Futuros USDⓈ-M',mexc:'MEXC Spot',mexc_futures:'MEXC Futuros',bybit_spot:'Bybit Spot',bybit_linear:'Bybit Futuros USDT'};
+function marketSymbol(symbol,ex){
+  if(ex==='binance'&&symbol==='PAXG')return 'PAXGUSDT';
+  if(ex==='binance_futures'){
+    const listed={WTI:'CLUSDT',CL:'CLUSDT',USOIL:'CLUSDT',BRENT:'BZUSDT',BZ:'BZUSDT',SPCX:'SPCXUSDT',MU:'MUUSDT',SNDK:'SNDKUSDT'};
+    return listed[symbol]||symbol;
+  }
+  if(ex==='mexc_futures'){
+    const special={UKOIL:'UKOIL_USDT',BRENT:'UKOIL_USDT',USOIL:'USOIL_USDT',XAUUSD:'XAU_USDT',GOLD:'XAU_USDT'};
+    // BRENT é o nome comercial OIL(BRENT) usado pela MEXC para o contrato UKOIL_USDT.\n    // É um futuro perpétuo, não a cotação spot do petróleo Brent.
+    return special[symbol]||(/^[A-Z0-9]+USDT$/.test(symbol)?symbol.replace(/USDT$/,'_USDT'):symbol.replace(/^(.*)_USDT$/,'$1_USDT'));
+  }
+  // Bybit names must be exact: tokenized names are never silently rewritten.
+  if(ex==='bybit_linear' && symbol==='SPCX')return 'SPCXUSDT';
+  if(ex.startsWith('bybit') && ['BRENT','GOLD','XAUUSD','USOIL','UKOIL','XTIUSD'].includes(symbol))throw Error('Símbolo não mapeado para Bybit: informe o código exato do instrumento na corretora ou use CSV.');
+  return symbol;
+}
+async function fetchObject(url){const ac=new AbortController(),tid=setTimeout(()=>ac.abort(),12000);try{const res=await fetch(url,{cache:'no-store',signal:ac.signal});if(!res.ok)throw Error(`HTTP ${res.status}`);return await res.json()}finally{clearTimeout(tid)}}
+function candleServerBase(){return ($('apiServer')?.value||'').trim().replace(/\/+$/,'')}
+function serverKlineUrl(code,intv,limit){
+ const base=candleServerBase();
+ // The provided API must be trusted by the user; only fixed kline parameters go across.
+ const q=`symbol=${encodeURIComponent(code)}&interval=${encodeURIComponent(intv)}&limit=${Math.min(1200,Math.max(80,limit))}`;
+ return (base||'')+'/api/kline?'+q;
+}
+async function proxiedMexcCandles(code,intv,limit){
+ const endpoint=serverKlineUrl(code,intv,limit),out=await fetchObject(endpoint);
+ if(out.success!==true||!out.data||!Array.isArray(out.data.time))throw Error(out.message||'Servidor não retornou candles');
+ return out;
+}
+async function marketCandles(symbol,tf,ex,limit=1000){
+ const code=marketSymbol(symbol,ex);
+ if(ex==='binance_futures'){
+   const urls=[`https://fapi.binance.com/fapi/v1/klines?symbol=${encodeURIComponent(code)}&interval=${encodeURIComponent(tf)}&limit=${Math.min(limit,1500)}`];
+   let raw,err;for(const url of urls){try{raw=await fetchJson(url);break}catch(e){err=e}}
+   if(!raw)throw Error('Binance Futuros indisponível no navegador: '+(err?.message||'sem resposta')+'. Confirme o acesso regional à API.');
+   return raw.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}));
+ }
+ if(ex==='binance'||ex==='mexc'){
+   if(isExternal(symbol))throw Error('Ativo externo não é automaticamente par Spot. Use MEXC Futuros, Bybit ou CSV.');
+   const base=ex==='binance'?[`https://api.binance.com/api/v3/klines?symbol=${code}&interval=${tf}&limit=${limit}`,`https://data-api.binance.vision/api/v3/klines?symbol=${code}&interval=${tf}&limit=${limit}`]:[`https://api.mexc.com/api/v3/klines?symbol=${code}&interval=${tf}&limit=${limit}`];
+   let raw,err;for(const url of base){try{raw=await fetchJson(url);break}catch(e){err=e}}if(!raw)throw err||Error('Consulta indisponível');
+   return raw.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}));
+ }
+ if(ex==='mexc_futures'){
+   const intv=({'5m':'Min5','15m':'Min15','1h':'Min60','4h':'Hour4'})[tf];
+   const secs=Math.ceil((limit+5)*step()/1000),end=Math.floor(Date.now()/1000),start=end-secs;
+   let o,serverError;
+   try{o=await proxiedMexcCandles(code,intv,limit)}catch(e){serverError=e;
+     try{o=await fetchObject(`https://api.mexc.com/api/v1/contract/kline/${encodeURIComponent(code)}?interval=${intv}&start=${start}&end=${end}`)}
+     catch(directErr){throw Error(`Servidor /api/kline: ${serverError.message}; API direta: ${directErr.message}. Configure um servidor HTTPS compatível acima.`)}
+   }
+   if(o.success!==true||!o.data||!Array.isArray(o.data.time))throw Error(`API MEXC não forneceu candles para ${code} (${o.message||o.code||'sem dados'}).`);
+   const d=o.data;return d.time.map((t,i)=>({t:Number(t)<1e11?Number(t)*1000:Number(t),o:+d.open[i],h:+d.high[i],l:+d.low[i],c:+d.close[i],v:+(d.vol?.[i]??0)}));
+ }
+ if(ex.startsWith('bybit')){
+   const category=ex==='bybit_spot'?'spot':'linear';
+   const info=await fetchObject(`https://api.bybit.com/v5/market/instruments-info?category=${category}&symbol=${encodeURIComponent(code)}`);
+   if(info.retCode!==0||!Array.isArray(info.result?.list)||!info.result.list.some(x=>x.symbol===code&&x.status==='Trading'))throw Error(`Instrumento ${code} não confirmado em Bybit ${category}. Confira o código e o mercado exatos.`);
+   const interval=({'5m':'5','15m':'15','1h':'60','4h':'240'})[tf];
+   const o=await fetchObject(`https://api.bybit.com/v5/market/kline?category=${category}&symbol=${encodeURIComponent(code)}&interval=${interval}&limit=${Math.min(limit,1000)}`);
+   if(o.retCode!==0||!Array.isArray(o.result?.list))throw Error(`Bybit: ${o.retMsg||'sem candles'}`);
+   return o.result.list.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}));
+ }
+ throw Error('Mercado não suportado');
+}
+// Route only well-identified asset classes. An external symbol is NOT evidence that a contract is listed.
+function recommendedMarket(symbol){
+  if(['PAXG','PAXGUSDT'].includes(symbol))return 'binance';
+  if(['CLUSDT','BZUSDT','SPCXUSDT','MUUSDT','SNDKUSDT','WTI','CL','USOIL','BRENT','BZ','SPCX','MU','SNDK'].includes(symbol))return 'binance_futures';
+  if(['UKOIL','XAUUSD','GOLD'].includes(symbol))return 'mexc_futures';
+  if(['SPCS','XTIUSD'].includes(symbol))return 'bybit_linear';
+  return null;
+}
+
+const binanceCatalog={market:'',list:[],filtered:[],page:0};
+function renderBinanceCatalog(){
+ const query=$('binanceCatalogQuery').value.trim().toUpperCase(),quote=$('binanceCatalogQuote').value;
+ binanceCatalog.filtered=binanceCatalog.list.filter(x=>(!quote||x.quote===quote)&&(x.symbol.includes(query)||x.base.includes(query)||x.quote.includes(query)));
+ const total=binanceCatalog.filtered.length,pages=Math.max(1,Math.ceil(total/100));
+ binanceCatalog.page=Math.min(binanceCatalog.page,pages-1);
+ const slice=binanceCatalog.filtered.slice(binanceCatalog.page*100,(binanceCatalog.page+1)*100),sel=$('binanceCatalogResults');
+ sel.replaceChildren();for(const x of slice)sel.add(new Option(x.symbol+'  ('+x.base+'/'+x.quote+')',x.symbol));
+ $('binanceCatalogStatus').textContent=(binanceCatalog.list.length?'Listagem oficial '+exchangeName[binanceCatalog.market]+': '+binanceCatalog.list.length+' ativos em negociação. ':'Carregue a lista do mercado. ')+total+' resultados · página '+(binanceCatalog.page+1)+'/'+pages+'.';
+ $('binanceCatalogPrev').disabled=binanceCatalog.page===0;$('binanceCatalogNext').disabled=binanceCatalog.page>=pages-1;
+}
+async function loadBinanceCatalog(){
+ const market=$('binanceCatalogMarket').value,btn=$('binanceCatalogLoad');
+ btn.disabled=true;$('binanceCatalogStatus').textContent='Consultando catálogo oficial '+exchangeName[market]+'...';
+ try{
+  const endpoints=market==='binance'?
+   ['https://api.binance.com/api/v3/exchangeInfo','https://data-api.binance.vision/api/v3/exchangeInfo']:
+   ['https://fapi.binance.com/fapi/v1/exchangeInfo'];
+  let info,error;
+  for(const url of endpoints){try{info=await fetchObject(url);if(Array.isArray(info.symbols))break;throw Error('Formato inesperado')}catch(e){error=e;info=null}}
+  if(!info?.symbols)throw Error(error?.message||'Catálogo indisponível');
+  const list=info.symbols.filter(x=>x.status==='TRADING'&&/^[A-Z0-9]+$/.test(x.symbol)&&x.baseAsset&&x.quoteAsset)
+   .map(x=>({symbol:x.symbol,base:x.baseAsset,quote:x.quoteAsset}));
+  if(!list.length)throw Error('Nenhum ativo em negociação informado pela Binance');
+  binanceCatalog.market=market;binanceCatalog.list=list;binanceCatalog.page=0;renderBinanceCatalog();
+ }catch(e){binanceCatalog.list=[];binanceCatalog.filtered=[];$('binanceCatalogResults').replaceChildren();$('binanceCatalogStatus').textContent='Consulta não disponível: '+e.message+'. Verifique acesso da Binance neste navegador; não há lista estimada.'}
+ finally{btn.disabled=false}
+}
+function initBinanceCatalog(){
+ $('binanceCatalogLoad').onclick=loadBinanceCatalog;
+ $('binanceCatalogMarket').onchange=()=>{binanceCatalog.list=[];binanceCatalog.filtered=[];binanceCatalog.page=0;$('binanceCatalogResults').replaceChildren();$('binanceCatalogStatus').textContent='Mercado alterado. Carregue a lista oficial.'};
+ for(const id of ['binanceCatalogQuery','binanceCatalogQuote'])$(id).addEventListener(id==='binanceCatalogQuery'?'input':'change',()=>{binanceCatalog.page=0;renderBinanceCatalog()});
+ $('binanceCatalogPrev').onclick=()=>{binanceCatalog.page--;renderBinanceCatalog()};
+ $('binanceCatalogNext').onclick=()=>{binanceCatalog.page++;renderBinanceCatalog()};
+ $('binanceCatalogUse').onclick=()=>{
+  const symbol=$('binanceCatalogResults').value;
+  if(!symbol){$('binanceCatalogStatus').textContent='Selecione um ativo da lista oficial.';return}
+  if(![...$('symbol').options].some(o=>o.value===symbol))$('symbol').add(new Option(symbol,symbol));
+  persistSymbols();$('exchange').value=binanceCatalog.market;$('symbol').value=symbol;
+  $('symbol').dispatchEvent(new Event('change'));$('exchange').dispatchEvent(new Event('change'));
+  status(symbol+' selecionado em '+exchangeName[binanceCatalog.market]+'. Clique em “Coletar candles”.','good');
+ };
+}
+
+function chooseMarketForSymbol(){return $('exchange').value;}
+function candidateMarkets(symbol){
+ const preferred=recommendedMarket(symbol);
+ if(preferred==='mexc_futures')return ['mexc_futures'];
+ if(preferred==='bybit_linear')return ['bybit_linear'];
+ return ['binance','binance_futures','mexc','mexc_futures','bybit_spot','bybit_linear'];
+}
+async function automaticCandles(symbol,tf,limit=1000){
+ const selected=$('exchange').value,markets=selected==='auto'?candidateMarkets(symbol):[selected],errors=[];
+ for(const ex of markets){
+  try{
+   const raw=await marketCandles(symbol,tf,ex,limit);
+   const candles=barsClean(raw,step());
+   if(candles.length<30)throw Error('Candles fechados insuficientes');
+   return {raw,ex};
+  }catch(e){errors.push(exchangeName[ex]+': '+e.message);}
+ }
+ throw Error('Nenhuma fonte validada para '+symbol+'. '+errors.join(' | '));
+}
+async function load(){
+ const btn=$('load');btn.disabled=true;status('Procurando fonte válida e candles fechados...');
+ try{
+  const symbol=$('symbol').value,tf=$('tf').value;
+  const {raw,ex}=await automaticCandles(symbol,tf);
+  reset(raw,`${exchangeName[ex]} · ${marketSymbol(symbol,ex)}${symbol==='BRENT'&&ex==='mexc_futures'?' (OIL/BRENT — contrato perpétuo MEXC)':''} · fonte confirmada`);
+  store(`egi_bars_${ex}_${symbol}_${tf}`,raw);
+ }catch(e){
+  status('Não foi possível coletar '+$('symbol').value+': '+e.message+' Nenhum preço foi inventado.','warn');
+ }finally{btn.disabled=false;}
+}
+function symbolsAll(){return [...$('symbol').options].map(o=>o.value)}
+function refreshSide(){if(!$('sideList'))return;const filter=$('sideFilter').value,needle=$('sideSearch').value.trim().toUpperCase(),rows=sideState.rows;let data=symbolsAll().filter(sym=>sym.includes(needle)).map(sym=>rows.find(r=>r.symbol===sym)||{symbol:sym,pending:true});if(filter!=='all')data=data.filter(r=>!r.pending&&!r.error&&({bull:r.ema9>r.ema21,bear:r.ema9<r.ema21,oversold:r.rsi<35,overbought:r.rsi>65,rise:r.change>0,fall:r.change<0,volume:r.volrel>1.2})[filter]);data.sort((a,b)=>((b.pending?0:1)-(a.pending?0:1))||(b.change??-Infinity)-(a.change??-Infinity));$('sideList').replaceChildren();for(const r of data){let b=document.createElement('button');b.className='coin'+($('symbol').value===r.symbol?' active':'');const left=document.createElement('span'),right=document.createElement('span');left.textContent=r.symbol;right.style.textAlign='right';if(r.skipped)right.textContent='Fora da varredura';else if(r.error)right.textContent='Sem dados';else if(r.pending)right.textContent='Sem leitura';else{right.textContent=`${r.change>=0?'+':''}${fmt(r.change*100,2)}%`;right.className=r.change>=0?'good':'bad';const detail=document.createElement('small');detail.textContent=`RSI ${fmt(r.rsi,0)} · Vol ${fmt(r.volrel,1)}×`;right.appendChild(detail)}b.append(left,right);b.title=r.reason||r.error||('Fonte: '+(r.source||'aguardando')+' · selecionar e coletar gráfico');b.onclick=()=>{$('symbol').value=r.symbol;$('symbol').dispatchEvent(new Event('change'));chooseMarketForSymbol();refreshSide();load()};$('sideList').appendChild(b)}if(!data.length)$('sideList').textContent='Nenhuma moeda atende ao critério nesta amostra.'}
+async function scanSide(){
+ if(sideState.scanning)return;
+ sideState.scanning=true;$('sideScan').disabled=true;
+ const syms=symbolsAll(),tf=$('tf').value,selected=$('exchange').value,interval=step();
+ sideState.rows=[];refreshSide();let ok=0,fail=0,skip=0;
+ try{
+  for(let i=0;i<syms.length;i++){
+   const sym=syms[i];
+   $('sideStatus').textContent='Varredura '+(i+1)+'/'+syms.length+' · '+ok+' analisados · '+skip+' fora do escopo · '+fail+' falhas';
+   // Ativos externos permanecem cadastrados, mas não contaminam o garimpo Binance automático.
+   if(selected==='auto'&&isExternal(sym)&&recommendedMarket(sym)!=='binance_futures'){
+    sideState.rows.push({symbol:sym,skipped:true,reason:'Ativo externo preservado. Selecione o mercado específico para análise individual.'});
+    skip++;refreshSide();continue;
+   }
+   try{
+    let result;
+    if(selected==='auto'){
+     let lastError;
+     for(const market of (recommendedMarket(sym)==='binance_futures'?['binance_futures']:['binance','binance_futures'])){
+      try{
+       const raw=await marketCandles(sym,tf,market,90),candles=barsClean(raw,interval);
+       if(candles.length<30)throw Error('Candles insuficientes');
+       result={raw,ex:market};break;
+      }catch(err){lastError=err}
+     }
+     if(!result)throw Error('Binance Spot/Futuros: '+(lastError?.message||'não disponível'));
+    }else result=await automaticCandles(sym,tf,90);
+    const d=barsClean(result.raw,interval);
+    if(d.length<30)throw Error('Poucos candles fechados');
+    const a=d.map(x=>x.c),v=d.map(x=>x.v),volavg=v.slice(-21,-1).reduce((x,y)=>x+y,0)/20||1;
+    sideState.rows.push({symbol:sym,source:exchangeName[result.ex],rsi:rsi(a),ema9:ema(a.slice(-50),9),ema21:ema(a.slice(-50),21),change:a.at(-1)/a.at(-6)-1,volrel:v.at(-1)/volavg});
+    ok++;
+   }catch(e){sideState.rows.push({symbol:sym,error:e.message});fail++}
+   refreshSide();
+  }
+  $('sideStatus').textContent='Varredura concluída: '+ok+' analisados · '+skip+' fora do escopo · '+fail+' falhas reais · '+tf+'. Nenhum sinal inventado.';
+ }finally{sideState.scanning=false;$('sideScan').disabled=false}
+}
+function chosenBias(defaultBias,d,r,e9,e21){const mode=$('analysisMode').value,returns=d.at(-1).c/d.at(-6).c-1,h=state.matches,share=h.length?h.filter(x=>x.ret>0).length/h.length:null,base=e9>e21&&r>50?'LONG em observação':e9<e21&&r<50?'SHORT em observação':'AGUARDAR — indicadores divergentes';if(mode==='historical')return base;if(mode==='trend')return e9>e21&&r>=50&&returns>0?'LONG em observação':e9<e21&&r<=50&&returns<0?'SHORT em observação':'AGUARDAR — continuidade não alinhada';if(mode==='reversal')return e9<e21&&r>50&&returns>0?'LONG reversão em observação':e9>e21&&r<50&&returns<0?'SHORT reversão em observação':'AGUARDAR — reversão sem evidência';if(share===null||h.length<8)return 'AGUARDAR — pouca memória histórica';if(share>=.6&&e9>e21&&r>50)return 'LONG em observação';if(share<=.4&&e9<e21&&r<50)return 'SHORT em observação';return 'AGUARDAR — divergência entre histórico e indicadores'}
+function feature(data,s,e){const closes=data.slice(s,e+1).map(x=>x.c),bars=data.slice(s,e+1);let raw=[];for(let i=1;i<closes.length;i++)raw.push(Math.log(closes[i]/closes[i-1]));let scale=Math.sqrt(raw.reduce((a,b)=>a+b*b,0)/Math.max(raw.length,1))||.000001;const shape=raw.map(x=>Math.max(-4,Math.min(4,x/scale)));const v=bars.map(x=>x.v),av=v.reduce((a,b)=>a+b,0)/v.length||1;const vol=v.map(x=>Math.min(5,x/av));const rr=rsi(data.slice(Math.max(0,s-40),e+1).map(x=>x.c));return {shape,vol,rr:Number.isFinite(rr)?rr:50,scale}}
+function distance(a,b){let x=0;for(let i=0;i<a.shape.length;i++)x+=(a.shape[i]-b.shape[i])**2;x/=a.shape.length;let v=0;for(let i=0;i<a.vol.length;i++)v+=(a.vol[i]-b.vol[i])**2;v/=a.vol.length;let rs=((a.rr-b.rr)/50)**2;return Math.sqrt(x*.78+v*.12+rs*.10)}
+function findMatches(){const data=state.data,n=Number($('window').value),h=Number($('horizon').value);if(data.length<n*2+h+20){status('Dados insuficientes para esta janela/horizonte.','warn');return}status('Calculando comparações históricas...');const last=data.length-1,ref=feature(data,last-n+1,last),cand=[];for(let end=n+45;end<=last-n-h;end++){const start=end-n+1;let continuous=true;for(let i=start+1;i<=end+h;i++)if(data[i].t-data[i-1].t!==step()){continuous=false;break}if(!continuous)continue;const f=feature(data,start,end),dist=distance(ref,f),c0=data[end].c,c1=data[end+h].c;let hi=-Infinity,lo=Infinity;for(let i=end+1;i<=end+h;i++){hi=Math.max(hi,data[i].h);lo=Math.min(lo,data[i].l)}cand.push({start,end,dist,similarity:100/(1+dist),ret:c1/c0-1,mfe:hi/c0-1,mae:lo/c0-1,finish:end+h})}cand.sort((a,b)=>a.dist-b.dist);let selected=[];for(const c of cand){if(selected.every(x=>Math.abs(x.end-c.end)>=n+h)){selected.push(c);if(selected.length>=30)break}}state.matches=selected;state.idx=0;$('found').textContent=selected.length;renderMatches();render();makeReport();status(selected.length?`${selected.length} casos históricos não sobrepostos encontrados e avaliados.`:'Sem amostra suficiente e contínua; tente outro timeframe, intervalo ou importe mais dados.',selected.length?'good':'warn')}
+function renderMatches(){let m=state.matches,n=m.length,h=Number($('horizon').value);$('matchLabel').textContent=n?`${state.idx+1} de ${n}`:'aguardando';if(!n){$('summary').textContent='Nenhum padrão disponível.';$('patternRows').innerHTML='<tr><td colspan="6">Sem padrões comparáveis</td></tr>';return}let plus=m.filter(x=>x.ret>0).length,minus=m.filter(x=>x.ret<0).length,flat=n-plus-minus,avg=m.reduce((a,x)=>a+x.ret,0)/n,med=[...m].map(x=>x.ret).sort((a,b)=>a-b)[Math.floor(n/2)];$('summary').innerHTML=`<strong>Amostra: ${n} casos independentes por seleção aproximada</strong><br>Alta: <b class="good">${plus}/${n} (${fmt(100*plus/n,1)}%)</b> · Queda: <b class="bad">${minus}/${n} (${fmt(100*minus/n,1)}%)</b> · Estável: ${flat}<br>Retorno médio após ${h} candles: <b>${pct(avg)}</b><br>Retorno mediano: <b>${pct(med)}</b><br>Semelhança do melhor caso: ${fmt(m[0].similarity,1)} / 100 (índice relativo)`;$('patternRows').innerHTML=m.map((x,i)=>`<tr style="cursor:pointer" data-i="${i}"><td>${i+1}</td><td>${date(state.data[x.start].t)}</td><td>${fmt(x.similarity,1)} / 100</td><td class="${x.ret>=0?'good':'bad'}">${pct(x.ret)}</td><td>${pct(x.mfe)}</td><td>${pct(x.mae)}</td></tr>`).join('');$('patternRows').querySelectorAll('tr[data-i]').forEach(el=>el.addEventListener('click',()=>{state.idx=+el.dataset.i;render();$('matchLabel').textContent=`${state.idx+1} de ${n}`}))}
+function plan(){const d=state.data;if(d.length<30){status('Colete candles antes de gerar o plano.','warn');return}const a=d.map(x=>x.c),last=d.at(-1),r=rsi(a.slice(-150)),e9=ema(a.slice(-120),9),e21=ema(a.slice(-120),21),atr=d.slice(-15).slice(1).reduce((sum,x,i)=>{let prev=d[d.length-15+i].c;return sum+Math.max(x.h-x.l,Math.abs(x.h-prev),Math.abs(x.l-prev))},0)/14;const trend=e9>e21?'ALTA':'BAIXA',bias=chosenBias('',d,r,e9,e21);const resist=Math.max(...d.slice(-25).map(x=>x.h)),support=Math.min(...d.slice(-25).map(x=>x.l));state.plan={trend,bias,atr,support,resist,entryLong:resist+atr*.1,stopLong:resist-atr*1.4,targetLong:resist+atr*3,entryShort:support-atr*.1,stopShort:support+atr*1.4,targetShort:support-atr*3,r};$('planOutput').innerHTML=`<strong>Tipo de análise:</strong> ${$('analysisMode').selectedOptions[0].textContent}<br><strong>Leitura:</strong> <span class="${bias.startsWith('LONG')?'good':bias.startsWith('SHORT')?'bad':'warn'}">${bias}</span><br><strong>Tendência MME9/21:</strong> ${trend} · RSI: ${fmt(r,1)}<br><strong>Suporte local:</strong> ${fmt(support,6)} · <strong>Resistência local:</strong> ${fmt(resist,6)}<br><strong>ATR(14) aproximado:</strong> ${fmt(atr,6)}<br><strong>Hipótese LONG se romper resistência:</strong> gatilho ${fmt(state.plan.entryLong,6)} · stop ilustrativo ${fmt(state.plan.stopLong,6)} · alvo ${fmt(state.plan.targetLong,6)}<br><strong>Hipótese SHORT se perder suporte:</strong> gatilho ${fmt(state.plan.entryShort,6)} · stop ilustrativo ${fmt(state.plan.stopShort,6)} · alvo ${fmt(state.plan.targetShort,6)}<br><small>Gatilhos não disparados nem confirmados. Níveis heurísticos; o SetupDT deve validar estrutura, risco, spread, volume, execução e candle fechado. Risco/retorno e taxas exigem verificação.</small>`;render();makeReport();status('Plano exploratório gerado; nenhuma entrada foi confirmada.','good')}
+const indicatorDefs=[['ema9','MME 9'],['ema21','MME 21'],['ema200','MME 200'],['sma50','MMS 50'],['bb','Bandas Bollinger (20,2)'],['donchian','Canal Donchian 20'],['vwap','VWAP janela visível'],['lta','LTA (fundos)'],['ltb','LTB (topos)'],['triangles','Triângulos (candidatos)'],['sr','Suporte / resistência'],['rsi','RSI 14 (leitura)'],['macd','MACD 12/26/9 (leitura)'],['atr','ATR 14 (leitura)'],['volume','Volume relativo (leitura)'],['doji','Doji'],['hammer','Martelo / Martelo invertido'],['shooting','Estrela cadente / Enforcado'],['engulf','Engolfo de alta / baixa'],['star','Estrela da manhã / da tarde'],['harami','Harami de alta / baixa'],['marubozu','Marubozu'],['tweezer','Pinças topo / fundo']];
+const indicatorKey='egi_grafico_indicators_v1';
+let activeIndicators=new Set(Array.isArray(kv(indicatorKey))?kv(indicatorKey):['ema9','ema21','lta','ltb','triangles','sr','rsi','macd']);
+function initializeIndicators(){let area=$('indicators');for(const [key,name] of indicatorDefs){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=activeIndicators.has(key);input.onchange=()=>{if(input.checked)activeIndicators.add(key);else activeIndicators.delete(key);store(indicatorKey,[...activeIndicators]);render()};label.append(input,document.createTextNode(name));area.appendChild(label)}let profiles={indBasic:['ema9','ema21','rsi','sr'],indTrend:['ema9','ema21','ema200','sma50','lta','ltb','sr','macd'],indShapes:['lta','ltb','triangles','sr','donchian','doji','hammer','shooting','engulf','star','harami','marubozu','tweezer'],indAll:indicatorDefs.map(x=>x[0]),indClear:[]};for(const [id,items] of Object.entries(profiles))$(id).onclick=()=>{activeIndicators=new Set(items);store(indicatorKey,[...activeIndicators]);[...area.querySelectorAll('input')].forEach((input,i)=>input.checked=activeIndicators.has(indicatorDefs[i][0]));render()}}
+function averages(bars,period,exponential=false){const arr=bars.map(x=>x.c),out=Array(arr.length).fill(null);if(arr.length<period)return out;let sum=0;for(let i=0;i<period;i++)sum+=arr[i];let v=sum/period;out[period-1]=v;for(let i=period;i<arr.length;i++){if(exponential)v=v+2/(period+1)*(arr[i]-v);else v=v+(arr[i]-arr[i-period])/period;out[i]=v}return out}
+function pivots(bars,mode,range=3){let out=[];for(let i=range;i<bars.length-range;i++){let v=bars[i][mode],local=true;for(let j=i-range;j<=i+range;j++)if(j!==i&& (mode==='l'?bars[j][mode]<=v:bars[j][mode]>=v)){local=false;break}if(local)out.push({i,v})}return out}
+function fitLine(p){let n=p.length,sx=0,sy=0,sxx=0,sxy=0;for(const q of p){sx+=q.i;sy+=q.v;sxx+=q.i*q.i;sxy+=q.i*q.v}let denom=n*sxx-sx*sx;if(n<2||!denom)return null;let slope=(n*sxy-sx*sy)/denom;return {slope,at:i=>(sy-slope*sx)/n+slope*i}}
+
+const candlePatternKeys=new Set(['doji','hammer','shooting','engulf','star','harami','marubozu','tweezer']);
+function detectCandles(bars){let matches=[];const tolerance=0.12;for(let i=0;i<bars.length;i++){
+const b=bars[i],p=bars[i-1],p2=bars[i-2];const range=b.h-b.l;if(!(range>0))continue;
+const body=Math.abs(b.c-b.o),upper=b.h-Math.max(b.o,b.c),lower=Math.min(b.o,b.c)-b.l;
+const bull=b.c>b.o,bear=b.c<b.o;
+function add(key,name,dir){matches.push({i,key,name,dir,t:b.t})}
+if(body/range<=.1)add('doji','Doji','neutro');
+if(body/range<=.38&&lower>=body*2.2&&upper<=Math.max(body*.8,range*.12))add('hammer', 'Martelo (geometria)','alta?');
+if(body/range<=.38&&upper>=body*2.2&&lower<=Math.max(body*.8,range*.12))add('hammer','Martelo invertido (geometria)','alta?');
+if(body/range<=.38&&upper>=body*2.2&&lower<=Math.max(body*.8,range*.12)&&i>=3&&bars[i-3].c>bars[i-1].c)add('shooting','Estrela cadente (contextual)','baixa?');
+if(body/range<=.38&&lower>=body*2.2&&upper<=Math.max(body*.8,range*.12)&&i>=3&&bars[i-3].c<bars[i-1].c)add('shooting','Enforcado (contextual)','baixa?');
+if(body/range>=.91)add('marubozu',bull?'Marubozu alta':'Marubozu baixa',bull?'alta?':'baixa?');
+if(p){const pb=Math.abs(p.c-p.o),pr=p.h-p.l;if(bull&&p.c<p.o&&b.o<=p.c&&b.c>=p.o&&body>pb*.85)add('engulf','Engolfo de alta','alta?');if(bear&&p.c>p.o&&b.o>=p.c&&b.c<=p.o&&body>pb*.85)add('engulf','Engolfo de baixa','baixa?');if(pr>0&&body<Math.max(pb*.55,range*.12)&&Math.max(b.o,b.c)<=Math.max(p.o,p.c)&&Math.min(b.o,b.c)>=Math.min(p.o,p.c)&&pb/pr>.4)add('harami',p.c<p.o?'Harami de alta':'Harami de baixa',p.c<p.o?'alta?':'baixa?');if(Math.abs(b.l-p.l)<=Math.max(range,pr)*tolerance&&p.c<p.o&&bull)add('tweezer','Pinça de fundo','alta?');if(Math.abs(b.h-p.h)<=Math.max(range,pr)*tolerance&&p.c>p.o&&bear)add('tweezer','Pinça de topo','baixa?')}
+if(p&&p2){const b2=Math.abs(p2.c-p2.o),mid=(p2.o+p2.c)/2;if(p2.c<p2.o&&Math.abs(p.c-p.o)<b2*.45&&bull&&b.c>mid)add('star','Estrela da manhã (candidata)','alta?');if(p2.c>p2.o&&Math.abs(p.c-p.o)<b2*.45&&bear&&b.c<mid)add('star','Estrela da tarde (candidata)','baixa?')}
+}return matches}
+function drawCandlePatterns(ctx,bars,geo){const {L,T,dx,yy,hh}=geo;let all=detectCandles(bars).filter(x=>activeIndicators.has(x.key));const latest=all.slice(-45);ctx.font='bold 10px system-ui';ctx.textAlign='center';let occupied=new Set();for(const e of latest){const b=bars[e.i],isUp=e.dir==='alta?',isDown=e.dir==='baixa?',color=isUp?'#31d5a0':isDown?'#ff7684':'#ffcf70';let x=L+dx*(e.i+.5),y=isDown?yy(b.h)-9:yy(b.l)+12;let lane=Math.round(x/16)+'/'+Math.round(y/14);if(occupied.has(lane))continue;occupied.add(lane);ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,Math.max(2,Math.min(4.5,dx*.28)),0,Math.PI*2);ctx.fill()}ctx.textAlign='left';const last=all.slice(-8).map(x=>x.name+' ('+date(x.t)+')');const panel=document.getElementById('candlesRead');if(panel)panel.textContent=last.length?'Últimos padrões detectados: '+last.join(' · '):'Nenhum padrão selecionado encontrado nos candles visíveis.'}
+function drawIndicators(ctx,bars,geo){const {L,T,w,h,ww,hh,yy,dx}=geo,n=bars.length;if(!n)return;const xx=i=>L+dx*(i+.5);const line=(pts,color,width=1.4,dashed=false)=>{ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dashed?[6,4]:[]);ctx.beginPath();let started=false;for(let i=0;i<pts.length;i++)if(Number.isFinite(pts[i])){if(!started)ctx.moveTo(xx(i),yy(pts[i]));else ctx.lineTo(xx(i),yy(pts[i]));started=true}else started=false;ctx.stroke();ctx.setLineDash([])};
+if(activeIndicators.has('ema9'))line(averages(bars,9,true),'#ffcf70');if(activeIndicators.has('ema21'))line(averages(bars,21,true),'#6caaff');if(activeIndicators.has('ema200'))line(averages(bars,200,true),'#eeb0ed');if(activeIndicators.has('sma50'))line(averages(bars,50),'#e5a2ff');
+if(activeIndicators.has('bb')){let top=[],bot=[];for(let i=0;i<n;i++){if(i<19){top.push(null);bot.push(null);continue}let a=bars.slice(i-19,i+1).map(x=>x.c),m=a.reduce((x,y)=>x+y,0)/20,sd=Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/20);top.push(m+2*sd);bot.push(m-2*sd)}line(top,'#a2b2ff',1,true);line(bot,'#a2b2ff',1,true)}
+if(activeIndicators.has('donchian')){let top=[],bot=[];for(let i=0;i<n;i++){if(i<19){top.push(null);bot.push(null);continue}let b=bars.slice(i-19,i+1);top.push(Math.max(...b.map(x=>x.h)));bot.push(Math.min(...b.map(x=>x.l)))}line(top,'#36dfdc',1,true);line(bot,'#36dfdc',1,true)}
+if(activeIndicators.has('vwap')){let pv=0,vol=0,vals=[];for(let b of bars){pv+=((b.h+b.l+b.c)/3)*b.v;vol+=b.v;vals.push(vol?pv/vol:NaN)}line(vals,'#f9a870')}
+const lows=pivots(bars,'l'),highs=pivots(bars,'h');const loFit=fitLine(lows.slice(-5)),hiFit=fitLine(highs.slice(-5));function trendline(fit,color){if(!fit)return;ctx.strokeStyle=color;ctx.lineWidth=2;ctx.setLineDash([9,4]);ctx.beginPath();ctx.moveTo(xx(0),yy(fit.at(0)));ctx.lineTo(xx(n-1),yy(fit.at(n-1)));ctx.stroke();ctx.setLineDash([])}if(activeIndicators.has('lta')&&loFit&&loFit.slope>0)trendline(loFit,'#31d5a0');if(activeIndicators.has('ltb')&&hiFit&&hiFit.slope<0)trendline(hiFit,'#ff7684');
+let tri='';if(hiFit&&loFit&&n>=24){const spread=(hiFit.at(n-1)-loFit.at(n-1)),previous=(hiFit.at(0)-loFit.at(0)),atrRange=Math.max(...bars.map(b=>b.h))-Math.min(...bars.map(b=>b.l));const converging=spread>0&&previous>spread*1.2&&spread<atrRange*.65;if(converging){if(hiFit.slope<0&&loFit.slope>0)tri='Triângulo simétrico?';else if(Math.abs(hiFit.slope)<atrRange/n*.035&&loFit.slope>0)tri='Triângulo ascendente?';else if(Math.abs(loFit.slope)<atrRange/n*.035&&hiFit.slope<0)tri='Triângulo descendente?';if(tri&&activeIndicators.has('triangles')){trendline(loFit,'#ffd56b');trendline(hiFit,'#ffd56b');ctx.fillStyle='#ffd56b';ctx.font='bold 12px system-ui';ctx.fillText(tri,L+9,T+16)}}}
+if(activeIndicators.has('sr')){const max=Math.max(...bars.slice(-30).map(x=>x.h)),min=Math.min(...bars.slice(-30).map(x=>x.l));for(const [v,c,name] of [[max,'#eb8bc9','R'],[min,'#52d7c3','S']]){ctx.strokeStyle=c;ctx.setLineDash([3,5]);ctx.beginPath();ctx.moveTo(L,yy(v));ctx.lineTo(w-66,yy(v));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=c;ctx.fillText(name,L+2,yy(v)-3)}}
+const closes=bars.map(x=>x.c),v=bars.map(x=>x.v),read=[];if(activeIndicators.has('rsi'))read.push('RSI14 '+fmt(rsi(closes),1));if(activeIndicators.has('macd')){let a=averages(bars,12,true),b=averages(bars,26,true);read.push('MACD '+(Number.isFinite(a.at(-1))&&Number.isFinite(b.at(-1))?fmt(a.at(-1)-b.at(-1),4):'dados insuficientes'))}if(activeIndicators.has('atr')){let tr=bars.slice(-14).map((x,i)=>{let prev=bars[bars.length-14+i-1]?.c??x.o;return Math.max(x.h-x.l,Math.abs(x.h-prev),Math.abs(x.l-prev))});read.push('ATR14 '+fmt(tr.reduce((a,b)=>a+b,0)/tr.length,4))}if(activeIndicators.has('volume')){const avg=v.slice(-21,-1).reduce((a,b)=>a+b,0)/Math.max(1,v.slice(-21,-1).length);read.push('Vol '+fmt(v.at(-1)/Math.max(1e-12,avg),2)+'×')}if(activeIndicators.has('triangles'))read.push(tri||'Triângulo não identificado');if(activeIndicators.has('lta'))read.push(loFit&&loFit.slope>0?'LTA candidata':'Sem LTA ascendente');if(activeIndicators.has('ltb'))read.push(hiFit&&hiFit.slope<0?'LTB candidata':'Sem LTB descendente');$('indicatorRead').textContent=read.join(' · ')||'Ative indicadores para exibir no gráfico.';
+}
+function draw(canvas,bars,cut=-1,levels=null,withIndicators=false){let box=canvas.parentElement,w=box.clientWidth,h=box.clientHeight;if(!w||!h)return;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);ctx.fillStyle='#0d1828';ctx.fillRect(0,0,w,h);if(!bars.length){ctx.fillStyle='#98afca';ctx.fillText('Carregue candles para exibir o gráfico',20,h/2);return}const L=12,R=66,T=18,B=31,ww=w-L-R,hh=h-T-B,hi=Math.max(...bars.map(x=>x.h),...(levels?levels.map(x=>x.v):[])),lo=Math.min(...bars.map(x=>x.l),...(levels?levels.map(x=>x.v):[])),pad=(hi-lo)*.075||1,max=hi+pad,min=lo-pad,yy=v=>T+(max-v)/(max-min)*hh;ctx.strokeStyle='#253b53';ctx.lineWidth=1;ctx.fillStyle='#95a9c5';ctx.font='11px system-ui';for(let i=0;i<=4;i++){let y=T+i*hh/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();ctx.fillText(fmt(max-i*(max-min)/4,max<1?6:2),w-R+5,y+4)}const dx=ww/bars.length,body=Math.max(1.5,dx*.66);bars.forEach((x,i)=>{let xx=L+dx*(i+.5),color=x.c>=x.o?'#31d5a0':'#ff7684';if(cut>=0&&i>cut)color=x.c>=x.o?'#6ba596':'#bc828a';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(xx,yy(x.h));ctx.lineTo(xx,yy(x.l));ctx.stroke();ctx.fillRect(xx-body/2,Math.min(yy(x.o),yy(x.c)),body,Math.max(1,Math.abs(yy(x.o)-yy(x.c))))});if(cut>=0){ctx.strokeStyle='#ffcf70';ctx.setLineDash([5,4]);ctx.beginPath();const xx=L+dx*(cut+1);ctx.moveTo(xx,T);ctx.lineTo(xx,T+hh);ctx.stroke();ctx.setLineDash([])}if(levels)for(const p of levels){ctx.strokeStyle=p.color;ctx.lineWidth=1.2;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(L,yy(p.v));ctx.lineTo(w-R,yy(p.v));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=p.color;ctx.fillText(p.name,L+6,Math.max(12,yy(p.v)-3))}if(withIndicators){drawIndicators(ctx,bars,{L,R,T,B,ww,hh,w,h,yy,dx});drawCandlePatterns(ctx,bars,{L,R,T,B,ww,hh,w,h,yy,dx})}ctx.fillStyle='#95a9c5';ctx.fillText(date(bars[0].t).split(' ')[0],L,h-9);ctx.fillText(date(bars.at(-1).t).split(' ')[0],Math.max(L,w-R-67),h-9)}
+function render(){let d=state.data,levels=null,p=state.plan;if(p){let isLong=p.bias.startsWith('LONG'),isShort=p.bias.startsWith('SHORT');if(isLong)levels=[{v:p.entryLong,name:'Gatilho LONG',color:'#6caaff'},{v:p.stopLong,name:'Stop hipotético',color:'#ff7684'},{v:p.targetLong,name:'Alvo hipotético',color:'#31d5a0'}];else if(isShort)levels=[{v:p.entryShort,name:'Gatilho SHORT',color:'#6caaff'},{v:p.stopShort,name:'Stop hipotético',color:'#ff7684'},{v:p.targetShort,name:'Alvo hipotético',color:'#31d5a0'}]}draw($('currentCanvas'),d.slice(activeIndicators.has('ema200')?230:85),-1,levels,true);let m=state.matches[state.idx];if(!m){draw($('matchCanvas'),[]);return}const n=Number($('window').value),h=Number($('horizon').value),before=Math.max(0,m.end-n+1-12),end=m.end+h,subset=d.slice(before,end+1);draw($('matchCanvas'),subset,m.end-before)}
+function reportText(){const d=state.data,m=state.matches,p=state.plan,h=Number($('horizon').value);if(!d.length)return'';let out=[`RELGPT — GRÁFICO INTELIGENTE EGI V1.9.15 — ESTUDO, NÃO ORDEM`,`Gerado: ${date(Date.now())} BRT`,`Fonte: ${state.source}`,`Tipo de análise: ${$('analysisMode').selectedOptions[0].textContent}` , `Indicadores ligados: ${[...activeIndicators].join(', ')}`,`Padrões de candles recentes: ${detectCandles(d.slice(-85)).filter(x=>activeIndicators.has(x.key)).slice(-12).map(x=>x.name+' '+date(x.t)).join(' | ')||'nenhum'}`,`Ativo: ${state.symbol} | TF: ${state.tf} | ${d.length} candles fechados`,`Último candle: ${date(d.at(-1).t+step())} (fechamento BRT) | Último preço: ${d.at(-1).c}`,`RSI14: ${fmt(rsi(d.slice(-150).map(x=>x.c)),2)}`,`Janela de similaridade: ${$('window').value} candles | Avaliação: ${h} candles posteriores`,`Método: retornos normalizados (78%), volume relativo (12%), RSI (10%). Score heurístico.`];if(m.length){let pos=m.filter(x=>x.ret>0).length,neg=m.filter(x=>x.ret<0).length;out.push(`Padrões históricos não sobrepostos: ${m.length} | Alta: ${pos} | Queda: ${neg} | Neutro: ${m.length-pos-neg}`,`Retorno médio histórico: ${pct(m.reduce((a,x)=>a+x.ret,0)/m.length)}`,...m.slice(0,5).map((x,i)=>`Caso ${i+1}: ${date(d[x.start].t)} | Similaridade ${fmt(x.similarity,1)}/100 | Posterior ${pct(x.ret)} | Máx. alta ${pct(x.mfe)} | Máx. queda ${pct(x.mae)}`))}if(p)out.push(`Parecer técnico exploratório: ${p.bias}; tendência MME9/21 ${p.trend}; suporte ${p.support}; resistência ${p.resist}; ATR ${p.atr}`,`LONG hipotético: gatilho ${p.entryLong}; stop ${p.stopLong}; alvo ${p.targetLong}`,`SHORT hipotético: gatilho ${p.entryShort}; stop ${p.stopShort}; alvo ${p.targetShort}`);out.push('Avisos: nenhuma ordem ou sinal confirmado; comparação histórica não é previsão; sem custos; amostra pequena, seleção dependente e risco de sobreajuste. SetupDT precisa confirmar separadamente.');return out.join('\n')}
+function makeReport(){$('report').value=reportText()}
+async function copy(){makeReport();if(!$('report').value){status('Sem dados para copiar.','warn');return}try{await navigator.clipboard.writeText($('report').value);status('RelGPT copiado.','good')}catch{$('report').focus();$('report').select();status('Selecione e copie o relatório manualmente (Ctrl+C).','warn')}}
+function history(){return kv('egi_grafico_history_v1')||[]}
+function histCount(){$('histCount').textContent=`${history().length} consultas salvas`}
+function save(){if(!state.data.length){status('Nenhuma consulta para salvar.','warn');return}let arr=history();arr.push({savedAt:new Date().toISOString(),symbol:state.symbol,tf:state.tf,source:state.source,report:reportText(),matches:state.matches.length});arr=arr.slice(-150);if(store('egi_grafico_history_v1',arr)){histCount();status('Consulta salva localmente no navegador.','good')}else status('Armazenamento indisponível. Exporte suas consultas.','warn')}
+function download(name,content){const a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type:'application/json;charset=utf-8'}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+function exportHistory(){download('Historico_Grafico_Inteligente_EGI.json',JSON.stringify({exportedAt:new Date().toISOString(),consultas:history()},null,2))}
+async function importCSV(file){if(!file)return;try{let s=await file.text(),lines=s.trim().split(/\r?\n/),rows=[];for(let line of lines){let x=line.trim().split(/[;,\t]/).map(y=>y.trim().replace(/^"|"$/g,''));if(x.length<6)continue;let t=/^\d+$/.test(x[0])?Number(x[0]):Date.parse(x[0]);if(t<1e11)t*=1000;const nums=x.slice(1,6).map(Number);if(!Number.isFinite(t)||nums.some(v=>!Number.isFinite(v)))continue;rows.push({t,o:nums[0],h:nums[1],l:nums[2],c:nums[3],v:nums[4]})}reset(rows,`CSV importado: ${file.name}`)}catch(e){status(`Falha ao importar CSV: ${e.message}`,'warn')}}
+function zoom(which){const el=which==='current'?$('currentCanvas').closest('.panel'):$('matchCanvas').closest('.panel');el.classList.toggle('expanded');if(el.classList.contains('expanded')){el.style.position='fixed';el.style.inset='10px';el.style.zIndex='10';el.style.margin='0';el.style.overflow='auto';el.querySelector('.chartWrap').style.height='min(76vh,850px)'}else{el.removeAttribute('style');el.querySelector('.chartWrap').style.removeProperty('height')}requestAnimationFrame(render)}
+$('apiServer').value=localStorage.getItem('egi_mexc_server_url')||'';
+$('apiServer').addEventListener('change',()=>{const v=$('apiServer').value.trim().replace(/\/+$/,'');if(v&&!/^https:\/\//i.test(v)&&!/^http:\/\/localhost(?::\d+)?$/i.test(v)){status('Servidor deve usar HTTPS (ou localhost para teste).','warn');return}localStorage.setItem('egi_mexc_server_url',v)});
+initSymbols();initializeIndicators();refreshSide();$('sideScan').onclick=scanSide;$('sideFilter').onchange=refreshSide;$('sideSearch').oninput=refreshSide;$('sideToggle').onclick=()=>{document.body.classList.add('sidebar-hidden');$('showSidebar').style.display='inline-block';render()};$('showSidebar').onclick=()=>{document.body.classList.remove('sidebar-hidden');$('showSidebar').style.display='none';render()};$('analysisMode').onchange=()=>{$('analysisDesc').textContent=analysisHelp[$('analysisMode').value];state.plan=null;$('planOutput').textContent='Análise alterada. Clique em Gerar plano.';makeReport();render()};$('addSymbol').onclick=addSymbol;$('removeSymbol').onclick=removeSymbol;$('newSymbol').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSymbol()}});$('load').onclick=load;$('analyze').onclick=findMatches;$('plan').onclick=plan;$('analyzeAll').onclick=async()=>{const btn=$('analyzeAll');btn.disabled=true;try{if(!state.data.length)await load();if(!state.data.length){status('Não há candles válidos. Confira a fonte ou importe CSV antes da análise completa.','warn');return}findMatches();plan();status(`Análise completa de ${state.symbol}: histórico e plano exploratório preparados. Confira as divergências e não trate como sinal confirmado.`,'good')}finally{btn.disabled=false}};$('prev').onclick=()=>{if(state.matches.length){state.idx=(state.idx-1+state.matches.length)%state.matches.length;renderMatches();render()}};$('next').onclick=()=>{if(state.matches.length){state.idx=(state.idx+1)%state.matches.length;renderMatches();render()}};$('copy').onclick=copy;$('save').onclick=save;$('export').onclick=exportHistory;$('csv').onchange=e=>importCSV(e.target.files?.[0]);$('cached').onclick=()=>{const key=`egi_bars_${$('exchange').value}_${$('symbol').value}_${$('tf').value}`,cached=kv(key);if(cached)try{reset(cached,'Cache local — última coleta da API')}catch(e){status(e.message,'warn')}else status('Não existe coleta salva para esta combinação.','warn')};$('clearHistory').onclick=()=>{if(confirm('Apagar todas as consultas locais salvas neste navegador?')){localStorage.removeItem('egi_grafico_history_v1');histCount()}};$('zoomCurrent').onclick=()=>zoom('current');$('zoomMatch').onclick=()=>zoom('match');window.addEventListener('resize',render);for(let id of ['symbol','tf','exchange'])$(id).addEventListener('change',()=>{state.data=[];state.matches=[];state.plan=null;state.source='';state.symbol='';$('last').textContent='—';$('rsi').textContent='—';$('ema').textContent='—';$('count').textContent='—';$('found').textContent='—';$('report').value='';$('planOutput').textContent='Colete os candles desta seleção.';$('summary').textContent='Aguardando nova coleta.';render();status('Seleção alterada: clique em “Coletar candles” para atualizar dados.')} );for(let id of ['window','horizon'])$(id).addEventListener('change',()=>{state.matches=[];state.idx=0;$('found').textContent='—';$('summary').textContent='Parâmetros alterados. Execute nova busca.';$('patternRows').innerHTML='<tr><td colspan="6">Execute nova busca</td></tr>';makeReport();render()});$('symbol').addEventListener('change',chooseMarketForSymbol);initBinanceCatalog();histCount();refreshSide();render();
+
+function egiZoneAnalysis(){
+ const el=document.getElementById('egiZoneResult'),d=state.data;
+ if(!d||d.length<80){el.textContent='AGUARDAR — primeiro colete pelo menos 80 candles fechados.';return ''}
+ const len=50,look=d.slice(-len-1,-1),current=d.at(-1),high=Math.max(...look.map(x=>x.h)),low=Math.min(...look.map(x=>x.l));
+ let tr=0;for(let i=d.length-15;i<d.length;i++){let x=d[i],prev=d[i-1].c;tr+=Math.max(x.h-x.l,Math.abs(x.h-prev),Math.abs(x.l-prev));}
+ const atr=tr/15,spread=high-low,position=spread>0?(current.c-low)/spread:0.5,above=current.c>high,below=current.c<low;
+ const volBase=look.slice(-20).reduce((sum,x)=>sum+x.v,0)/20,volRatio=volBase>0?current.v/volBase:null;
+ const quality=volRatio===null?'volume indisponível':volRatio>=1.2?'volume relativo elevado':'volume sem expansão confirmada';
+ const statusZone=above?'ROMPIMENTO SUPERIOR EM OBSERVAÇÃO':below?'PERDA DO SUPORTE EM OBSERVAÇÃO':position>.3&&position<.7?'MEIO DA FAIXA — AGUARDAR':position<=.3?'PERTO DO SUPORTE — AGUARDAR REAÇÃO':'PERTO DA RESISTÊNCIA — AGUARDAR REJEIÇÃO/ROMPIMENTO';
+ const text='ZONA DE DECISÃO EGI — '+state.symbol+' '+state.tf+'\nFonte: '+state.source+'\nEstado: '+statusZone+'\nSuporte: '+fmt(low,5)+' | Resistência: '+fmt(high,5)+'\nPreço fechado: '+fmt(current.c,5)+' | ATR aproximado: '+fmt(atr,5)+'\nPosição na faixa: '+fmt(position*100,1)+'% | '+quality+'\nCenário LONG: fechamento acima de '+fmt(high,5)+' com sustentação e validação de volume/risco.\nCenário SHORT: fechamento abaixo de '+fmt(low,5)+' com sustentação e validação de volume/risco.\nSem confirmação de rompimento por apenas um candle. Sinal depende de contexto multi-TF e SetupDT. Estudo, não ordem.';
+ el.textContent=text;window.egiZoneLast=text;return text;
+}
+document.getElementById('egiZoneBtn').addEventListener('click',egiZoneAnalysis);
+const egiOrigReset=reset;
+reset=function(...args){const out=egiOrigReset(...args);egiZoneAnalysis();return out};
+const egiOrigReport=reportText;
+reportText=function(){return egiOrigReport()+'\n\n'+(window.egiZoneLast||'Zonas de Decisão: ainda não analisadas.')};
+
+const egiVisualFiles={big:null,small:null},egiVisualUrls={big:null,small:null};
+function egiVisualPreview(key,file){
+ if(egiVisualUrls[key])URL.revokeObjectURL(egiVisualUrls[key]);
+ egiVisualUrls[key]=null;egiVisualFiles[key]=null;
+ const img=document.getElementById(key==='big'?'egiPreviewBig':'egiPreviewSmall');img.style.display='none';img.removeAttribute('src');
+ if(!file)return;
+ if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>12*1024*1024){status('Imagem inválida ou maior que 12 MB. Use PNG, JPG ou WEBP.','warn');return;}
+ egiVisualFiles[key]=file;egiVisualUrls[key]=URL.createObjectURL(file);img.src=egiVisualUrls[key];img.style.display='block';
+}
+document.getElementById('egiImgBig').onchange=e=>egiVisualPreview('big',e.target.files?.[0]);
+document.getElementById('egiImgSmall').onchange=e=>egiVisualPreview('small',e.target.files?.[0]);
+function egiVisualReport(){
+ const big=egiVisualFiles.big,small=egiVisualFiles.small;
+ const note=document.getElementById('egiVisualNote').value.trim();
+ const symbol=document.getElementById('symbol').value,tf=document.getElementById('tf').value;
+ const d=state.data||[],sameAsset=state.symbol===symbol&&state.tf===tf;
+ const facts=sameAsset&&d.length?('Candles numéricos disponíveis: '+d.length+'; fonte: '+state.source+'; último fechamento: '+fmt(d.at(-1).c,7)+'.'):'Sem coleta numérica validada para a seleção atual.';
+ const txt=[
+ 'ANALISTA VISUAL EGI V1.9.15 — PEDIDO DE PARECER; NÃO É ORDEM',
+ 'Ativo selecionado: '+symbol+' | TF selecionado no app: '+tf,
+ 'Print maior: '+(big?big.name:'NÃO ANEXADO')+' | Print curto: '+(small?small.name:'NÃO ANEXADO'),
+ facts,
+ 'Hipótese do usuário: '+(note||'nenhuma informada'),
+ 'Ao responder, examine as DUAS IMAGENS anexadas nesta conversa. Não presuma que os arquivos estão anexados só porque seus nomes constam deste texto.',
+ '1. Diferencie tendência maior e movimento curto; cite se os timeframes conflitam.',
+ '2. Identifique estrutura (topos/fundos), suportes, resistências, LTA/LTB, padrões e possíveis zonas de liquidez visíveis.',
+ '3. Analise candles fechados; não invente RSI, MACD, volume, order blocks ou preços ilegíveis no print.',
+ '4. Descreva dois cenários condicionais LONG e SHORT, gatilhos, invalidações e quando AGUARDAR.',
+ '5. Destaque armadilhas, riscos, informações ausentes e o que precisa ser confirmado pelo SetupDT.',
+ '6. Diferencie observação visual, dado numérico validado e hipótese. Não envie ordens.'
+ ].join('\n');
+ document.getElementById('egiVisualOutput').textContent=txt;
+ return txt;
+}
+document.getElementById('egiVisualPrepare').onclick=()=>{egiVisualReport();status('Roteiro preparado. Anexe os prints no ChatGPT para análise visual real.','good')};
+document.getElementById('egiVisualCopy').onclick=async()=>{let txt=egiVisualReport();try{await navigator.clipboard.writeText(txt);status('Roteiro copiado; anexe as duas imagens no ChatGPT.','good')}catch{status('Selecione o texto do roteiro e copie manualmente.','warn')}};
+document.getElementById('egiVisualClear').onclick=()=>{
+ for(const key of ['big','small']){if(egiVisualUrls[key])URL.revokeObjectURL(egiVisualUrls[key]);egiVisualUrls[key]=null;egiVisualFiles[key]=null;let img=document.getElementById(key==='big'?'egiPreviewBig':'egiPreviewSmall');img.removeAttribute('src');img.style.display='none'}
+ for(const id of ['egiImgBig','egiImgSmall','egiVisualNote'])document.getElementById(id).value='';
+ document.getElementById('egiVisualOutput').textContent='Inclua dois prints e clique em Preparar parecer.';
+};
+
+function egiAudit(){
+ const raw=document.getElementById('egiAuditTrades').value.trim(),out=document.getElementById('egiAuditOutput');
+ const capital=Number(document.getElementById('egiAuditCapital').value),limit=Number(document.getElementById('egiAuditLimit').value),conLimit=Number(document.getElementById('egiAuditConcentration').value);
+ if(!raw){out.textContent='Informe a sequência de resultados realizados (% por operação).';return out.textContent}
+ const parts=raw.split(/[\n;]+/).map(x=>x.trim()).filter(Boolean);
+ if(parts.length<2||parts.length>20000||!Number.isFinite(capital)||capital<=0||!Number.isFinite(limit)||limit<=0||limit>=100||!Number.isFinite(conLimit)||conLimit<=0||conLimit>100){out.textContent='Parâmetros inválidos; use 2 a 20.000 resultados e capital positivo.';return out.textContent}
+ const values=[];
+ for(const item of parts){const clean=item.replace(/%/g,'').replace(',','.').trim();if(!/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(clean)){out.textContent='Número inválido: '+item+'. Insira apenas percentuais, um por linha.';return out.textContent}let v=Number(clean);if(!Number.isFinite(v)||v<=-100||v>10000){out.textContent='Retorno fora dos limites admitidos: '+item;return out.textContent}values.push(v)}
+ let equity=capital,peak=capital,maxDD=0,win=0,profits=[],losses=[],totalP=0,totalL=0;
+ const tradePnls=[];
+ for(const pct of values){
+  const pnl=equity*pct/100;tradePnls.push(pnl);
+  if(pnl>0){win++;profits.push(pnl);totalP+=pnl}else if(pnl<0){losses.push(pnl);totalL-=pnl}
+  equity+=pnl;peak=Math.max(peak,equity);
+  maxDD=Math.max(maxDD,(peak-equity)/peak*100)
+ }
+ profits.sort((a,b)=>b-a);
+ const largestCount=Math.min(10,profits.length), top=profits.slice(0,largestCount).reduce((a,b)=>a+b,0);
+ const concentration=totalP>0?100*top/totalP:0;
+ const pf=totalL>0?(totalP/totalL).toFixed(2):(totalP>0?'infinito (sem perdas)':'não definido');
+ const net=equity-capital,returnPct=(equity/capital-1)*100;
+ const fmtA=n=>n.toLocaleString('pt-BR',{maximumFractionDigits:2});
+ const flags=[];
+ if(maxDD>=limit)flags.push('Drawdown superou o limite configurado.');
+ if(totalP>0&&concentration>=conLimit)flags.push('Alta concentração de lucro nos '+largestCount+' maiores trades vencedores.');
+ if(values.length<30)flags.push('Amostra pequena: menos de 30 operações.');
+ if(!flags.length)flags.push('Nenhum dos limites configurados foi ultrapassado; isso não valida a estratégia.');
+ const txt=[
+  'AUDITOR DE ESTRATÉGIAS EGI V1.9.15 — ESTUDO, NÃO ORDEM',
+  'Quantidade: '+values.length+' trades | Acerto: '+fmtA(100*win/values.length)+'%',
+  'Capital inicial: '+fmtA(capital)+' | final: '+fmtA(equity),
+  'Resultado composto: '+fmtA(returnPct)+'% | lucro líquido: '+fmtA(net),
+  'Máximo drawdown em fechamento de trade: '+fmtA(maxDD)+'% (não mede drawdown intratrade)',
+  'Fator de lucro em valores monetários: '+pf,
+  'Lucro bruto: '+fmtA(totalP)+' | perda bruta: '+fmtA(totalL),
+  'Concentração: '+fmtA(concentration)+'% do lucro bruto nos '+largestCount+' maiores trades ganhadores.',
+  'Alertas: '+flags.join(' '),
+  'Limites configurados: DD '+fmtA(limit)+'% | concentração '+fmtA(conLimit)+'%.',
+  'Premissas: retornos percentuais cronológicos, reinvestimento do saldo, sem aportes/retiradas ou custos extras.',
+  'Cuidado: o resultado muda ao retirar operações vencedoras; não conclua vantagem sem teste fora da amostra.'
+ ].join('\n');
+ out.textContent=txt;return txt;
+}
+document.getElementById('egiAuditBtn').onclick=egiAudit;
+document.getElementById('egiAuditCopy').onclick=async()=>{const v=egiAudit();try{await navigator.clipboard.writeText(v);status('Auditoria copiada.','good')}catch{status('Copie o texto manualmente.','warn')}};
+document.getElementById('egiAuditReset').onclick=()=>{document.getElementById('egiAuditTrades').value='';document.getElementById('egiAuditOutput').textContent='Nenhum resultado analisado.'};
+
+const EGI_OUTCOMES_KEY='egi_trade_outcomes_v1';
+function egiOutcomes(){const v=kv(EGI_OUTCOMES_KEY);return Array.isArray(v)?v:[]}
+function egiLoadSaved(){
+ const list=history(),sel=document.getElementById('egiSavedPick');
+ sel.innerHTML='<option value="">Selecione uma consulta</option>';
+ list.forEach((item,i)=>{
+ const o=document.createElement('option');o.value=String(i);
+ o.textContent=(i+1)+' · '+String(item.symbol||'?')+' '+String(item.tf||'?')+' · '+String(item.savedAt||'sem data').slice(0,19);
+ sel.appendChild(o);
+ });
+ document.getElementById('egiSavedStatus').textContent=list.length+' consultas salvas neste navegador; '+egiOutcomes().length+' resultados registrados. Consultas não significam ordens executadas.';
+}
+function egiRecordReturn(){
+ const id=document.getElementById('egiSavedPick').value, raw=document.getElementById('egiSavedReturn').value;
+ const list=history(),idx=Number(id),p=Number(raw);
+ if(id===''||!Number.isInteger(idx)||idx<0||idx>=list.length||raw.trim()===''||!Number.isFinite(p)||p<=-100||p>10000){status('Selecione uma consulta e informe um resultado percentual válido.','warn');return}
+ const row=list[idx],key=[row.savedAt,row.symbol,row.tf].join('|'),out=egiOutcomes();
+ const entry={key,date:row.savedAt||'',symbol:row.symbol||'',tf:row.tf||'',returnPct:p,registeredAt:new Date().toISOString(),origin:'resultado informado manualmente'};
+ const at=out.findIndex(x=>x.key===key);
+ if(at>=0)out[at]=entry;else out.push(entry);
+ if(!store(EGI_OUTCOMES_KEY,out)){status('Falha ao salvar localmente.','warn');return}
+ document.getElementById('egiSavedStatus').textContent='Resultado registrado para '+entry.symbol+'. Total de resultados: '+out.length+'.';
+}
+function egiPullOutcomes(){
+ const o=egiOutcomes().filter(x=>Number.isFinite(Number(x.returnPct))&&x.date).sort((a,b)=>a.date.localeCompare(b.date));
+ if(o.length<2){status('É necessário registrar pelo menos dois resultados reais para calcular métricas.','warn');return}
+ document.getElementById('egiAuditTrades').value=o.map(x=>Number(x.returnPct)).join('\n');
+ egiAudit();
+ document.getElementById('egiSavedStatus').textContent=o.length+' resultados informados pelo usuário carregados, ordenados pela data da consulta. Confira a ordem real das operações antes de usar o drawdown.';
+}
+document.getElementById('egiLoadSaved').onclick=egiLoadSaved;
+document.getElementById('egiRecordReturn').onclick=egiRecordReturn;
+document.getElementById('egiPullOutcomes').onclick=egiPullOutcomes;
+egiLoadSaved();
+
+const EGI_IMPORTED_KEY='egi_setupdt_import_v1';
+function egiImported(){const v=kv(EGI_IMPORTED_KEY);return Array.isArray(v)?v:[]}
+function egiSafeText(x){return String(x??'').slice(0,200)}
+function egiParseCSV(raw){
+ const lines=raw.replace(/^\uFEFF/,'').trim().split(/\r?\n/).filter(Boolean);
+ if(lines.length<2)throw Error('CSV sem registros.');
+ const sep=(lines[0].split(';').length>lines[0].split(',').length)?';':',';
+ const rows=lines.map(line=>{let q=false,cur='',out=[];for(let i=0;i<line.length;i++){let c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}else if(c===sep&&!q){out.push(cur);cur=''}else cur+=c}out.push(cur);return out});
+ const headers=rows[0].map(x=>x.trim().toLowerCase()); const id=n=>headers.indexOf(n);
+ const asset=id('ativo')>=0?id('ativo'):id('asset'), ret=id('resultado_pct')>=0?id('resultado_pct'):id('return_pct'),date=id('saida_data')>=0?id('saida_data'):id('exit_time'),state=id('status');
+ if(asset<0||ret<0||date<0||state<0)throw Error('CSV requer ativo/asset, resultado_pct/return_pct, saida_data/exit_time, status.');
+ return rows.slice(1).map(x=>({asset:x[asset],result:x[ret],date:x[date],status:x[state]}));
+}
+async function egiImportSetup(file){
+ const box=document.getElementById('egiSetupImportStatus');if(!file)return;
+ if(file.size>6*1024*1024){box.textContent='Arquivo acima de 6 MB. Divida o histórico.';return}
+ try{
+ const raw=await file.text(),csv=/\.csv$/i.test(file.name),data=csv?egiParseCSV(raw):JSON.parse(raw);
+ if(!Array.isArray(data))throw Error('Formato esperado: lista JSON de eventos ou CSV de operações.');
+ if(data.length>20000)throw Error('Máximo de 20.000 registros por arquivo.');
+ const signals=[],closed=[],rejected=[];
+ for(let i=0;i<data.length;i++){
+  const x=data[i];if(!x||typeof x!=='object'||Array.isArray(x)){rejected.push(i+1);continue}
+  const symbol=egiSafeText(x.asset||x.symbol||x.ativo||x.coin||'').toUpperCase();
+  const statusIn=egiSafeText(x.status||x.state||'').toUpperCase();
+  const rawReturn=x.result??x.resultado_pct??x.return_pct??x.returnPct;
+  const end=x.date||x.exit_time||x.saida_data||x.closedAt||'';
+  if(!symbol){rejected.push(i+1);continue}
+  const hasReturn=rawReturn!==undefined&&rawReturn!==null&&String(rawReturn).trim()!=='';
+  const val=hasReturn?Number(String(rawReturn).replace(',','.')):NaN;
+  const isClosed=['CLOSED','ENCERRADA','ENCERRADO','FECHADA','FECHADO'].includes(statusIn);
+  if(isClosed&&Number.isFinite(val)&&val>-100&&val<=10000&&end&&!Number.isNaN(Date.parse(end))){
+    closed.push({asset:symbol,returnPct:val,date:new Date(end).toISOString(),status:'ENCERRADA',source:'SetupDT importado'});
+  } else {
+    signals.push({asset:symbol,direction:egiSafeText(x.direction||x.side||''),detected:egiSafeText(x.detected||x.time||x.timestamp||''),status:statusIn||'SINAL',source:'SetupDT importado'});
+  }
+ }
+ const prior=egiImported(),all=prior.concat(signals).slice(-3000);
+ if(!store(EGI_IMPORTED_KEY,all))throw Error('Falha ao gravar sinais no navegador.');
+ let appended=0;
+ if(closed.length){
+ const old=egiOutcomes(),seen=new Set(old.map(x=>x.key));
+ for(const x of closed){const key=['setupdt-import',x.asset,x.date,x.returnPct].join('|');if(!seen.has(key)){old.push({key,symbol:x.asset,date:x.date,returnPct:x.returnPct,origin:'SetupDT importado: CSV/JSON',registeredAt:new Date().toISOString()});seen.add(key);appended++}}
+ if(!store(EGI_OUTCOMES_KEY,old))throw Error('Falha ao gravar operações encerradas.');
+ }
+ box.textContent='Arquivo: '+file.name+'\nSinais/observações sem resultado liquidado: '+signals.length+'\nOperações encerradas válidas importadas: '+appended+'\nLinhas ignoradas: '+rejected.length+'\nSinais não contam como operações. Para calcular métricas, use “Usar resultados registrados”.';
+ egiLoadSaved();
+ }catch(e){box.textContent='Importação recusada: '+e.message+'. Nenhum preço foi inventado.'}
+}
+document.getElementById('egiSetupImport').addEventListener('change',e=>egiImportSetup(e.target.files?.[0]));
+document.getElementById('egiExportImported').onclick=()=>{
+ const data=egiImported();if(!data.length){status('Ainda não existem sinais importados.','warn');return}
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='EGI_sinais_importados.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+};
+</script></body></html>
