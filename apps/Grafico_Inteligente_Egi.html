@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gráfico Inteligente EGI V1.9.13 — Binance Spot + Futuros</title>
+<title>Gráfico Inteligente EGI V1.9.14 — Binance Spot + Futuros</title>
 <style>
 :root{color-scheme:dark;--bg:#0a1120;--panel:#111d31;--panel2:#182940;--stroke:#2b4059;--text:#eaf2fc;--muted:#98afca;--green:#31d5a0;--red:#ff7684;--yellow:#ffcf70;--blue:#6caaff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,Arial}header{padding:16px 20px;background:#111d31;border-bottom:1px solid var(--stroke);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}h1{font-size:19px;margin:0}h2{font-size:16px;margin:0 0 12px}h3{font-size:14px;margin:0 0 8px}p{line-height:1.5}small,.muted{color:var(--muted)}.indicator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;margin-top:12px}.indicator-grid label{font-size:12px;display:flex;align-items:center;gap:7px;background:#182940;border:1px solid #2b4059;border-radius:8px;padding:9px;cursor:pointer}.indicator-grid input{accent-color:#6caaff;cursor:pointer}main{max-width:1600px;margin:auto;padding:16px}.controls{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.controls label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}input,select,button,textarea{font:inherit;color:var(--text);background:#14243a;border:1px solid var(--stroke);border-radius:8px;padding:9px 11px}select{min-width:90px}button{cursor:pointer;font-weight:600}button:hover{background:#244366}button.primary{background:#245a93;border-color:#377fc6}button:disabled{opacity:.5;cursor:wait}.panel{background:var(--panel);border:1px solid var(--stroke);border-radius:12px;padding:15px;margin-bottom:13px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.metric{padding:10px;border-radius:9px;background:var(--panel2)}.metric strong{display:block;font-size:17px;margin-top:5px}.tag{border:1px solid var(--stroke);border-radius:100px;padding:4px 9px;color:var(--muted);font-size:12px}.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}.chartWrap{position:relative;width:100%;height:300px}canvas{display:block;width:100%;height:100%;touch-action:pan-y}.legend{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid var(--stroke);padding:9px;text-align:left}th{color:var(--muted)}.overflow{overflow:auto}textarea{width:100%;min-height:145px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12px}details>summary{cursor:pointer;font-weight:600;margin-bottom:10px}#status{min-height:23px;line-height:1.5}.hint{padding:10px 12px;border-left:3px solid var(--yellow);background:#302719;border-radius:6px;color:#f6dfb3}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.kpi{font-weight:700}.footer{font-size:12px;color:var(--muted);text-align:center;padding:14px}.patternTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}input[type=file]{max-width:240px}.lines{line-height:1.8}@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.chartWrap{height:275px}main{padding:9px}.panel{padding:11px}}
 
 .workspace{display:grid;grid-template-columns:265px minmax(0,1fr);gap:12px;max-width:1770px;margin:auto;padding:12px}.workspace main{min-width:0;padding:0}.sidebar{align-self:start;position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto}.sidebar label{display:block;margin:10px 0 5px;color:var(--muted);font-size:12px}.sidebar select,.sidebar input{width:100%}.side-list{display:flex;flex-direction:column;gap:5px;margin-top:10px}.coin{display:flex;width:100%;justify-content:space-between;text-align:left;gap:5px;font-size:12px;align-items:center;padding:8px}.coin.active{outline:1px solid var(--blue)}.coin small{display:block;font-size:10px}.side-note{font-size:11px;color:var(--muted);line-height:1.5}.mini-status{font-size:12px;color:var(--muted);margin:8px 0}.analysis-desc{font-size:12px;color:var(--muted);margin-top:6px}body.sidebar-hidden .workspace{grid-template-columns:1fr}body.sidebar-hidden .sidebar{display:none}@media(max-width:1000px){.workspace{grid-template-columns:1fr}.sidebar{position:static;max-height:none}.side-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}} 
 </style>
 </head><body>
-<header><div><h1>📈 Gráfico Inteligente EGI <span class="tag">V1.9.13 · Importação SetupDT</span></h1><small>Candles fechados · sem ordens · análise estatística exploratória</small></div><span class="tag" id="sourceBadge">Fonte: aguardando coleta</span></header>
+<header><div><h1>📈 Gráfico Inteligente EGI <span class="tag">V1.9.14 · Importação SetupDT</span></h1><small>Candles fechados · sem ordens · análise estatística exploratória</small></div><span class="tag" id="sourceBadge">Fonte: aguardando coleta</span></header>
 <div class="workspace"><aside class="sidebar panel" id="sidebar"><h2>🔎 Garimpo de moedas</h2><p class="side-note">Pesquisa somente as moedas cadastradas, usando candles fechados. Sem sinais operacionais.</p><label for="sideFilter">Critério de seleção</label><select id="sideFilter"><option value="all">Todas / ordem por força recente</option><option value="bull">MME9 acima da MME21</option><option value="bear">MME9 abaixo da MME21</option><option value="oversold">RSI abaixo de 35</option><option value="overbought">RSI acima de 65</option><option value="rise">Alta nos últimos 5 candles</option><option value="fall">Queda nos últimos 5 candles</option><option value="volume">Volume acima da média 20</option></select><label for="sideSearch">Localizar na lista</label><input id="sideSearch" placeholder="BTC, SOL, LINK..."><div class="row" style="margin-top:9px"><button id="sideScan" class="primary" style="flex:1">↻ Varredura</button><button id="sideToggle" title="Recolher lateral" type="button">◂</button></div><div id="sideStatus" class="mini-status">Clique em Varredura para avaliar a lista.</div><div id="sideList" class="side-list"></div><p class="side-note">Os filtros dependem dos dados carregados nesta varredura. Falhas de API são exibidas, não classificadas como sinal.</p></aside><main><div class="row" style="margin-bottom:8px"><button id="showSidebar" style="display:none">☰ Abrir garimpo lateral</button></div>
 <section class="panel"><div class="controls">
 <label>Moeda<select id="symbol"><option>BTCUSDT</option><option>ETHUSDT</option><option>SOLUSDT</option><option>LINKUSDT</option><option>ZECUSDT</option><option>PEPEUSDT</option></select></label>
@@ -76,7 +76,7 @@ const pct=(n)=>Number.isFinite(n)?`${n>=0?'+':''}${fmt(n*100,2)}%`:'—';
 const date=(ms)=>new Date(ms).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',dateStyle:'short',timeStyle:'short'});
 const step=()=>({'5m':300000,'15m':900000,'1h':3600000,'4h':14400000})[$('tf').value];
 function status(s,kind=''){const el=$('status');el.textContent=s;el.className=kind||'muted'}
-const defaultSymbols=['BTCUSDT','ETHUSDT','SOLUSDT','LINKUSDT','ZECUSDT','PEPEUSDT'];
+const defaultSymbols=['BTCUSDT','ETHUSDT','SOLUSDT','LINKUSDT','ZECUSDT','PEPEUSDT','CLUSDT','BZUSDT','SPCXUSDT','MUUSDT','SNDKUSDT'];
 const externalDefaults=['XAUUSD','GOLD','XTIUSD','USOIL','UKOIL','BRENT','SPCX','SPCS','MU','SNDK'];
 const externalKey='egi_grafico_external_v1';
 function externalSymbols(){return kv(externalKey)||externalDefaults}
@@ -90,7 +90,7 @@ function initSymbols(){
  // Migra listas antigas (que guardavam apenas extras) sem perder cadastros.
  const list=Array.isArray(saved)&&saved.every(x=>typeof x==='string')?
    (saved.some(x=>base.includes(x))?[...new Set(saved)]:[...new Set([...base,...saved])]):base;
- const clean=list.filter(x=>/^[A-Z0-9]{2,24}$/.test(x));
+ const clean=[...new Set([...list,'CLUSDT','BZUSDT','SPCXUSDT','MUUSDT','SNDKUSDT'])].filter(x=>/^[A-Z0-9]{2,24}$/.test(x));
  $('symbol').replaceChildren();
  for(const sym of clean)$('symbol').add(new Option(sym,sym));
  if(!$('symbol').options.length)$('symbol').add(new Option('BTCUSDT','BTCUSDT'));
@@ -137,6 +137,10 @@ function updateMetrics(){const d=state.data;if(!d.length)return;let a=d.map(x=>x
 async function fetchJson(url){const ac=new AbortController(),tid=setTimeout(()=>ac.abort(),11000);try{let r=await fetch(url,{signal:ac.signal,cache:'no-store'});if(!r.ok)throw Error(`HTTP ${r.status}`);let j=await r.json();if(!Array.isArray(j))throw Error(j.msg||'Resposta inesperada');return j}finally{clearTimeout(tid)}}
 const exchangeName={binance:'Binance Spot',binance_futures:'Binance Futuros USDⓈ-M',mexc:'MEXC Spot',mexc_futures:'MEXC Futuros',bybit_spot:'Bybit Spot',bybit_linear:'Bybit Futuros USDT'};
 function marketSymbol(symbol,ex){
+  if(ex==='binance_futures'){
+    const listed={WTI:'CLUSDT',CL:'CLUSDT',USOIL:'CLUSDT',BRENT:'BZUSDT',BZ:'BZUSDT',SPCX:'SPCXUSDT',MU:'MUUSDT',SNDK:'SNDKUSDT'};
+    return listed[symbol]||symbol;
+  }
   if(ex==='mexc_futures'){
     const special={UKOIL:'UKOIL_USDT',BRENT:'UKOIL_USDT',USOIL:'USOIL_USDT',XAUUSD:'XAU_USDT',GOLD:'XAU_USDT'};
     // BRENT é o nome comercial OIL(BRENT) usado pela MEXC para o contrato UKOIL_USDT.\n    // É um futuro perpétuo, não a cotação spot do petróleo Brent.
@@ -198,8 +202,9 @@ async function marketCandles(symbol,tf,ex,limit=1000){
 }
 // Route only well-identified asset classes. An external symbol is NOT evidence that a contract is listed.
 function recommendedMarket(symbol){
-  if(['UKOIL','USOIL','XAUUSD','GOLD'].includes(symbol))return 'mexc_futures';
-  if(['SPCX','SPCS','MU','SNDK','XTIUSD'].includes(symbol))return 'bybit_linear';
+  if(['CLUSDT','BZUSDT','SPCXUSDT','MUUSDT','SNDKUSDT','WTI','CL','USOIL','BRENT','BZ','SPCX','MU','SNDK'].includes(symbol))return 'binance_futures';
+  if(['UKOIL','XAUUSD','GOLD'].includes(symbol))return 'mexc_futures';
+  if(['SPCS','XTIUSD'].includes(symbol))return 'bybit_linear';
   return null;
 }
 
@@ -289,7 +294,7 @@ async function scanSide(){
    const sym=syms[i];
    $('sideStatus').textContent='Varredura '+(i+1)+'/'+syms.length+' · '+ok+' analisados · '+skip+' fora do escopo · '+fail+' falhas';
    // Ativos externos permanecem cadastrados, mas não contaminam o garimpo Binance automático.
-   if(selected==='auto'&&isExternal(sym)){
+   if(selected==='auto'&&isExternal(sym)&&recommendedMarket(sym)!=='binance_futures'){
     sideState.rows.push({symbol:sym,skipped:true,reason:'Ativo externo preservado. Selecione o mercado específico para análise individual.'});
     skip++;refreshSide();continue;
    }
@@ -297,7 +302,7 @@ async function scanSide(){
     let result;
     if(selected==='auto'){
      let lastError;
-     for(const market of ['binance','binance_futures']){
+     for(const market of (recommendedMarket(sym)==='binance_futures'?['binance_futures']:['binance','binance_futures'])){
       try{
        const raw=await marketCandles(sym,tf,market,90),candles=barsClean(raw,interval);
        if(candles.length<30)throw Error('Candles insuficientes');
@@ -359,7 +364,7 @@ const closes=bars.map(x=>x.c),v=bars.map(x=>x.v),read=[];if(activeIndicators.has
 }
 function draw(canvas,bars,cut=-1,levels=null,withIndicators=false){let box=canvas.parentElement,w=box.clientWidth,h=box.clientHeight;if(!w||!h)return;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);ctx.fillStyle='#0d1828';ctx.fillRect(0,0,w,h);if(!bars.length){ctx.fillStyle='#98afca';ctx.fillText('Carregue candles para exibir o gráfico',20,h/2);return}const L=12,R=66,T=18,B=31,ww=w-L-R,hh=h-T-B,hi=Math.max(...bars.map(x=>x.h),...(levels?levels.map(x=>x.v):[])),lo=Math.min(...bars.map(x=>x.l),...(levels?levels.map(x=>x.v):[])),pad=(hi-lo)*.075||1,max=hi+pad,min=lo-pad,yy=v=>T+(max-v)/(max-min)*hh;ctx.strokeStyle='#253b53';ctx.lineWidth=1;ctx.fillStyle='#95a9c5';ctx.font='11px system-ui';for(let i=0;i<=4;i++){let y=T+i*hh/4;ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(w-R,y);ctx.stroke();ctx.fillText(fmt(max-i*(max-min)/4,max<1?6:2),w-R+5,y+4)}const dx=ww/bars.length,body=Math.max(1.5,dx*.66);bars.forEach((x,i)=>{let xx=L+dx*(i+.5),color=x.c>=x.o?'#31d5a0':'#ff7684';if(cut>=0&&i>cut)color=x.c>=x.o?'#6ba596':'#bc828a';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(xx,yy(x.h));ctx.lineTo(xx,yy(x.l));ctx.stroke();ctx.fillRect(xx-body/2,Math.min(yy(x.o),yy(x.c)),body,Math.max(1,Math.abs(yy(x.o)-yy(x.c))))});if(cut>=0){ctx.strokeStyle='#ffcf70';ctx.setLineDash([5,4]);ctx.beginPath();const xx=L+dx*(cut+1);ctx.moveTo(xx,T);ctx.lineTo(xx,T+hh);ctx.stroke();ctx.setLineDash([])}if(levels)for(const p of levels){ctx.strokeStyle=p.color;ctx.lineWidth=1.2;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(L,yy(p.v));ctx.lineTo(w-R,yy(p.v));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=p.color;ctx.fillText(p.name,L+6,Math.max(12,yy(p.v)-3))}if(withIndicators){drawIndicators(ctx,bars,{L,R,T,B,ww,hh,w,h,yy,dx});drawCandlePatterns(ctx,bars,{L,R,T,B,ww,hh,w,h,yy,dx})}ctx.fillStyle='#95a9c5';ctx.fillText(date(bars[0].t).split(' ')[0],L,h-9);ctx.fillText(date(bars.at(-1).t).split(' ')[0],Math.max(L,w-R-67),h-9)}
 function render(){let d=state.data,levels=null,p=state.plan;if(p){let isLong=p.bias.startsWith('LONG'),isShort=p.bias.startsWith('SHORT');if(isLong)levels=[{v:p.entryLong,name:'Gatilho LONG',color:'#6caaff'},{v:p.stopLong,name:'Stop hipotético',color:'#ff7684'},{v:p.targetLong,name:'Alvo hipotético',color:'#31d5a0'}];else if(isShort)levels=[{v:p.entryShort,name:'Gatilho SHORT',color:'#6caaff'},{v:p.stopShort,name:'Stop hipotético',color:'#ff7684'},{v:p.targetShort,name:'Alvo hipotético',color:'#31d5a0'}]}draw($('currentCanvas'),d.slice(activeIndicators.has('ema200')?230:85),-1,levels,true);let m=state.matches[state.idx];if(!m){draw($('matchCanvas'),[]);return}const n=Number($('window').value),h=Number($('horizon').value),before=Math.max(0,m.end-n+1-12),end=m.end+h,subset=d.slice(before,end+1);draw($('matchCanvas'),subset,m.end-before)}
-function reportText(){const d=state.data,m=state.matches,p=state.plan,h=Number($('horizon').value);if(!d.length)return'';let out=[`RELGPT — GRÁFICO INTELIGENTE EGI V1.9.13 — ESTUDO, NÃO ORDEM`,`Gerado: ${date(Date.now())} BRT`,`Fonte: ${state.source}`,`Tipo de análise: ${$('analysisMode').selectedOptions[0].textContent}` , `Indicadores ligados: ${[...activeIndicators].join(', ')}`,`Padrões de candles recentes: ${detectCandles(d.slice(-85)).filter(x=>activeIndicators.has(x.key)).slice(-12).map(x=>x.name+' '+date(x.t)).join(' | ')||'nenhum'}`,`Ativo: ${state.symbol} | TF: ${state.tf} | ${d.length} candles fechados`,`Último candle: ${date(d.at(-1).t+step())} (fechamento BRT) | Último preço: ${d.at(-1).c}`,`RSI14: ${fmt(rsi(d.slice(-150).map(x=>x.c)),2)}`,`Janela de similaridade: ${$('window').value} candles | Avaliação: ${h} candles posteriores`,`Método: retornos normalizados (78%), volume relativo (12%), RSI (10%). Score heurístico.`];if(m.length){let pos=m.filter(x=>x.ret>0).length,neg=m.filter(x=>x.ret<0).length;out.push(`Padrões históricos não sobrepostos: ${m.length} | Alta: ${pos} | Queda: ${neg} | Neutro: ${m.length-pos-neg}`,`Retorno médio histórico: ${pct(m.reduce((a,x)=>a+x.ret,0)/m.length)}`,...m.slice(0,5).map((x,i)=>`Caso ${i+1}: ${date(d[x.start].t)} | Similaridade ${fmt(x.similarity,1)}/100 | Posterior ${pct(x.ret)} | Máx. alta ${pct(x.mfe)} | Máx. queda ${pct(x.mae)}`))}if(p)out.push(`Parecer técnico exploratório: ${p.bias}; tendência MME9/21 ${p.trend}; suporte ${p.support}; resistência ${p.resist}; ATR ${p.atr}`,`LONG hipotético: gatilho ${p.entryLong}; stop ${p.stopLong}; alvo ${p.targetLong}`,`SHORT hipotético: gatilho ${p.entryShort}; stop ${p.stopShort}; alvo ${p.targetShort}`);out.push('Avisos: nenhuma ordem ou sinal confirmado; comparação histórica não é previsão; sem custos; amostra pequena, seleção dependente e risco de sobreajuste. SetupDT precisa confirmar separadamente.');return out.join('\n')}
+function reportText(){const d=state.data,m=state.matches,p=state.plan,h=Number($('horizon').value);if(!d.length)return'';let out=[`RELGPT — GRÁFICO INTELIGENTE EGI V1.9.14 — ESTUDO, NÃO ORDEM`,`Gerado: ${date(Date.now())} BRT`,`Fonte: ${state.source}`,`Tipo de análise: ${$('analysisMode').selectedOptions[0].textContent}` , `Indicadores ligados: ${[...activeIndicators].join(', ')}`,`Padrões de candles recentes: ${detectCandles(d.slice(-85)).filter(x=>activeIndicators.has(x.key)).slice(-12).map(x=>x.name+' '+date(x.t)).join(' | ')||'nenhum'}`,`Ativo: ${state.symbol} | TF: ${state.tf} | ${d.length} candles fechados`,`Último candle: ${date(d.at(-1).t+step())} (fechamento BRT) | Último preço: ${d.at(-1).c}`,`RSI14: ${fmt(rsi(d.slice(-150).map(x=>x.c)),2)}`,`Janela de similaridade: ${$('window').value} candles | Avaliação: ${h} candles posteriores`,`Método: retornos normalizados (78%), volume relativo (12%), RSI (10%). Score heurístico.`];if(m.length){let pos=m.filter(x=>x.ret>0).length,neg=m.filter(x=>x.ret<0).length;out.push(`Padrões históricos não sobrepostos: ${m.length} | Alta: ${pos} | Queda: ${neg} | Neutro: ${m.length-pos-neg}`,`Retorno médio histórico: ${pct(m.reduce((a,x)=>a+x.ret,0)/m.length)}`,...m.slice(0,5).map((x,i)=>`Caso ${i+1}: ${date(d[x.start].t)} | Similaridade ${fmt(x.similarity,1)}/100 | Posterior ${pct(x.ret)} | Máx. alta ${pct(x.mfe)} | Máx. queda ${pct(x.mae)}`))}if(p)out.push(`Parecer técnico exploratório: ${p.bias}; tendência MME9/21 ${p.trend}; suporte ${p.support}; resistência ${p.resist}; ATR ${p.atr}`,`LONG hipotético: gatilho ${p.entryLong}; stop ${p.stopLong}; alvo ${p.targetLong}`,`SHORT hipotético: gatilho ${p.entryShort}; stop ${p.stopShort}; alvo ${p.targetShort}`);out.push('Avisos: nenhuma ordem ou sinal confirmado; comparação histórica não é previsão; sem custos; amostra pequena, seleção dependente e risco de sobreajuste. SetupDT precisa confirmar separadamente.');return out.join('\n')}
 function makeReport(){$('report').value=reportText()}
 async function copy(){makeReport();if(!$('report').value){status('Sem dados para copiar.','warn');return}try{await navigator.clipboard.writeText($('report').value);status('RelGPT copiado.','good')}catch{$('report').focus();$('report').select();status('Selecione e copie o relatório manualmente (Ctrl+C).','warn')}}
 function history(){return kv('egi_grafico_history_v1')||[]}
@@ -409,7 +414,7 @@ function egiVisualReport(){
  const d=state.data||[],sameAsset=state.symbol===symbol&&state.tf===tf;
  const facts=sameAsset&&d.length?('Candles numéricos disponíveis: '+d.length+'; fonte: '+state.source+'; último fechamento: '+fmt(d.at(-1).c,7)+'.'):'Sem coleta numérica validada para a seleção atual.';
  const txt=[
- 'ANALISTA VISUAL EGI V1.9.13 — PEDIDO DE PARECER; NÃO É ORDEM',
+ 'ANALISTA VISUAL EGI V1.9.14 — PEDIDO DE PARECER; NÃO É ORDEM',
  'Ativo selecionado: '+symbol+' | TF selecionado no app: '+tf,
  'Print maior: '+(big?big.name:'NÃO ANEXADO')+' | Print curto: '+(small?small.name:'NÃO ANEXADO'),
  facts,
@@ -461,7 +466,7 @@ function egiAudit(){
  if(values.length<30)flags.push('Amostra pequena: menos de 30 operações.');
  if(!flags.length)flags.push('Nenhum dos limites configurados foi ultrapassado; isso não valida a estratégia.');
  const txt=[
-  'AUDITOR DE ESTRATÉGIAS EGI V1.9.13 — ESTUDO, NÃO ORDEM',
+  'AUDITOR DE ESTRATÉGIAS EGI V1.9.14 — ESTUDO, NÃO ORDEM',
   'Quantidade: '+values.length+' trades | Acerto: '+fmtA(100*win/values.length)+'%',
   'Capital inicial: '+fmtA(capital)+' | final: '+fmtA(equity),
   'Resultado composto: '+fmtA(returnPct)+'% | lucro líquido: '+fmtA(net),
