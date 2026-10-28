@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f1d30">
+<title>QNT EGI V1.3 — Laboratório de Robustez</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1422;--panel:#17263b;--border:#344b65;--text:#f0f5fb;--muted:#b1c4d8;--good:#69dec0;--bad:#ff9292;--gold:#f1cd76}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#172b46,#0b1422 55%);font:15px/1.55 system-ui,Arial,sans-serif;color:var(--text)}
+main{max-width:1060px;margin:auto;padding:14px}h1{font-size:clamp(1.5rem,4vw,2rem);margin:8px 0}h2{font-size:1.12rem;margin:0 0 8px}p{margin:7px 0 12px}
+a{color:#b6d8ff}.small{font-size:.85rem;color:var(--muted)}
+.box{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:15px;margin:12px 0}
+.warn{border-left:4px solid var(--gold);background:#292920}.good{color:var(--good)}.bad{color:var(--bad)}
+.tag{display:inline-block;padding:3px 9px;border:1px solid #479d9e;border-radius:100px;color:#9af2df;font-size:.8rem;margin:6px 0}
+.controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+button{cursor:pointer;border:1px solid #4c7893;border-radius:10px;background:#234865;color:white;padding:11px 14px;font:inherit;font-weight:600;min-height:45px}
+button.primary{background:#137066;border-color:#40bfaa}button:disabled{opacity:.5;cursor:wait}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:#102037;border-radius:10px;padding:11px}.stat strong{display:block;font-size:1.16rem}.stat small{color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:.85rem}td,th{padding:9px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{color:#c3d5e8}
+.scroll{overflow:auto}.nowrap{white-space:nowrap}tr.group td{background:#213650;font-weight:bold}
+label{display:flex;gap:8px;align-items:start;margin:8px 0}
+#status{min-height:22px;white-space:pre-wrap}.foot{font-size:.81rem;color:var(--muted);padding:12px 0 25px}
+textarea{width:100%;min-height:190px;resize:vertical;border:1px solid #4a6179;border-radius:9px;background:#0b1828;color:#d9eafa;padding:10px;font-size:.8rem}
+details{margin-top:10px}summary{cursor:pointer;color:#cae2ff}button:focus-visible,a:focus-visible{outline:3px solid #f2d37a}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.box{padding:12px}table{font-size:.77rem}td,th{padding:8px 6px}.controls button{flex:1}}
+</style>
+</head>
+<body><main>
+<nav class="small"><a href="../index.html">← DiaHoje</a> · <a href="Simulador_QNT_EGI_V1_2.html">Comparador V1.2 preservado</a></nav>
+<h1>🧪 QNT EGI V1.3 — Robustez</h1>
+<div class="tag">LABORATÓRIO · 100% FICTÍCIO · SOMENTE SPOT</div>
+<p>Configuração <b>3 confirmações + 2 candles 4h de descanso</b>, congelada a partir da avaliação de 28/10/2026. Não ajustamos os parâmetros para melhorar resultados antigos.</p>
+<div class="box warn">
+<b>Não envia ordens, não usa chaves Binance e não opera em segundo plano.</b>
+O ganho do 3+2 no histórico original não comprova vantagem futura. Aqui as três janelas históricas são retrospectivas; apenas candles fechados <b>após 28/10/2026 às 16:59 BRT</b> podem compor a avaliação prospectiva.
+</div>
+<section class="box">
+<h2>1. Rodar bateria de validação</h2>
+<p class="small">Fonte: Binance Spot, QNTUSDT, 4h fechado + confirmação 1h. Cada janela reinicia com 100 USDT fictícios e compara V1.3 3+2, V1.1 de referência e HOLD com o mesmo custo. As janelas de 30 dias não se sobrepõem.</p>
+<div class="controls">
+<button class="primary" id="run">▶ Executar todos os testes</button>
+<button id="copy" disabled>Copiar RelGPT</button>
+<button id="txt" disabled>Salvar TXT</button>
+<button id="json" disabled>Backup JSON</button>
+</div>
+<p id="status" class="small" role="status" aria-live="polite">Pronto para consultar dados públicos. Nada foi executado.</p>
+</section>
+<section class="box">
+<h2>2. Cenários de custos</h2>
+<div class="stats">
+<div class="stat"><small>Normal</small><strong>10 + 5 bps</strong><small>Taxa + slippage, por lado</small></div>
+<div class="stat"><small>Estresse</small><strong>25 + 15 bps</strong><small>Taxa + slippage, por lado</small></div>
+<div class="stat"><small>Estresse severo</small><strong>50 + 30 bps</strong><small>Taxa + slippage, por lado</small></div>
+</div>
+<p class="small">1 bp = 0,01%. Cenários não são novas observações independentes. Não são garantias de custo real, liquidez ou preenchimento.</p>
+</section>
+<section class="box">
+<h2>3. Desempenho por janela</h2>
+<div class="scroll"><table><thead><tr><th>Janela / custo</th><th>3+2</th><th>V1.1</th><th>HOLD</th><th>3+2 vs HOLD</th><th>Queda máx. 3+2</th><th>Operações 3+2</th></tr></thead><tbody id="results"><tr><td colspan="7">Execute o laboratório para obter resultados verificáveis.</td></tr></tbody></table></div>
+<p id="analysis" class="small">Todos os resultados devem vir da API pública, não de estimativas. O risco é medido por fechamentos 4h; extremos intrabar não estão incluídos.</p>
+</section>
+<section class="box">
+<h2>4. Validação realmente fora da amostra</h2>
+<div id="future" class="small">Ainda não consultada. A data de corte é fixa e nunca será deslocada para obter um resultado melhor.</div>
+<p class="small"><b>Critério de observação:</b> registrar pelo menos 180 candles 4h posteriores ao corte (aprox. 30 dias), sem mudar as regras. Ganhos passados não significam aprovação; mesmo após 30 dias, o monitoramento continuará apenas simulado.</p>
+</section>
+<section class="box">
+<h2>5. Auditoria e exportação</h2>
+<details><summary>Ver RelGPT completo</summary><textarea id="report" readonly aria-label="Relatório completo"></textarea></details>
+<p class="small">A memória do navegador não é necessária para rodar os testes. Copie o RelGPT ou salve TXT/JSON para preservar os resultados. Não é necessário importar relatório anterior: esta V1.3 recalcula cada período diretamente dos candles.</p>
+</section>
+<footer class="foot">EGI · estudo e auditoria · Sem futuros, sem alavancagem, sem operações reais. Custos, spreads, lotes mínimos, impostos, gaps e liquidez real podem modificar os resultados.</footer>
+</main>
+<script>
+(function(){
+"use strict";
+const el=id=>document.getElementById(id);
+const DAY=86400000, H4=14400000, H1=3600000;
+const CUT=1793217599999; // 28/10/2026 19:59:59.999 UTC = 16:59:59 BRT
+const INITIAL=100, CONF=3, REST=2;
+const SERVERS=["https://data-api.binance.vision","https://api.binance.com"];
+const COSTS=[{name:"NORMAL",fee:10,slip:5},{name:"ESTRESSE",fee:25,slip:15},{name:"SEVERO",fee:50,slip:30}];
+const fmt=(v,d=2)=>Number.isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const clock=ms=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(ms);
+let latestReport="", latestJSON=null;
+function setStatus(t){el("status").textContent=t}
+async function request(tf,limit,end){
+let errors=[];
+for(const host of SERVERS){
+const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),15000);
+try{
+const url=host+"/api/v3/klines?symbol=QNTUSDT&interval="+tf+"&limit="+limit+"&endTime="+end;
+const resp=await fetch(url,{signal:ctrl.signal,cache:"no-store"});
+if(!resp.ok)throw Error("HTTP "+resp.status);
+const raw=await resp.json();
+if(!Array.isArray(raw)||!raw.length)throw Error("Resposta vazia");
+const parsed=raw.map(r=>({openTime:Number(r[0]),open:Number(r[1]),h:Number(r[2]),l:Number(r[3]),c:Number(r[4]),v:Number(r[7]),t:Number(r[6])}));
+if(parsed.some(r=>![r.openTime,r.open,r.h,r.l,r.c,r.v,r.t].every(Number.isFinite)||r.open<=0||r.c<=0||r.v<0))throw Error("Dados inválidos");
+return parsed;
+}catch(e){errors.push(host+": "+e.message)}finally{clearTimeout(timer)}
+}
+throw Error("Falha "+tf+": "+errors.join(" / "));
+}
+async function history(tf,latestClose,firstRequired){
+const step=tf==="4h"?H4:H1;let next=latestClose,all=[],seen=new Set();
+for(let page=0;page<12;page++){
+setStatus("Buscando candles "+tf+" · página "+(page+1)+"…");
+const data=await request(tf,1000,next);
+for(const r of data){if(r.t<=latestClose&&r.t<Date.now()-1500&&!seen.has(r.t)){all.push(r);seen.add(r.t)}}
+if(!all.length)throw Error("Nenhum candle fechado em "+tf);
+const earliest=data[0].openTime;
+if(Math.min(...all.map(r=>r.t))<=firstRequired)break;
+if(page===11||earliest<=0)throw Error("Histórico "+tf+" insuficiente para janela de 90 dias com aquecimento.");
+next=earliest-1;
+}
+all.sort((a,b)=>a.t-b.t);
+for(let i=1;i<all.length;i++)if(all[i].openTime-all[i-1].openTime!==step)throw Error("Lacuna ou duplicidade nos candles "+tf+" perto de "+clock(all[i].t));
+return all;
+}
+function ema(a,n){const k=2/(n+1),out=[];let v=a[0];for(let i=0;i<a.length;i++){if(i)v=v*(1-k)+a[i]*k;out.push(v)}return out}
+function rsi(a,n=14){const out=Array(a.length).fill(null);if(a.length<n+1)return out;let up=0,down=0;for(let i=1;i<=n;i++){let d=a[i]-a[i-1];up+=Math.max(d,0);down+=Math.max(-d,0)}up/=n;down/=n;
+const value=()=>down===0?(up===0?50:100):100-100/(1+up/down);
+out[n]=value();for(let i=n+1;i<a.length;i++){let d=a[i]-a[i-1];up=(up*(n-1)+Math.max(d,0))/n;down=(down*(n-1)+Math.max(-d,0))/n;out[i]=value()}return out}
+function prepare(four,one){
+const A={e9:ema(four.map(x=>x.c),9),e21:ema(four.map(x=>x.c),21),rsi:rsi(four.map(x=>x.c))};
+const B={e9:ema(one.map(x=>x.c),9),e21:ema(one.map(x=>x.c),21)};
+let j=-1,out=[];
+for(let i=0;i<four.length;i++){
+while(j+1<one.length&&one[j+1].t<=four[i].t)j++;
+if(i<65||j<60)continue;
+const vrbase=four.slice(i-20,i).reduce((s,r)=>s+r.v,0)/20;
+const vr=vrbase>0?four[i].v/vrbase:0;
+const bear=four[i].c<A.e21[i]&&four[i-1].c<A.e21[i-1]&&A.e9[i]<A.e21[i]&&B.e9[j]<B.e21[j]&&A.rsi[i]<45&&vr>=1;
+const bull=four[i].c>A.e21[i]&&four[i-1].c>A.e21[i-1]&&A.e9[i]>A.e21[i]&&B.e9[j]>B.e21[j]&&A.rsi[i]>55&&vr>=1.2;
+out.push({bar:four[i],vr,bear,bull});
+}
+return out;
+}
+function runPeriod(prepared,startExclusive,endInclusive,cost,variant){
+const steps=prepared.filter(x=>x.bar.t>startExclusive&&x.bar.t<=endInclusive);
+if(steps.length<10)throw Error("Menos de 10 candles válidos na janela.");
+const fee=cost.fee/10000,slip=cost.slip/10000,first=steps[0].bar;
+const buyPrice=first.open*(1+slip);
+let qnt=INITIAL/(buyPrice*(1+fee)),cash=0,sold=0,totalFees=qnt*buyPrice*fee;
+const holdQty=qnt,events=[{t:first.openTime,action:"COMPRA INICIAL",price:buyPrice,qty:qnt,fee:totalFees}];
+let pending=null,lastExec=-999,bearStreak=0,bullStreak=0,peak=INITIAL,holdPeak=INITIAL,dd=0,holdDD=0;
+for(let idx=0;idx<steps.length;idx++){
+const s=steps[idx],bar=s.bar;
+if(pending){
+if(pending.action==="VENDA PARCIAL"){
+const qty=qnt*.5,price=bar.open*(1-slip),gross=qty*price,tax=gross*fee;
+qnt-=qty;cash+=gross-tax;sold=qty;totalFees+=tax;
+events.push({t:bar.openTime,action:pending.action,price,qty,fee:tax,signalTime:pending.t});
+}else{
+const price=bar.open*(1+slip),qty=Math.min(sold,cash/(price*(1+fee)));
+if(qty>1e-12){const debit=qty*price*(1+fee),tax=qty*price*fee;qnt+=qty;cash=Math.max(0,cash-debit);totalFees+=tax;events.push({t:bar.openTime,action:pending.action,price,qty,fee:tax,signalTime:pending.t})}
+sold=0;
+}
+lastExec=idx;pending=null;
+}
+const eq=cash+qnt*bar.c,hodl=holdQty*bar.c;
+peak=Math.max(peak,eq);holdPeak=Math.max(holdPeak,hodl);
+dd=Math.max(dd,(peak-eq)/peak*100);holdDD=Math.max(holdDD,(holdPeak-hodl)/holdPeak*100);
+bearStreak=s.bear?bearStreak+1:0;bullStreak=s.bull?bullStreak+1:0;
+const ready=idx-lastExec>REST;
+const proposal=variant==="V1.1" ? (!sold&&s.bear?"VENDA PARCIAL":sold&&s.bull?"RECOMPRA":null)
+  : (ready&&!sold&&bearStreak>=CONF?"VENDA PARCIAL":ready&&sold&&bullStreak>=CONF?"RECOMPRA":null);
+if(proposal)pending={action:proposal,t:bar.t};
+}
+const end=steps[steps.length-1].bar,eq=cash+qnt*end.c,hodl=holdQty*end.c;
+return {equity:eq,hold:hodl,vsHold:eq-hodl,dd,holdDD,fees:totalFees,events,qnt,cash,number:steps.length,pending:pending?.action||null,start:steps[0].bar.openTime,end:end.t,variation:(end.c/first.open-1)*100};
+}
+function cell(textValue,parent,css){const td=document.createElement("td");td.textContent=textValue;if(css)td.className=css;parent.appendChild(td)}
+function render(results){
+const tbody=el("results");tbody.replaceChildren();
+for(const group of results.filter(x=>x.kind==="RETROSPECTIVA")){
+const title=document.createElement("tr");title.className="group";
+cell(group.label+" · "+clock(group.start)+" a "+clock(group.end)+" · QNT "+fmt(group.runs[0].strategy.variation)+"%",title);
+const td=document.createElement("td");td.colSpan=6;td.textContent="Janela independente · reinício com 100 USDT";title.appendChild(td);tbody.appendChild(title);
+for(const item of group.runs){
+const tr=document.createElement("tr"),r=item.strategy;
+cell(item.cost.name,tr);cell(fmt(r.equity),tr);cell(fmt(item.base.equity),tr);cell(fmt(r.hold),tr);
+cell((r.vsHold>=0?"+":"")+fmt(r.vsHold),tr,r.vsHold>=0?"good":"bad");
+cell(fmt(r.dd)+"%",tr);cell(String(r.events.length),tr);tbody.appendChild(tr);
+}
+}
+const future=results.find(x=>x.kind==="PROSPECTIVA");
+if(!future||!future.runs.length){el("future").textContent="Nenhum candle posterior ao corte disponível. A avaliação prospectiva ainda não começou; os testes anteriores são todos retrospectivos.";return}
+const r=future.runs[0].strategy,completed=future.completed;
+el("future").textContent="Após o corte: "+r.number+" candles 4h completos, de "+clock(r.start)+" até "+clock(r.end)+". "+(completed?"Janela mínima de 180 candles atingida (ainda NÃO significa aprovação).":"AMOSTRA EM ANDAMENTO — faltam "+Math.max(0,180-r.number)+" candles para o mínimo.")+" Patrimônio 3+2: "+fmt(r.equity)+" USDT; HOLD: "+fmt(r.hold)+"; diferença: "+fmt(r.vsHold)+" USDT; queda máxima 3+2: "+fmt(r.dd)+"%. Isto é simulação prospectiva acumulada, não execução real.";
+}
+function linesFor(results,anchor,four,one){
+const arr=[
+"RELGPT — QNT EGI V1.3 · LABORATÓRIO DE ROBUSTEZ — 100% FICTÍCIO — NÃO ORDEM",
+"Gerado: "+new Date().toISOString()+" | Último candle 4h: "+clock(anchor),
+"Corte FIXO para avaliação prospectiva: "+clock(CUT)+" | epoch "+CUT,
+"Ativo QNTUSDT | Binance Spot pública | 4h + confirmação 1h | sem API Key",
+"Parâmetros congelados: V1.3 3 confirmações + 2 de descanso | comparação V1.1 e HOLD",
+"Janelas retrospectivas sem sobreposição de 30 dias; cada janela reinicia com 100 USDT, sem transportar carteira para a seguinte.",
+"Custos por lado (taxa/slippage bps): 10/5, 25/15, 50/30.",
+"Candles consultados: 4h "+four+" | 1h "+one+" | Janela 1h ancorada no último 4h fechado.",
+"Quedas máximas por fechos 4h, incluindo patrimônio inicial como pico; não medem mínimas intrabar.",
+"RESULTADOS:"
+];
+for(const g of results){
+arr.push(g.label+" | "+g.kind+" | "+clock(g.start)+" a "+clock(g.end)+" | "+(g.completed?"mínimo OOS alcançado":"não aprovado / em observação"));
+for(const a of g.runs){
+const x=a.strategy,b=a.base;
+arr.push("  "+a.cost.name+" (taxa "+a.cost.fee+"bps, slip "+a.cost.slip+"bps): 3+2 "+fmt(x.equity)+" | V1.1 "+fmt(b.equity)+" | HOLD "+fmt(x.hold)+" | vs HOLD "+fmt(x.vsHold)+" | drawdown 3+2 "+fmt(x.dd)+"% | drawdown HOLD "+fmt(x.holdDD)+"% | operações "+x.events.length+" | taxas "+fmt(x.fees)+" | QNT "+fmt(x.qnt,6)+" | USDT "+fmt(x.cash,4)+" | pendente "+(x.pending||"NÃO")+" | candles "+x.number);
+if(a.cost.name==="NORMAL")for(const ev of x.events)arr.push("    "+clock(ev.t)+" | "+ev.action+" | QNT "+fmt(ev.qty,6)+" @ "+fmt(ev.price)+" | taxa "+fmt(ev.fee,4));
+}
+}
+arr.push("IMPORTANTE: Antes do corte são dados retrospectivos, mesmo em janelas separadas; não são testes fora da amostra.","Posteriores ao corte são prospectivos APENAS porque a configuração 3+2 foi congelada. Não reajustar a estratégia após ver o resultado.","Modelo: compra inicial hipotética na primeira abertura da janela e operações hipotéticas na abertura do candle 4h seguinte a sinais fechados.","Não modela livro de ofertas, lote mínimo, impostos, gaps de liquidez, latência nem garantia de execução.","Backtest não indica retorno futuro. Nenhuma ordem real, nenhuma API Key e nenhuma alavancagem.");
+return arr.join("\n");
+}
+async function execute(){
+const btn=el("run");btn.disabled=true;["copy","txt","json"].forEach(id=>el(id).disabled=true);
+latestReport="";latestJSON=null;
+try{
+const now=Date.now();
+if(now<=CUT)throw Error("A data do dispositivo antecede o corte fixo. Confira o relógio.");
+setStatus("Buscando âncora do último 4h fechado…");
+const last=await request("4h",4,now);
+const anchorRows=last.filter(r=>r.t<now-1500);if(!anchorRows.length)throw Error("Último candle 4h não confirmado.");
+const anchor=anchorRows[anchorRows.length-1].t;
+if(anchor<CUT)throw Error("Ainda não há fechamento até a data de corte.");
+const required=CUT-111*DAY;
+const four=await history("4h",anchor,required);
+const one=await history("1h",anchor,required);
+if(four[four.length-1].t!==one[one.length-1].t||four[four.length-1].t!==anchor)throw Error("Âncoras 1h e 4h divergentes. Repita a consulta depois do fechamento.");
+setStatus("Calculando sinais de candles fechados e execução hipotética no candle seguinte…");
+const prepared=prepare(four,one),groups=[];
+for(let i=3;i>=1;i--){
+const start=CUT-i*30*DAY,end=CUT-(i-1)*30*DAY;
+const filtered=prepared.filter(x=>x.bar.t>start&&x.bar.t<=end);
+if(filtered.length<165)throw Error("Janela de 30 dias incompleta: "+clock(start)+" a "+clock(end)+" ("+filtered.length+" candles).");
+const runs=COSTS.map(cost=>({cost,strategy:runPeriod(prepared,start,end,cost,"V1.3"),base:runPeriod(prepared,start,end,cost,"V1.1")}));
+groups.push({kind:"RETROSPECTIVA",label:"Histórica "+(4-i)+"/3",start,end,runs,completed:false});
+}
+const pros=prepared.filter(x=>x.bar.t>CUT&&x.bar.t<=anchor);
+if(pros.length>=10){
+const runs=COSTS.map(cost=>({cost,strategy:runPeriod(prepared,CUT,anchor,cost,"V1.3"),base:runPeriod(prepared,CUT,anchor,cost,"V1.1")}));
+groups.push({kind:"PROSPECTIVA",label:"Pós-corte 28/10",start:CUT,end:anchor,runs,completed:pros.length>=180});
+}else groups.push({kind:"PROSPECTIVA",label:"Pós-corte 28/10",start:CUT,end:anchor,runs:[],completed:false});
+const past=groups.filter(g=>g.kind==="RETROSPECTIVA"),positives=past.filter(g=>g.runs[0].strategy.vsHold>0).length;
+const stress=past.filter(g=>g.runs[2].strategy.vsHold>0).length;
+el("analysis").textContent="Retrospectiva 3+2 vs HOLD: "+positives+"/3 janelas positivas no custo normal e "+stress+"/3 no estresse severo. Isso é uma triagem histórica, NÃO validação fora da amostra nem autorização de operação. Drawdown por fechos de 4h e patrimônio inicial de 100 USDT. Para avaliar robustez, observe também os piores períodos, não só a média.";
+render(groups);
+latestReport=linesFor(groups,anchor,four.length,one.length);
+latestJSON={app:"QNT_EGI_V1_3_ROBUSTEZ",generated:new Date().toISOString(),cutoff:CUT,anchor,confirmation:CONF,rest:REST,costs:COSTS,results:groups,report:latestReport};
+el("report").value=latestReport;
+["copy","txt","json"].forEach(id=>el(id).disabled=false);
+setStatus("Bateria concluída · 3 janelas retrospectivas e "+pros.length+" candles pós-corte. Nenhuma transação real.");
+}catch(e){setStatus("TESTE BLOQUEADO: "+e.message+" Nenhum resultado foi inventado.");el("analysis").textContent="Não foi possível confirmar os dados da Binance ou a integridade do recorte.";el("future").textContent="Sem análise prospectiva nesta consulta.";el("results").replaceChildren();const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=7;td.textContent="Sem resultados: "+e.message;tr.appendChild(td);el("results").appendChild(tr)}
+finally{btn.disabled=false}
+}
+function saveFile(name,data,mime){const blob=new Blob([data],{type:mime}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}
+el("run").addEventListener("click",execute);
+el("copy").addEventListener("click",async()=>{if(!latestReport)return;try{await navigator.clipboard.writeText(latestReport);setStatus("RelGPT copiado. Cole no ChatGPT para auditoria.");}catch(e){el("report").parentElement.open=true;el("report").focus();el("report").select();setStatus("Cópia automática bloqueada pelo navegador. Copie o texto selecionado ou use Salvar TXT.");}});
+el("txt").addEventListener("click",()=>{if(latestReport)saveFile("RelGPT_QNT_EGI_V1_3_Robustez.txt",latestReport,"text/plain;charset=utf-8")});
+el("json").addEventListener("click",()=>{if(latestJSON)saveFile("Backup_QNT_EGI_V1_3_Robustez.json",JSON.stringify(latestJSON,null,2),"application/json;charset=utf-8")});
+})();
+</script>
+</body></html>
