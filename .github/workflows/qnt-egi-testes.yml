@@ -1,0 +1,69 @@
+name: QNT EGI — Testes Automáticos (simulação)
+
+on:
+  schedule:
+    # 21:23 UTC = 18:23 BRT; depois do fechamento 4h das 20:00 UTC.
+    # GitHub Actions pode iniciar mais tarde do que o horário agendado.
+    - cron: "23 21 * * *"
+  workflow_dispatch:
+    inputs:
+      relatorio_completo:
+        description: "Robustez 90d e custos? auto = segundas; true = agora"
+        required: false
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - "true"
+          - "false"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qnt-egi-testes-automaticos
+  cancel-in-progress: false
+
+jobs:
+  testar-qnt:
+    name: Testar QNTUSDT 3+2 vs V1.1 e HOLD — sem ordens
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obter código do DiaHoje
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Executar simulações com candles fechados da Binance Spot
+        env:
+          QNT_FULL: ${{ inputs.relatorio_completo || 'auto' }}
+        run: node scripts/qnt-egi-autoteste.mjs
+
+      - name: Publicar resumo legível na execução
+        if: always()
+        shell: bash
+        run: |
+          if test -f relatorios/qnt-egi/RelGPT_QNT.txt; then
+            {
+              echo '## QNT EGI — Relatório automático'
+              echo ''
+              echo 'Somente estudo; nenhuma ordem real.'
+              echo ''
+              echo '~~~text'
+              sed -n '1,42p' relatorios/qnt-egi/RelGPT_QNT.txt
+              echo '~~~'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Guardar RelGPT TXT e JSON desta execução
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qnt-egi-relatorio-${{ github.run_number }}
+          path: relatorios/qnt-egi/
+          retention-days: 90
+          if-no-files-found: error
