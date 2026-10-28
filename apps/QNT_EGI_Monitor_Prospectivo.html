@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101d2e">
+<title>QNT EGI — Monitor Prospectivo 4h</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1726;--card:#16273c;--muted:#aec2d5;--border:#344c68;--text:#f0f6ff;--green:#69dfb9;--red:#ff9696;--amber:#ffd383}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#172c46,#0c1726 55%);color:var(--text);font:15px/1.55 system-ui,Segoe UI,sans-serif}
+main{max-width:1050px;margin:auto;padding:16px}h1{font-size:clamp(1.45rem,3vw,2rem);margin:4px 0}h2{font-size:1.08rem;margin:0 0 12px}
+a{color:#b5d9ff}a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #ffdb8e}
+.muted,small{color:var(--muted)}.card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:15px;margin:12px 0}
+.head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.tag{display:inline-block;border:1px solid #4c9c94;border-radius:25px;color:#a4eadc;padding:3px 10px;font-size:.78rem}
+.warn{border-left:4px solid var(--amber)}.buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+button,.linkbtn{display:inline-block;border:1px solid #587691;background:#24445f;color:#f4f8ff;cursor:pointer;border-radius:10px;padding:10px 13px;text-decoration:none;font:inherit;font-weight:600;min-height:44px}
+button.primary{background:#0c746c;border-color:#3ac9b1}button:disabled{opacity:.45;cursor:not-allowed}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.metric{background:#101f31;padding:12px;border-radius:11px}
+.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{display:block;font-size:clamp(1rem,3vw,1.36rem);margin-top:5px;overflow-wrap:anywhere}
+.good{color:var(--green)}.bad{color:var(--red)}.amber{color:var(--amber)}
+table{border-collapse:collapse;width:100%;font-size:.86rem}td,th{border-bottom:1px solid var(--border);padding:9px 7px;text-align:left;white-space:nowrap}th{color:var(--muted)}.scroll{overflow:auto}
+#status{white-space:pre-wrap}.progress{height:13px;background:#0b1724;border-radius:9px;overflow:hidden;margin-top:10px}.progress>div{background:#4ab7b2;height:100%;width:0}
+#log{white-space:pre-wrap;font-size:.8rem;max-height:180px;overflow:auto}
+input[type=file]{max-width:100%;padding:7px}
+@media(max-width:600px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:12px}.metric{padding:10px}}
+</style>
+</head>
+<body>
+<main>
+<nav class="muted"><a href="../index.html">DiaHoje</a> · <a href="Simulador_QNT_EGI_V1_3_Robustez.html">Laboratório V1.3</a> · <a href="Robo_QNT_EGI.html">Robô QNT Spot</a></nav>
+<div class="head"><div><h1>📡 QNT EGI — Monitor Prospectivo</h1><div class="tag">3+2 CONGELADO · 4H · SOMENTE ESTUDO</div></div><div class="muted" id="updated">Carregando relatório…</div></div>
+<p class="muted">A execução automática ocorre no GitHub Actions, mesmo com esta página fechada. Esta tela consulta somente o arquivo publicado pelo monitor. Os horários do cron são aproximados; não há garantia de execução contínua.</p>
+<section class="card warn">
+<strong id="approval">NÃO APROVADO / EM OBSERVAÇÃO</strong>
+<p class="muted">Corte fixo: <b>28/10/2026 às 16:59:59 BRT</b>. Só fechamentos posteriores são prospectivos. Resultado fictício não é ordem e não representa a posição real. Custos, lotes mínimos, execução e mínimas intrabar não são plenamente modelados.</p>
+<div class="buttons">
+<button class="primary" id="reload">Atualizar painel</button>
+<a class="linkbtn" href="https://github.com/Egiepxy/DiaHoje/actions/workflows/qnt-egi-testes.yml" target="_blank" rel="noopener">Ver execuções no GitHub</a>
+<a class="linkbtn" href="../relatorios/qnt-egi/RelGPT_QNT.txt" id="textLink" target="_blank" rel="noopener">Abrir último RelGPT</a>
+<button id="copy" disabled>Copiar RelGPT</button>
+</div>
+<p id="status" role="status" aria-live="polite" class="muted">Consultando resultado publicado…</p>
+</section>
+<section class="card">
+<h2>Progresso da validação prospectiva</h2>
+<div class="cards">
+<div class="metric"><span>Candles 4h após o corte</span><strong id="count">— / 180</strong></div>
+<div class="metric"><span>Último candle fechado</span><strong id="anchor">—</strong></div>
+<div class="metric"><span>Integridade do acompanhamento</span><strong id="fresh">Aguardando</strong></div>
+</div>
+<div class="progress" aria-label="Progresso até o mínimo de 180 candles"><div id="fill"></div></div>
+<p class="muted" id="countMessage">O mínimo de 180 candles não implica aprovação. Uma amostra maior, com períodos diferentes, será necessária.</p>
+</section>
+<section class="card">
+<h2>Patrimônio fictício — 100 USDT iniciais</h2>
+<div class="cards">
+<div class="metric"><span>V1.3 · 3+2</span><strong id="strategy">—</strong></div>
+<div class="metric"><span>V1.1 · Referência</span><strong id="baseline">—</strong></div>
+<div class="metric"><span>HOLD</span><strong id="hold">—</strong></div>
+<div class="metric"><span>V1.3 menos HOLD</span><strong id="delta">—</strong></div>
+<div class="metric"><span>Queda máxima 3+2 (fechos)</span><strong id="dd">—</strong></div>
+<div class="metric"><span>Queda máxima HOLD (fechos)</span><strong id="holdDD">—</strong></div>
+</div>
+<p class="muted" id="sample">Resultados disponíveis apenas após 10 candles novos. Nenhum dado será estimado.</p>
+</section>
+<section class="card">
+<h2>Cenários de custos disponíveis</h2>
+<div class="scroll"><table><thead><tr><th>Cenário</th><th>3+2</th><th>V1.1</th><th>HOLD</th><th>Vs HOLD</th><th>DD 3+2</th><th>Operações</th></tr></thead><tbody id="costrows"><tr><td colspan="7">Aguardando dados.</td></tr></tbody></table></div>
+<p class="muted">No monitor automático, o custo NORMAL é recalculado a cada 4h. Os cenários ESTRESSE e SEVERO são recalculados no relatório semanal completo ou em execução manual completa.</p>
+</section>
+<section class="card">
+<h2>Consulta alternativa e diagnóstico</h2>
+<p class="muted">Se ainda não houver um relatório publicado, é possível carregar manualmente um JSON exportado do laboratório para conferência local, sem enviar dados a terceiros. Um arquivo manual <b>não comprova</b> que o cron do GitHub funcionou.</p>
+<label for="upload">Importar backup JSON (somente neste navegador):</label>
+<input id="upload" type="file" accept=".json,application/json">
+<details><summary>Ver diagnóstico</summary><pre id="log">Sem erros.</pre></details>
+</section>
+<footer class="muted">EGI · Binance Spot pública · 4h com confirmação 1h · sem chaves API, sem ordens reais, sem futuros e sem alavancagem. O monitor em background é GitHub Actions; o navegador não continua executando após fechar.</footer>
+</main>
+<script>
+(function() {
+"use strict";
+const $=id=>document.getElementById(id);
+const CUT=1793217599999, FOUR=14400000;
+const money=n=>Number.isFinite(n)?n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+" USDT":"—";
+const pct=n=>Number.isFinite(n)?n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%":"—";
+const clock=n=>Number.isFinite(n)?new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(n):"—";
+let reportText="";
+function note(x){$("log").textContent=new Date().toLocaleTimeString("pt-BR")+" · "+x}
+function setText(id,val){$(id).textContent=val}
+function blankTable(message){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=7;td.textContent=message;tr.appendChild(td);$("costrows").replaceChildren(tr)}
+function validate(obj){
+ if(!obj||typeof obj!=="object"||obj.cutoff!==CUT||obj.confirmation!==3||obj.rest!==2||!Array.isArray(obj.groups))throw Error("JSON incompatível: não corresponde à configuração 3+2 congelada.");
+ if(obj.status==="FALHA")throw Error("O arquivo informa falha de consulta.");
+ const g=obj.groups.find(x=>x.kind==="PROSPECTIVA");
+ if(!g||!Number.isInteger(g.count)||g.count<0||!Array.isArray(g.runs))throw Error("Registro prospectivo inválido ou ausente.");
+ if(!Number.isFinite(obj.anchor)||obj.anchor<CUT)throw Error("Âncora de fechamento inválida.");
+ return g;
+}
+function render(obj,source){
+const g=validate(obj),count=g.count;
+setText("count",count+" / 180");
+$("fill").style.width=Math.min(100,count/180*100)+"%";
+setText("anchor",clock(obj.anchor));
+setText("updated","Gerado em "+clock(Date.parse(obj.generated))+" · "+source);
+setText("countMessage",count>=180?"Mínimo de 180 candles atingido, mas a estratégia continua NÃO APROVADA até auditoria independente.":"Faltam "+(180-count)+" candles 4h. Sem ajuste dos parâmetros.");
+const lastBoundary=Math.floor(Date.now()/FOUR)*FOUR-1;
+const behind=lastBoundary-obj.anchor;
+const freshness=source==="GitHub"?(behind>FOUR?"DESATUALIZADO":behind>=0?"EM DIA":"HORÁRIO INCONSISTENTE"):"IMPORTAÇÃO LOCAL";
+setText("fresh",freshness);$("fresh").className=freshness==="EM DIA"?"good":"amber";
+if(!g.runs.length){
+for(const id of ["strategy","baseline","hold","delta","dd","holdDD"])setText(id,"—");
+blankTable("Ainda sem simulação: são necessários pelo menos 10 candles 4h após o corte.");
+setText("sample","Já há "+count+" candle(s) prospectivo(s), mas ainda não há patrimônio simulado disponível.");return;
+}
+const normal=g.runs.find(x=>x.cost?.name==="NORMAL")||g.runs[0],a=normal.strategy,b=normal.base;
+if(!a||!b||![a.equity,b.equity,a.hold,a.vsHold,a.dd,a.holdDD].every(Number.isFinite))throw Error("Patrimônio incompleto no JSON.");
+setText("strategy",money(a.equity));setText("baseline",money(b.equity));setText("hold",money(a.hold));
+setText("delta",(a.vsHold>0?"+":"")+money(a.vsHold));$("delta").className=a.vsHold>=0?"good":"bad";
+setText("dd",pct(a.dd));setText("holdDD",pct(a.holdDD));
+setText("sample","Amostra prospectiva: "+count+" candles · simulação aberta após corte · não é posição real.");
+const tb=$("costrows");tb.replaceChildren();
+for(const r of g.runs){
+const tr=document.createElement("tr");
+for(const value of [r.cost.name,money(r.strategy.equity),money(r.base.equity),money(r.strategy.hold),(r.strategy.vsHold>=0?"+":"")+money(r.strategy.vsHold),pct(r.strategy.dd),String(r.strategy.events?.length??"—")]){
+const td=document.createElement("td");td.textContent=value;tr.appendChild(td);
+}
+tb.appendChild(tr);
+}
+note(source==="GitHub"?"Relatório publicado carregado.":"Backup importado localmente (não prova execução automática).");
+}
+async function reload(){
+$("reload").disabled=true;setText("status","Consultando último arquivo público salvo no repositório…");
+try{
+const res=await fetch("../relatorios/qnt-egi/ultimo.json?ts="+Date.now(),{cache:"no-store"});
+if(!res.ok)throw Error("HTTP "+res.status+" — ainda não há último resultado publicado.");
+const obj=await res.json();render(obj,"GitHub");
+const txt=await fetch("../relatorios/qnt-egi/RelGPT_QNT.txt?ts="+Date.now(),{cache:"no-store"});
+if(txt.ok){reportText=await txt.text();$("copy").disabled=false;}else{$("copy").disabled=true;}
+setText("status","Consulta concluída. Status calculado pelo último fechamento disponível na publicação; a execução pode atrasar.");
+}catch(err){note(err.message);setText("status","Não foi possível ler o resultado automático: "+err.message+" Consulte o GitHub Actions ou importe um JSON para análise local.");}
+finally{$("reload").disabled=false}
+}
+$("reload").addEventListener("click",reload);
+$("copy").addEventListener("click",async()=>{if(!reportText)return;try{await navigator.clipboard.writeText(reportText);setText("status","RelGPT copiado — cole no ChatGPT.");}catch(e){setText("status","Cópia bloqueada pelo navegador. Abra o arquivo RelGPT pelo botão correspondente.");}});
+$("upload").addEventListener("change",async e=>{
+const file=e.target.files?.[0];if(!file)return;
+try{if(file.size>3_000_000)throw Error("Arquivo acima de 3 MB.");const obj=JSON.parse(await file.text());render(obj,"Arquivo local");setText("status","JSON carregado localmente. Isso não valida o cron automático.");}catch(err){setText("status","Importação bloqueada: "+err.message);note(err.message);}
+});
+reload();
+})();
+</script>
+</body></html>
