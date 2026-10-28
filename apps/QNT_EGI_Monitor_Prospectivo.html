@@ -106,7 +106,7 @@ setText("updated","Gerado em "+clock(Date.parse(obj.generated))+" · "+source);
 setText("countMessage",count>=180?"Mínimo de 180 candles atingido, mas a estratégia continua NÃO APROVADA até auditoria independente.":"Faltam "+(180-count)+" candles 4h. Sem ajuste dos parâmetros.");
 const lastBoundary=Math.floor(Date.now()/FOUR)*FOUR-1;
 const behind=lastBoundary-obj.anchor;
-const freshness=source==="GitHub"?(behind>FOUR?"DESATUALIZADO":behind>=0?"EM DIA":"HORÁRIO INCONSISTENTE"):"IMPORTAÇÃO LOCAL";
+const freshness=source!=="Arquivo local"?(behind>FOUR?"DESATUALIZADO":behind>=0?"EM DIA":"HORÁRIO INCONSISTENTE"):"IMPORTAÇÃO LOCAL";
 setText("fresh",freshness);$("fresh").className=freshness==="EM DIA"?"good":"amber";
 if(!g.runs.length){
 for(const id of ["strategy","baseline","hold","delta","dd","holdDD"])setText(id,"—");
@@ -129,16 +129,35 @@ tb.appendChild(tr);
 }
 note(source==="GitHub"?"Relatório publicado carregado.":"Backup importado localmente (não prova execução automática).");
 }
+async function readGithubFile(name){
+const url="https://api.github.com/repos/Egiepxy/DiaHoje/contents/relatorios/qnt-egi/"+name+"?ref=main&ts="+Date.now();
+const response=await fetch(url,{cache:"no-store",headers:{"Accept":"application/vnd.github+json"}});
+if(!response.ok)throw Error("GitHub API HTTP "+response.status+" para "+name);
+const data=await response.json();
+if(data.encoding!=="base64"||typeof data.content!=="string")throw Error("Codificação inesperada de "+name);
+const binary=atob(data.content.replace(/\s/g,""));
+return new TextDecoder("utf-8").decode(Uint8Array.from(binary,c=>c.charCodeAt(0)));
+}
 async function reload(){
-$("reload").disabled=true;setText("status","Consultando último arquivo público salvo no repositório…");
+$("reload").disabled=true;setText("status","Consultando o arquivo público do repositório DiaHoje…");
 try{
+let obj,txt="",source="GitHub";
+try{
+obj=JSON.parse(await readGithubFile("ultimo.json"));
+txt=await readGithubFile("RelGPT_QNT.txt").catch(()=> "");
+}catch(apiError){
+note("API: "+apiError.message+"; tentativa de consulta Pages.");
 const res=await fetch("../relatorios/qnt-egi/ultimo.json?ts="+Date.now(),{cache:"no-store"});
-if(!res.ok)throw Error("HTTP "+res.status+" — ainda não há último resultado publicado.");
-const obj=await res.json();render(obj,"GitHub");
-const txt=await fetch("../relatorios/qnt-egi/RelGPT_QNT.txt?ts="+Date.now(),{cache:"no-store"});
-if(txt.ok){reportText=await txt.text();$("copy").disabled=false;}else{$("copy").disabled=true;}
-setText("status","Consulta concluída. Status calculado pelo último fechamento disponível na publicação; a execução pode atrasar.");
-}catch(err){note(err.message);setText("status","Não foi possível ler o resultado automático: "+err.message+" Consulte o GitHub Actions ou importe um JSON para análise local.");}
+if(!res.ok)throw Error(apiError.message+"; Pages HTTP "+res.status);
+obj=await res.json();
+source="Pages (fallback)";
+const t=await fetch("../relatorios/qnt-egi/RelGPT_QNT.txt?ts="+Date.now(),{cache:"no-store"});
+if(t.ok)txt=await t.text();
+}
+render(obj,source);
+reportText=txt;$("copy").disabled=!txt;
+setText("status","Consulta concluída via "+source+". Uma publicação atrasada é sinalizada no indicador de integridade.");
+}catch(err){note(err.message);setText("status","Não foi possível ler o relatório automático: "+err.message+". Confira o GitHub Actions ou importe um JSON local.");}
 finally{$("reload").disabled=false}
 }
 $("reload").addEventListener("click",reload);
