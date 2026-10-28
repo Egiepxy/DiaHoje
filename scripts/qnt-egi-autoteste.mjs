@@ -12,7 +12,7 @@ const COSTS = [
   { name: "ESTRESSE", fee: 25, slip: 15 },
   { name: "SEVERO", fee: 50, slip: 30 }
 ];
-const FULL = process.env.QNT_FULL === "true" || (process.env.QNT_FULL !== "false" && new Date().getUTCDay() === 1);
+const FULL = process.env.QNT_FULL === "true" || (process.env.QNT_FULL !== "false" && new Date().getUTCDay() === 1 && new Date().getUTCHours() === 20); // robustez completa uma vez por semana (segunda 20h UTC)
 const OUTPUT = "relatorios/qnt-egi";
 const fmt = (v, d = 2) => Number.isFinite(v) ? v.toFixed(d) : "—";
 const stamp = ms => new Date(ms).toISOString();
