@@ -143,7 +143,7 @@ if(Date.now()-four[four.length-1].t>12*3600000||Date.now()-one[one.length-1].t>4
 const A=emaInfo(four),B=emaInfo(one);let aligned=[],j=-1;
 for(let i=0;i<four.length;i++){
 while(j+1<one.length&&one[j+1].t<=four[i].t)j++;
-if(i<65||j<60||i+1>=four.length)continue;
+if(i<65||j<60)continue;
 const vrBase=four.slice(i-20,i).reduce((sum,r)=>sum+r.v,0)/20;
 const vr=vrBase>0?four[i].v/vrBase:0;
 const bear=four[i].c<A.e21[i]&&four[i-1].c<A.e21[i-1]&&A.e9[i]<A.e21[i]&&B.e9[j]<B.e21[j]&&A.rsi[i]<45&&vr>=1;
