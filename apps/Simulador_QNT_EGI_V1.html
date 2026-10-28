@@ -30,7 +30,7 @@ th{color:var(--muted);font-weight:500}tbody tr:hover{background:#213248}.scroll{
 <body><main>
 <header class="header">
 <div><div class="links"><a href="../index.html">← DiaHoje</a><a href="Robo_QNT_EGI.html">Monitor QNT 4h</a><a href="Manual_Robo_QNT_EGI.html">Manual de segurança</a></div>
-<h1>🧪 Simulador QNT EGI <span class="small">V1.0</span></h1>
+<h1>🧪 Simulador QNT EGI <span class="small">V1.1 · janela histórica fixada ao último 4h fechado</span></h1>
 <div class="small">Binance Spot QNTUSDT • histórico 4h + confirmação 1h • sem acesso à carteira</div></div>
 <div class="small">100 USDT fictícios · Vender até 50% · Recomprar somente parcela simulada</div>
 </header>
@@ -45,7 +45,7 @@ th{color:var(--muted);font-weight:500}tbody tr:hover{background:#213248}.scroll{
 <label>Slippage hipotético (bps)<input id="slip" type="number" min="0" max="100" step="1" value="5"></label>
 <button id="run" class="primary">Executar simulação</button>
 </div>
-<div class="small" style="margin-top:8px">1 bp = 0,01%. Padrão de estudo: 0,10% de taxa por operação e 0,05% de slippage por execução. Não são valores garantidos da corretora.</div>
+<div class="small" style="margin-top:8px">1 bp = 0,01%. Padrão de estudo: 0,10% de taxa por operação e 0,05% de slippage por execução. Não são valores garantidos da corretora. A janela 1h agora fica ancorada no último candle 4h fechado, para que novas consultas dentro do mesmo 4h não mudem a data inicial.</div>
 <div id="feedback" class="small" role="status" aria-live="polite">Clique em “Executar simulação” para consultar os candles fechados e calcular os resultados.</div>
 </section>
 
@@ -128,18 +128,19 @@ up/=n;down/=n;const calc=()=>down===0?(up===0?50:100):100-100/(1+up/down);
 result[n]=calc();for(let i=n+1;i<a.length;i++){let d=a[i]-a[i-1];up=(up*(n-1)+Math.max(d,0))/n;down=(down*(n-1)+Math.max(-d,0))/n;result[i]=calc()}return result}
 function emaInfo(rows){const p=rows.map(x=>x.c);return{e9:emaSeries(p,9),e21:emaSeries(p,21),rsi:rsiSeries(p)}}
 const servers=["https://data-api.binance.vision","https://api.binance.com"];
-async function candles(tf,limit){let errors=[];
+async function candles(tf,limit,endTime=null){let errors=[];
 for(const host of servers){let c=new AbortController(),t=setTimeout(()=>c.abort(),13000);
-try{let u=host+"/api/v3/klines?symbol=QNTUSDT&interval="+encodeURIComponent(tf)+"&limit="+limit;
+try{let u=host+"/api/v3/klines?symbol=QNTUSDT&interval="+encodeURIComponent(tf)+"&limit="+limit+(endTime===null?"":"&endTime="+encodeURIComponent(String(endTime)));
 let r=await fetch(u,{cache:"no-store",signal:c.signal});if(!r.ok)throw Error("HTTP "+r.status);
 let raw=await r.json();if(!Array.isArray(raw)||raw.length<100)throw Error("Histórico insuficiente");
-let now=Date.now();let arr=raw.filter(x=>Number(x[6])<now-1500).map(x=>({openTime:Number(x[0]),open:Number(x[1]),h:Number(x[2]),l:Number(x[3]),c:Number(x[4]),v:Number(x[7]),t:Number(x[6])}));
+let now=Date.now();let arr=raw.filter(x=>Number(x[6])<now-1500&&(endTime===null||Number(x[6])<=endTime)).map(x=>({openTime:Number(x[0]),open:Number(x[1]),h:Number(x[2]),l:Number(x[3]),c:Number(x[4]),v:Number(x[7]),t:Number(x[6])}));
 if(arr.length<100||arr.some(x=>![x.open,x.h,x.l,x.c,x.v,x.t].every(Number.isFinite)||x.open<=0||x.c<=0||x.v<0))throw Error("Candles inválidos");
 return arr;
 }catch(e){errors.push(host.replace("https://","")+": "+e.message)}finally{clearTimeout(t)}}
 throw Error("Não foi possível consultar "+tf+" na Binance. "+errors.join(" / "))}
 function makeData(four,one){
 if(Date.now()-four[four.length-1].t>12*3600000||Date.now()-one[one.length-1].t>4*3600000)throw Error("Candles muito antigos para estudo confiável.");
+if(one[one.length-1].t!==four[four.length-1].t)throw Error("Dados 1h/4h não fecham no mesmo instante. Simulação bloqueada para evitar janela inconsistente.");
 const A=emaInfo(four),B=emaInfo(one);let aligned=[],j=-1;
 for(let i=0;i<four.length;i++){
 while(j+1<one.length&&one[j+1].t<=four[i].t)j++;
@@ -182,7 +183,7 @@ if(proposal!=="AGUARDAR")pending={t:step.t,action:proposal};
 }
 const lastBar=four[four.length-1],equity=cash+qnt*lastBar.c,hold=baseline*lastBar.c;
 const info=signals[signals.length-1];const latestPending=pending?pending.action:null;
-return {generated:new Date().toISOString(),source:"Binance Spot klines públicas (candles 4h e 1h fechados)",asset:"QNTUSDT",mode:"SIMULADO — NÃO ORDEM",feeBps,slipBps,initial,equity,hold,advantage:equity-hold,netPct:(equity/initial-1)*100,holdPct:(hold/initial-1)*100,maxDrawdown,qnt,cash,events,signals,curve,fees:totalFees,lastCandle:lastBar.t,windowStart:four[first].openTime,checkpoints:aligned.length,latest:info,pending:latestPending};
+return {generated:new Date().toISOString(),source:"Binance Spot klines públicas (candles 4h e 1h fechados); janela 1h fixada por endTime do último fechamento 4h",asset:"QNTUSDT",mode:"SIMULADO — NÃO ORDEM",feeBps,slipBps,initial,equity,hold,advantage:equity-hold,netPct:(equity/initial-1)*100,holdPct:(hold/initial-1)*100,maxDrawdown,qnt,cash,events,signals,curve,fees:totalFees,lastCandle:lastBar.t,windowStart:four[first].openTime,checkpoints:aligned.length,latest:info,pending:latestPending};
 }
 function graph(run){const svg=el("graph"),ns="http://www.w3.org/2000/svg";svg.replaceChildren();
 function node(tag,attrs,text){let x=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,String(v)));if(text!=null)x.textContent=text;svg.appendChild(x);return x}
@@ -209,9 +210,10 @@ vals.forEach(v=>{const cell=document.createElement("td");cell.textContent=v;row.
 drawHistory();
 }
 function reportText(r){return [
-"RELGPT — SIMULADOR QNT EGI V1 — 100% FICTÍCIO — NÃO ORDEM",
+"RELGPT — SIMULADOR QNT EGI V1.1 — 100% FICTÍCIO — NÃO ORDEM",
 "Ativo: QNTUSDT | Fonte: Binance Spot pública | Candles fechados 4h + confirmação 1h",
 "Gerado: "+r.generated+" | Início histórico: "+clock(r.windowStart)+" | Último candle: "+clock(r.lastCandle),
+"Janela estável: 1h endTime="+r.lastCandle+" (fechamento 4h UTC em milissegundos) | Mesma âncora 4h => mesmo recorte 1h",
 "Investimento fictício: 100 USDT | Taxa: "+r.feeBps+" bps | Slippage: "+r.slipBps+" bps",
 "Patrimônio estratégia: "+fmt(r.equity)+" USDT | HOLD: "+fmt(r.hold)+" USDT",
 "Diferença vs HOLD: "+fmt(r.advantage)+" USDT | Retorno: "+fmt(r.netPct)+"%",
@@ -229,9 +231,9 @@ function download(ext,txt,type){let b=new Blob([txt],{type}),url=URL.createObjec
 el("run").onclick=async()=>{
 const btn=el("run");let fee=Number(el("fee").value),slip=Number(el("slip").value);
 if(!Number.isFinite(fee)||!Number.isFinite(slip)||fee<0||fee>100||slip<0||slip>100){el("feedback").textContent="Informe taxas entre 0 e 100 bps.";return}
-btn.disabled=true;el("feedback").textContent="Consultando dados públicos fechados 4h e 1h...";let attempt;
+btn.disabled=true;el("feedback").textContent="Consultando 4h fechado e fixando a janela 1h no mesmo fechamento...";let attempt;
 try{
-const [a,b]=await Promise.all([candles("4h",400),candles("1h",1000)]);
+const a=await candles("4h",400);const b=await candles("1h",1000,a[a.length-1].t);
 el("feedback").textContent="Histórico recebido; auditando regras e execução fictícia no candle seguinte...";
 attempt=evaluate(a,b,fee,slip);
 if(!Number.isFinite(attempt.equity)||!Number.isFinite(attempt.hold)||attempt.equity<0)throw Error("Resultado inválido; nada salvo.");
