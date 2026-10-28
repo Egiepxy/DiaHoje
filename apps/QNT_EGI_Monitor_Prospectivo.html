@@ -36,7 +36,7 @@ input[type=file]{max-width:100%;padding:7px}
 <div class="buttons">
 <button class="primary" id="reload">Atualizar painel</button>
 <a class="linkbtn" href="https://github.com/Egiepxy/DiaHoje/actions/workflows/qnt-egi-testes.yml" target="_blank" rel="noopener">Ver execuções no GitHub</a>
-<a class="linkbtn" href="../relatorios/qnt-egi/RelGPT_QNT.txt" id="textLink" target="_blank" rel="noopener">Abrir último RelGPT</a>
+<a class="linkbtn" href="https://github.com/Egiepxy/DiaHoje/blob/main/relatorios/qnt-egi/RelGPT_QNT.txt" id="textLink" target="_blank" rel="noopener">Abrir último RelGPT</a>
 <button id="copy" disabled>Copiar RelGPT</button>
 </div>
 <p id="status" role="status" aria-live="polite" class="muted">Consultando resultado publicado…</p>
@@ -90,12 +90,16 @@ function note(x){$("log").textContent=new Date().toLocaleTimeString("pt-BR")+" �
 function setText(id,val){$(id).textContent=val}
 function blankTable(message){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=7;td.textContent=message;tr.appendChild(td);$("costrows").replaceChildren(tr)}
 function validate(obj){
- if(!obj||typeof obj!=="object"||obj.cutoff!==CUT||obj.confirmation!==3||obj.rest!==2||!Array.isArray(obj.groups))throw Error("JSON incompatível: não corresponde à configuração 3+2 congelada.");
+ if(!obj||typeof obj!=="object"||obj.cutoff!==CUT||obj.confirmation!==3||obj.rest!==2)throw Error("JSON incompatível: não corresponde à configuração 3+2 congelada.");
  if(obj.status==="FALHA")throw Error("O arquivo informa falha de consulta.");
- const g=obj.groups.find(x=>x.kind==="PROSPECTIVA");
- if(!g||!Number.isInteger(g.count)||g.count<0||!Array.isArray(g.runs))throw Error("Registro prospectivo inválido ou ausente.");
  if(!Number.isFinite(obj.anchor)||obj.anchor<CUT)throw Error("Âncora de fechamento inválida.");
- return g;
+ const groups=Array.isArray(obj.groups)?obj.groups:obj.results;
+ if(!Array.isArray(groups))throw Error("O JSON precisa conter groups ou results.");
+ const g=groups.find(x=>x.kind==="PROSPECTIVA");
+ if(!g||!Array.isArray(g.runs))throw Error("Registro prospectivo inválido ou ausente.");
+ const count=Number.isInteger(g.count)?g.count:Math.max(0,Math.floor((obj.anchor-CUT)/FOUR));
+ if(count<0)throw Error("Número de candles inválido.");
+ return {...g,count};
 }
 function render(obj,source){
 const g=validate(obj),count=g.count;
@@ -127,7 +131,7 @@ const td=document.createElement("td");td.textContent=value;tr.appendChild(td);
 }
 tb.appendChild(tr);
 }
-note(source==="GitHub"?"Relatório publicado carregado.":"Backup importado localmente (não prova execução automática).");
+note(source==="Arquivo local"?"Backup importado localmente (não prova execução automática).":"Relatório publicado carregado via "+source+".");
 }
 async function readGithubFile(name){
 const url="https://api.github.com/repos/Egiepxy/DiaHoje/contents/relatorios/qnt-egi/"+name+"?ref=main&ts="+Date.now();
