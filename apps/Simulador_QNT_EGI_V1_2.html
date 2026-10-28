@@ -12,6 +12,11 @@ main{max-width:1200px;margin:auto;padding:15px}a{color:#a8cfff}h1{font-size:clam
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 9px 25px #0002}
 .controls{display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px}.controls label{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;min-width:138px}
 .controls input{background:#0d1828;color:var(--txt);border:1px solid #4d5f79;border-radius:8px;padding:10px;width:140px;font:inherit}
+.presetBox{margin:12px 0;padding:14px;border:2px solid #39b99c;border-radius:13px;background:#132f35}
+.presetBox label{display:block;font-size:1.07rem;font-weight:700;margin-bottom:7px}
+.presetBox select{display:block;width:100%;padding:14px 11px;background:#0d1828;color:#fff;border:1px solid #79b6ae;border-radius:10px;font:inherit;font-size:1rem;min-height:51px}
+.presetBox select:focus{outline:3px solid #39b99c;outline-offset:2px}
+.presetBox .small{margin-top:9px}
 button{background:#294564;color:var(--txt);border:1px solid #45678a;border-radius:10px;padding:10px 14px;font:inherit;cursor:pointer}
 button.primary{background:#145d52;border-color:#39b99c;font-weight:700}button:disabled{opacity:.5;cursor:wait}
 .small{font-size:.82rem;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#101d2d;border:1px solid #34465f;padding:11px;border-radius:12px}
@@ -38,16 +43,24 @@ th{color:var(--muted);font-weight:500}tbody tr:hover{background:#213248}.scroll{
 
 <section class="card">
 <h2>Configuração do laboratório</h2>
+<div class="presetBox">
+<label for="preset">1. Escolha o teste na caixa abaixo:</label>
+<select id="preset" aria-describedby="presetInfo">
+<option value="2:2">2 confirmações + 2 de descanso — teste anterior</option>
+<option value="3:2" selected>3 confirmações + 2 de descanso — PRÓXIMO TESTE</option>
+<option value="3:4">3 confirmações + 4 de descanso — maior intervalo</option>
+<option value="4:4">4 confirmações + 4 de descanso — maior exigência</option>
+</select>
+<div id="presetInfo" class="small" role="status">Selecionado: 3 candles de 4h seguidos com sinal completo; depois da operação, descanso de 2 candles de 4h antes de um novo sinal.</div>
+</div>
 <div class="controls">
 <label>Capital fictício<input value="100,00 USDT" disabled aria-label="Capital de 100 USDT fictícios"></label>
 <label>Venda parcial<input value="50% da QNT" disabled aria-label="Venda de metade da QNT"></label>
 <label>Taxa hipotética por ordem (bps)<input id="fee" type="number" min="0" max="100" step="1" value="10"></label>
 <label>Slippage hipotético (bps)<input id="slip" type="number" min="0" max="100" step="1" value="5"></label>
-<label>Consecutivos 4h (V1.2)<input id="confirm" type="number" min="1" max="4" step="1" value="2"></label>
-<label>Descanso pós-operação 4h (V1.2)<input id="rest" type="number" min="0" max="8" step="1" value="2"></label>
-<button id="run" class="primary">Executar simulação</button>
+<button id="run" class="primary">2. Executar teste escolhido</button>
 </div>
-<div class="small" style="margin-top:8px">1 bp = 0,01%. V1.1 preservada como linha de base; V1.2 exige sinais completos repetidos em 4h consecutivos e impõe descanso após cada execução. Parâmetros de estudo configuráveis, nunca validação de desempenho futuro. Recorte 1h fixado no último 4h fechado.</div>
+<div class="small" style="margin-top:8px">1 bp = 0,01%. V1.1 preservada como referência. Os valores da caixa são quantidades de candles de 4h, não horas. A seleção altera só a V1.2; V1.1 e HOLD continuam iguais no mesmo recorte. Nunca é recomendação de entrada.</div>
 <div id="feedback" class="small" role="status" aria-live="polite">Clique em “Executar simulação” para consultar os candles fechados e calcular os resultados.</div>
 </section>
 
@@ -100,7 +113,7 @@ th{color:var(--muted);font-weight:500}tbody tr:hover{background:#213248}.scroll{
 </div>
 <div class="card">
 <h2>Copiar, exportar e guardar</h2>
-<div class="controls"><button id="copy" disabled>Copiar RelGPT</button><button id="txt" disabled>Salvar TXT</button><button id="json" disabled>Exportar JSON</button></div>
+<div class="controls"><button id="copy" disabled>3. Copiar RelGPT</button><button id="txt" disabled>Salvar TXT</button><button id="json" disabled>Exportar JSON</button></div>
 <div class="small" style="margin-top:9px">Resultados resumidos ficam neste navegador; JSON/TXT incluem V1.1, V1.2 e HOLD. Sem upload automático, sem API Key, sem contato com ordens de negociação.</div>
 <h2 style="margin-top:18px">Histórico local (últimos 12)</h2><div id="lastRuns" class="small">Ainda não há execuções salvas.</div>
 <button id="clear" style="margin-top:12px">Apagar histórico local</button>
@@ -247,6 +260,7 @@ el("finding").textContent="V1.2 vs V1.1: "+(d>=0?"+":"")+fmt(d)+" USDT; "+(r.eve
 function computeHoldDrawdown(curve){let peak=-Infinity,dd=0;for(const p of curve){peak=Math.max(peak,p.hold);dd=Math.max(dd,(peak-p.hold)/peak*100)}return dd}
 function reportText(r){return [
 "RELGPT — COMPARADOR QNT EGI V1.2 EXPERIMENTAL vs V1.1 vs HOLD — 100% FICTÍCIO — NÃO ORDEM",
+"Teste escolhido na caixa: "+r.presetLabel,
 "Ativo: QNTUSDT | Fonte: Binance Spot pública | Candles fechados 4h + confirmação 1h",
 "Gerado: "+r.generated+" | Início histórico: "+clock(r.windowStart)+" | Último candle: "+clock(r.lastCandle),
 "Janela estável: 1h endTime="+r.lastCandle+" (fechamento 4h UTC em milissegundos) | Mesma âncora 4h => mesmo recorte 1h",
@@ -270,8 +284,20 @@ function reportText(r){return [
 "Backtest não indica desempenho futuro. Nenhuma API Key foi solicitada; nenhuma transação ocorreu."
 ].join("\n")}
 function download(ext,txt,type){let b=new Blob([txt],{type}),url=URL.createObjectURL(b),a=document.createElement("a");a.href=url;a.download="QNT_EGI_Comparacao_V1_2_"+new Date(last.generated).toISOString().slice(0,10)+"."+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+function selectedPreset(){
+const select=el("preset"),parts=select.value.split(":").map(Number);
+return {confirm:parts[0],rest:parts[1],label:select.options[select.selectedIndex].textContent};
+}
+el("preset").onchange=()=>{
+const {confirm,rest}=selectedPreset();
+el("presetInfo").textContent="Selecionado: "+confirm+" candles de 4h consecutivos com sinal completo; após cada operação, descanso de "+rest+" candles de 4h antes de novo sinal.";
+last=null;
+["copy","txt","json"].forEach(id=>el(id).disabled=true);
+el("feedback").textContent="Teste alterado para "+confirm+" + "+rest+". Clique em 2. Executar teste escolhido. Os resultados anteriores, se visíveis abaixo, não pertencem ao novo teste.";
+};
 el("run").onclick=async()=>{
-const btn=el("run");let fee=Number(el("fee").value),slip=Number(el("slip").value),conf=Number(el("confirm").value),rest=Number(el("rest").value);
+const btn=el("run"),picked=selectedPreset();
+let fee=Number(el("fee").value),slip=Number(el("slip").value),conf=picked.confirm,rest=picked.rest;
 if(!Number.isFinite(fee)||!Number.isFinite(slip)||fee<0||fee>100||slip<0||slip>100){el("feedback").textContent="Informe taxas entre 0 e 100 bps.";return}
 if(!Number.isInteger(conf)||conf<1||conf>4||!Number.isInteger(rest)||rest<0||rest>8){el("feedback").textContent="Reconfirmações: 1–4; descanso: 0–8 candles 4h.";return}
 btn.disabled=true;el("feedback").textContent="Consultando 4h fechado e fixando a janela 1h no mesmo fechamento...";let attempt;
@@ -280,11 +306,12 @@ const a=await candles("4h",400);const b=await candles("1h",1000,a[a.length-1].t)
 el("feedback").textContent="Histórico recebido; auditando regras e execução fictícia no candle seguinte...";
 const baseline=evaluate(a,b,fee,slip);
 attempt=evaluate(a,b,fee,slip,"experimental",conf,rest);
+attempt.presetLabel=picked.label;
 if(attempt.windowStart!==baseline.windowStart||attempt.lastCandle!==baseline.lastCandle||attempt.checkpoints!==baseline.checkpoints||attempt.curve.length!==baseline.curve.length)throw Error("As janelas V1.1/V1.2 divergem: comparação bloqueada.");
 if(!Number.isFinite(baseline.equity)||!Number.isFinite(attempt.equity)||!Number.isFinite(attempt.hold)||attempt.equity<0)throw Error("Resultado inválido; nada salvo.");
 show(attempt,baseline);
 const id=attempt.lastCandle+":"+fee+":"+slip+":"+conf+":"+rest;records=[{id,at:Date.now(),candle:attempt.lastCandle,equity:attempt.equity,advantage:attempt.advantage,trades:attempt.events.length,baseEquity:baseline.equity,confirm:conf,rest},...records.filter(x=>x.id!==id)].slice(0,12);save();drawHistory();
-el("feedback").textContent="COMPARAÇÃO CONCLUÍDA — "+attempt.checkpoints+" candles 4h fechados | V1.1 "+baseline.events.length+" vs V1.2 "+attempt.events.length+" operações | nenhuma ordem enviada.";
+el("feedback").textContent="TESTE "+conf+" + "+rest+" CONCLUÍDO — "+attempt.checkpoints+" candles 4h fechados | V1.1 "+baseline.events.length+" vs V1.2 "+attempt.events.length+" operações. Use 3. Copiar RelGPT. Nenhuma ordem enviada.";
 }catch(e){el("feedback").textContent="SIMULAÇÃO NÃO EXECUTADA: "+e.message+" Nenhum valor inventado; verifique a rede e tente novamente."; }
 finally{btn.disabled=false}
 };
