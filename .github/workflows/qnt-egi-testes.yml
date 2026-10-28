@@ -2,9 +2,10 @@ name: QNT EGI — Testes Automáticos (simulação)
 
 on:
   schedule:
-    # 21:23 UTC = 18:23 BRT; depois do fechamento 4h das 20:00 UTC.
-    # GitHub Actions pode iniciar mais tarde do que o horário agendado.
-    - cron: "23 21 * * *"
+    # 23 minutos após cada novo candle 4h fechado, em UTC (00/04/08/12/16/20).
+    # BRT: 21:23, 01:23, 05:23, 09:23, 13:23, 17:23.
+    # GitHub Actions pode atrasar/omitir execuções; o painel acusa dados desatualizados.
+    - cron: "23 0,4,8,12,16,20 * * *"
   workflow_dispatch:
     inputs:
       relatorio_completo:
@@ -18,7 +19,7 @@ on:
           - "false"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: qnt-egi-testes-automaticos
@@ -42,6 +43,18 @@ jobs:
         env:
           QNT_FULL: ${{ inputs.relatorio_completo || 'auto' }}
         run: node scripts/qnt-egi-autoteste.mjs
+
+      - name: Preservar último resultado válido para o painel público
+        if: success()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add relatorios/qnt-egi/ultimo.json relatorios/qnt-egi/RelGPT_QNT.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "QNT EGI: registrar candle 4h e auditoria fictícia [skip ci]"
+            git push
+          fi
 
       - name: Publicar resumo legível na execução
         if: always()
