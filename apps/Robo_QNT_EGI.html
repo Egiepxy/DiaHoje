@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101623">
+<title>Robô QNT EGI • DiaHoje | Spot • Monitor</title>
+<style>
+:root{color-scheme:dark;--bg:#0d1320;--panel:#192233;--line:#2c3a50;--text:#eef5ff;--muted:#a7b9cf;--green:#4cdbb0;--red:#ff7c83;--yellow:#ffd36c}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(150deg,#131d30,#0b101a 70%);color:var(--text);font:15px system-ui,Segoe UI,Arial,sans-serif;min-height:100vh}
+main{max-width:1160px;margin:auto;padding:15px}a{color:#92bfff}.top{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:12px}
+h1{font-size:1.55rem;margin:4px 0}h2{font-size:1.04rem;margin:0 0 12px}small,.muted{color:var(--muted)}
+.pill{font-size:.8rem;border:1px solid var(--line);border-radius:99px;padding:6px 12px;background:#172335}.warn{color:var(--yellow)}.good{color:var(--green)}.bad{color:var(--red)}
+.layout{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}.card{border:1px solid var(--line);background:var(--panel);padding:16px;border-radius:17px;margin-bottom:12px;box-shadow:0 10px 30px #0002}
+.status{font-size:1.85rem;font-weight:750;letter-spacing:-.03em;margin:8px 0}.why{font-size:.92rem;line-height:1.65;padding-left:20px}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.row>*{flex-shrink:0}
+button,input{font:inherit;border:1px solid #41506c;border-radius:10px;padding:10px;background:#101827;color:var(--text)}
+button{cursor:pointer;background:#263956}button:hover{background:#344e73}button:disabled{opacity:.55;cursor:wait}
+label{display:grid;gap:5px;color:var(--muted);font-size:.83rem;flex:1;min-width:120px}label input{width:100%;color:white}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.kpi{padding:11px;background:#111a2a;border:1px solid var(--line);border-radius:11px}.kpi strong{display:block;font-size:1.18rem;margin-top:5px}
+table{width:100%;border-collapse:collapse}th,td{font-size:.88rem;padding:9px 6px;text-align:left;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:500}
+.chart{width:100%;height:260px;border:1px solid var(--line);background:#0f192a;border-radius:12px;margin-top:10px}
+.note{background:#111c2c;border-left:3px solid #b7a05e;padding:10px 12px;border-radius:7px;color:#d7e3f1;font-size:.87rem;line-height:1.55}
+#log{white-space:pre-wrap;color:var(--muted);font:12px ui-monospace,monospace;max-height:120px;overflow:auto}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.status{font-size:1.65rem}}
+</style>
+</head>
+<body><main>
+<div class="top"><div><a href="../index.html">← DiaHoje EGI</a><h1>🤖 Robô QNT EGI <small>V1.1</small></h1><small>Professor de Swing • QNTUSDT • Binance Spot • sem futuros</small></div><div class="row"><span class="pill" id="mode">MONITORAMENTO · SEM ORDENS</span><button id="refresh">Atualizar análise</button></div></div>
+<div class="note">Esta página é um painel de análise pública e não envia ordens. Para operar com dinheiro real, use exclusivamente o servidor privado do pacote Robô QNT EGI, após testes e autorização explícita. O monitor independente no GitHub Actions pode enviar alertas 24h mesmo com esta página fechada.</div>
+<div class="layout" style="margin-top:13px">
+<section>
+<div class="card"><h2>Professor de decisão · candle fechado</h2><div class="status warn" id="status">AGUARDAR DADOS</div><div class="muted" id="stamp">Nenhuma consulta efetuada.</div><ul class="why" id="why"><li>O indicador sugere; o candle fechado confirma.</li></ul><div class="kpis"><div class="kpi"><small>Preço de fechamento 4h</small><strong id="price">—</strong></div><div class="kpi"><small>RSI14 · 4h</small><strong id="rsi">—</strong></div><div class="kpi"><small>Volume relativo · 4h</small><strong id="vr">—</strong></div></div><div class="note" id="scenario">Análise aguardando dados Binance.</div></div>
+<div class="card"><h2>Gráfico inteligente · QNT 4h</h2><svg id="chart" class="chart" viewBox="0 0 700 260" role="img" aria-label="Preço e médias móveis de QNT"></svg><small>Linhas: preço (branca), EMA9 (verde), EMA21 (amarela). Suportes e resistências calculados sobre os 20 candles anteriores; são referências, não ordens.</small><div class="kpis"><div class="kpi"><small>Suporte recente</small><strong id="support">—</strong></div><div class="kpi"><small>Resistência recente</small><strong id="resist">—</strong></div><div class="kpi"><small>EMA21 4h</small><strong id="ema">—</strong></div></div></div>
+<div class="card"><h2>Leitura multitemporal</h2><div style="overflow:auto"><table><thead><tr><th>Tempo</th><th>Direção</th><th>RSI14</th><th>Vol.</th><th>Candle fechado</th></tr></thead><tbody id="tfrows"><tr><td colspan="5">Consultando...</td></tr></tbody></table></div></div>
+</section>
+<aside>
+<div class="card"><h2>Minha posição Spot · somente neste dispositivo</h2><div class="row"><label>QNT em carteira<input id="qty" type="number" min="0" step="0.001" inputmode="decimal" placeholder="Ex.: 0,474"></label><label>Preço médio USDT<input id="avg" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ex.: 210,93"></label></div><div class="row" style="margin-top:12px"><button id="save">Salvar localmente</button><button id="clear">Limpar</button></div><div class="kpis"><div class="kpi"><small>Valor estimado</small><strong id="value">—</strong></div><div class="kpi"><small>P/L teórico</small><strong id="pl">—</strong></div><div class="kpi"><small>Metade teórica</small><strong id="half">—</strong></div></div><small>Os dados da sua posição não são enviados ao GitHub. O cálculo não considera taxas, spread nem vendas parciais anteriores.</small></div>
+<div class="card"><h2>Gestão por etapas</h2><p><b>1. AGUARDAR</b> — cenário padrão até confirmação.</p><p><b>2. VENDER ATÉ 50%</b> — só avaliar após dois fechamentos 4h abaixo da EMA21, EMA9 abaixo da EMA21 em 4h e 1h, RSI4h abaixo de 45 e volume ≥1,0×.</p><p><b>3. RECOMPRAR</b> — só considerar se uma venda parcial REAL já ocorreu, após dois fechamentos 4h acima da EMA21, alinhamento 4h/1h, RSI4h acima de 55 e volume ≥1,2×.</p><label style="display:flex;align-items:center;gap:9px;flex-direction:row;margin:10px 0"><input id="sold" type="checkbox" style="width:auto"> Já vendi uma parcela MANUALMENTE</label><small>Essa marcação local não confirma nenhuma operação na Binance. Nenhum comando de compra ou venda é disparado por aqui.</small></div>
+<div class="card"><h2>Rotina de sinais 24h</h2><p class="muted">O monitor QNT no GitHub Actions privado é separado do radar BTC + segunda moeda. Sua programação consulta candles 4h fechados e envia alertas de estudo ao ntfy; não utiliza chaves de negociação.</p><p><a href="https://github.com/Egiepxy/Meus_Projetos/actions" target="_blank" rel="noopener">Ver execuções no GitHub</a></p><p><button id="copy">Copiar RelGPT</button></p><div id="log">Relatório disponível após a primeira análise.</div></div>
+</aside></div><small>EGI • Estudo, não ordem. O navegador só atualiza enquanto a página estiver aberta. Horários em Brasília (BRT).</small></main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id), f=(n,d=2)=>Number.isFinite(n)?Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const K='qnt-egi-pos-v1'; let frames={},report='',price=null;
+try{const o=JSON.parse(localStorage.getItem(K)||'{}');if(o.qty!=null)$('qty').value=o.qty;if(o.avg!=null)$('avg').value=o.avg;$('sold').checked=!!o.sold}catch(e){}
+function store(){const o={qty:$('qty').value,avg:$('avg').value,sold:$('sold').checked};localStorage.setItem(K,JSON.stringify(o));position();}
+$('save').onclick=()=>{store();alert('Dados salvos somente neste navegador.');};
+$('clear').onclick=()=>{if(confirm('Apagar dados locais da posição?')){localStorage.removeItem(K);$('qty').value='';$('avg').value='';$('sold').checked=false;position();}};
+$('sold').onchange=store; $('qty').oninput=position; $('avg').oninput=position;
+function position(){const qty=Number($('qty').value),avg=Number($('avg').value);
+$('half').textContent=qty>0?f(qty/2,5)+' QNT':'—';
+$('value').textContent=price!=null&&qty>0?'US$ '+f(price*qty):'—';
+let pl=price!=null&&qty>0&&avg>0?(price-avg)*qty:null;
+$('pl').textContent=pl===null?'—':'US$ '+f(pl)+' ('+f((price/avg-1)*100,1)+'%)';
+$('pl').className=pl===null?'':pl>=0?'good':'bad';
+}
+function emaSeries(values,n){const a=2/(n+1),out=[];let e=values[0];values.forEach((v,i)=>{if(i)e=a*v+(1-a)*e;out.push(e)});return out}
+function rsi(values,n=14){if(values.length<n+2)return null;let gain=0,loss=0;
+for(let i=1;i<=n;i++){const d=values[i]-values[i-1];gain+=Math.max(0,d);loss+=Math.max(0,-d)}gain/=n;loss/=n;
+for(let i=n+1;i<values.length;i++){const d=values[i]-values[i-1];gain=(gain*(n-1)+Math.max(0,d))/n;loss=(loss*(n-1)+Math.max(0,-d))/n;}
+return loss===0?(gain===0?50:100):100-100/(1+gain/loss)}
+const endpoints=['https://data-api.binance.vision','https://api.binance.com'];
+async function candles(tf){let error;for(const host of endpoints){try{const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),11000);
+let r;try{r=await fetch(host+'/api/v3/klines?symbol=QNTUSDT&interval='+encodeURIComponent(tf)+'&limit=240',{signal:ctrl.signal,cache:'no-store'});}finally{clearTimeout(t)}
+if(!r.ok)throw new Error('Binance HTTP '+r.status);const raw=await r.json(),now=Date.now();
+const rows=raw.filter(x=>Number(x[6])<now-1000).map(x=>({t:Number(x[6]),c:Number(x[4]),h:Number(x[2]),l:Number(x[3]),q:Number(x[7])}));
+if(rows.length<35||rows.some(x=>![x.c,x.h,x.l,x.q].every(Number.isFinite)))throw new Error('Dados incompletos');
+return rows;}catch(e){error=e;}}throw error||new Error('Indisponível')}
+function calculate(rows){const closes=rows.map(x=>x.c),e9=emaSeries(closes,9),e21=emaSeries(closes,21),i=rows.length-1;
+const vr=rows[i].q/(rows.slice(i-20,i).reduce((s,x)=>s+x.q,0)/20||Infinity);
+const trend=closes[i]>e9[i]&&e9[i]>e21[i]&&e9[i]>e9[i-1]?'ALTA':closes[i]<e9[i]&&e9[i]<e21[i]&&e9[i]<e9[i-1]?'BAIXA':'TRANSIÇÃO';
+return{rows,closes,e9,e21,i,price:closes[i],trend,rsi:rsi(closes),vr,t:rows[i].t}}
+function date(ms){return new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(ms)}
+function decision(){const a=frames['4h'],b=frames['1h'];const reasons=[];if(!a||!b)return{status:'SEM LEITURA',reasons:['Dados de 4h ou 1h ausentes.'],level:'warn'};
+const i=a.i;
+const bearish=a.closes[i]<a.e21[i]&&a.closes[i-1]<a.e21[i-1]&&a.e9[i]<a.e21[i]&&b.e9[b.i]<b.e21[b.i]&&a.rsi<45&&a.vr>=1;
+const bullish=a.closes[i]>a.e21[i]&&a.closes[i-1]>a.e21[i-1]&&a.e9[i]>a.e21[i]&&b.e9[b.i]>b.e21[b.i]&&a.rsi>55&&a.vr>=1.2;
+if(bearish){reasons.push('Confirmação de deterioração 4h/1h, 2 fechamentos abaixo da EMA21, RSI abaixo de 45 e volume suficiente.');return{status:'AVALIAR VENDA PARCIAL',reasons,level:'bad'}}
+if(bullish&&$('sold').checked){reasons.push('Recuperação técnica confirmada; recompra só com saldo, orçamento e avaliação de risco.');return{status:'AVALIAR RECOMPRA',reasons,level:'good'}}
+if(bullish){reasons.push('Recuperação técnica detectada, mas nenhuma venda parcial foi registrada neste dispositivo.');return{status:'MANTER / OBSERVAR ALTA',reasons,level:'good'}}
+reasons.push('Sem confirmação simultânea das regras técnicas de venda parcial ou recuperação.');
+if(a.vr<1.0)reasons.push('Volume 4h de '+f(a.vr)+'×: insuficiente para confirmar deterioração.');
+if(a.trend==='BAIXA')reasons.push('Tendência 4h de baixa: acompanhar proteção, sem antecipar fundo.');
+if(a.trend==='ALTA')reasons.push('Tendência 4h de alta: não perseguir preço.');
+return{status:'AGUARDAR',reasons,level:'warn'}}
+function chart(a){const svg=$('chart');const data=a.rows.slice(-65),p=data.map(x=>x.c),v9=emaSeries(a.closes,9).slice(-65),v21=emaSeries(a.closes,21).slice(-65);
+const all=p.concat(v9,v21);let lo=Math.min(...all),hi=Math.max(...all),pad=Math.max((hi-lo)*.15,hi*.002);lo-=pad;hi+=pad;
+const W=700,H=260,left=52,right=18,top=20,bottom=32;
+function xy(arr){return arr.map((v,i)=>(left+i*(W-left-right)/(arr.length-1)).toFixed(2)+','+(top+(hi-v)*(H-top-bottom)/(hi-lo)).toFixed(2)).join(' ')}
+const line=(y)=>top+(hi-y)*(H-top-bottom)/(hi-lo);
+svg.innerHTML='';
+const ns='http://www.w3.org/2000/svg';
+function element(name,attributes,text){const node=document.createElementNS(ns,name);Object.entries(attributes).forEach(([k,v])=>node.setAttribute(k,String(v)));if(text!=null)node.textContent=text;svg.appendChild(node);return node}
+for(let j=0;j<4;j++){const yy=top+j*(H-top-bottom)/3;element('line',{x1:left,x2:W-right,y1:yy,y2:yy,stroke:'#344259','stroke-dasharray':'5 5'});element('text',{x:5,y:yy+4,fill:'#8eaccd','font-size':11},f(hi-j*(hi-lo)/3))}
+const support=Math.min(...a.rows.slice(-21,-1).map(x=>x.l)),resist=Math.max(...a.rows.slice(-21,-1).map(x=>x.h));
+[['#f0f7ff',p,2.3],['#4cdbb0',v9,1.7],['#ffd36c',v21,1.7]].forEach(z=>element('polyline',{points:xy(z[1]),fill:'none',stroke:z[0],'stroke-width':z[2],'stroke-linejoin':'round','stroke-linecap':'round'}));
+if(support>=lo&&support<=hi)element('line',{x1:left,x2:W-right,y1:line(support),y2:line(support),stroke:'#3d9584','stroke-dasharray':'2 5'});
+if(resist>=lo&&resist<=hi)element('line',{x1:left,x2:W-right,y1:line(resist),y2:line(resist),stroke:'#c58b82','stroke-dasharray':'2 5'});
+element('text',{x:left+6,y:H-10,fill:'#f0f7ff','font-size':12},'Preço');element('text',{x:left+85,y:H-10,fill:'#4cdbb0','font-size':12},'EMA9');element('text',{x:left+175,y:H-10,fill:'#ffd36c','font-size':12},'EMA21');
+$('support').textContent='US$ '+f(support);$('resist').textContent='US$ '+f(resist);$('ema').textContent='US$ '+f(a.e21[a.i])}
+function render(){const a=frames['4h'],d=decision();$('status').textContent=d.status;$('status').className='status '+d.level;
+$('why').innerHTML='';d.reasons.forEach(s=>{const li=document.createElement('li');li.textContent=s;$('why').appendChild(li)});
+$('stamp').textContent=a?'Último 4h fechado: '+date(a.t)+' BRT':'Dados não disponíveis';if(a){price=a.price;$('price').textContent='US$ '+f(price);$('rsi').textContent=f(a.rsi,1);$('vr').textContent=f(a.vr)+'×';chart(a)}
+$('scenario').textContent=d.status==='AVALIAR VENDA PARCIAL'?'Condições técnicas de proteção presentes. Não é ordem; verifique custos, liquidez, tamanho da posição e tolerância a risco.':d.status==='AVALIAR RECOMPRA'?'Recuperação observada. Recomprar exige venda anterior comprovada, orçamento e avaliação manual.':'Sem operação automática. A prioridade é entender a evolução do mercado.';
+const tbody=$('tfrows');tbody.innerHTML='';[['15m','15m'],['1h','1h'],['4h','4h'],['1d','Diário'],['1w','Semanal'],['1M','Mensal']].forEach(([tf,label])=>{const x=frames[tf],tr=document.createElement('tr');[label,x?x.trend:'Sem dados',x?f(x.rsi,1):'—',x?f(x.vr)+'×':'—',x?date(x.t):'—'].forEach(s=>{const td=document.createElement('td');td.textContent=s;tr.appendChild(td)});tbody.appendChild(tr)});
+position();
+report='RELGPT — ROBÔ QNT EGI V1.1 — ESTUDO, NÃO ORDEM\nFonte Binance Spot; somente candles fechados\n'+(a?'Candle 4h: '+date(a.t)+' BRT | Preço US$ '+f(a.price)+' | RSI '+f(a.rsi,1)+' | Volume '+f(a.vr)+'×\n':'')+'Parecer: '+d.status+'\n'+d.reasons.join('\n')+'\n'+Object.entries(frames).map(([tf,x])=>tf+': '+x.trend+' | RSI '+f(x.rsi,1)+' | VR '+f(x.vr)+'×').join('\n')+'\nNenhuma ordem emitida.';$('log').textContent=report;}
+async function refresh(){const b=$('refresh');b.disabled=true;b.textContent='Consultando...';const tfs=['15m','1h','4h','1d','1w','1M'];let issues=[];
+await Promise.all(tfs.map(async tf=>{try{frames[tf]=calculate(await candles(tf))}catch(e){delete frames[tf];issues.push(tf+': '+e.message)}}));
+render();if(issues.length){$('log').textContent+='\nAVISOS: '+issues.join('; ')}
+b.disabled=false;b.textContent='Atualizar análise';}
+$('refresh').onclick=refresh;
+$('copy').onclick=async()=>{if(!report)return;try{await navigator.clipboard.writeText(report);alert('RelGPT copiado!')}catch(e){const area=document.createElement('textarea');area.value=report;document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();alert('RelGPT preparado para copiar.')}};
+refresh();setInterval(()=>{if(!document.hidden)refresh()},300000);
+})();
+</script></body></html>
