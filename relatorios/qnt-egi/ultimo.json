@@ -1,0 +1,23 @@
+{
+  "app": "QNT_EGI_TESTES_AUTOMATICOS",
+  "generated": "2026-10-29T06:03:23.081Z",
+  "cutoff": 1793217599999,
+  "anchor": 1793246399999,
+  "symbol": "QNTUSDT",
+  "initialCapitalUSDT": 100,
+  "confirmation": 3,
+  "rest": 2,
+  "full": false,
+  "candles4h": 1000,
+  "candles1h": 1000,
+  "groups": [
+    {
+      "label": "PÓS-CORTE 28/10/2026",
+      "kind": "PROSPECTIVA",
+      "start": 1793217599999,
+      "end": 1793246399999,
+      "count": 2,
+      "runs": []
+    }
+  ]
+}
