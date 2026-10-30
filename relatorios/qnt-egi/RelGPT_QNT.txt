@@ -1,5 +1,5 @@
 RELGPT — QNT EGI — TESTES AUTOMÁTICOS — 100% FICTÍCIO — NÃO ORDEM
-Gerado: 2026-10-30T15:08:01.340Z | Último candle 4h: 2026-10-30T11:59:59.999Z
+Gerado: 2026-10-30T20:54:36.116Z | Último candle 4h: 2026-10-30T19:59:59.999Z
 Ativo QNTUSDT | Binance Spot pública | candles fechados 4h e 1h
 Configuração CONGELADA: 3 confirmações + 2 candles 4h de descanso
 Corte prospectivo FIXO: 2026-10-28T19:59:59.999Z | 1793217599999
@@ -7,9 +7,9 @@ Execução automática: DIÁRIA
 Dados: 4h 1000 | 1h 1000
 Sem chave, sem ordens, sem futuros, sem alavancagem.
 
-PÓS-CORTE 28/10/2026 (PROSPECTIVA) | 2026-10-28T19:59:59.999Z a 2026-10-30T11:59:59.999Z
-  Candles novos 10 | Mínimo prospectivo 180: PENDENTE
-  NORMAL (taxa 10bps/slip 5bps) | 3+2: 95.83 USDT | V1.1: 93.30 USDT | HOLD: 95.83 USDT | vs HOLD: 0.00 USDT | drawdown 3+2: 9.38% | drawdown HOLD: 9.38% | taxas: 0.10 USDT | operações (inclui compra inicial): 1 | pendente: NÃO
+PÓS-CORTE 28/10/2026 (PROSPECTIVA) | 2026-10-28T19:59:59.999Z a 2026-10-30T19:59:59.999Z
+  Candles novos 12 | Mínimo prospectivo 180: PENDENTE
+  NORMAL (taxa 10bps/slip 5bps) | 3+2: 94.63 USDT | V1.1: 92.70 USDT | HOLD: 94.63 USDT | vs HOLD: 0.00 USDT | drawdown 3+2: 9.38% | drawdown HOLD: 9.38% | taxas: 0.10 USDT | operações (inclui compra inicial): 1 | pendente: NÃO
     2026-10-28T20:00:00.000Z | COMPRA INICIAL | QNT 0.496792 @ 201.09 | taxa 0.0999
 
 Limitações: execução hipotética na abertura do próximo candle; carteira fictícia reinicia em 100 USDT em cada janela.
