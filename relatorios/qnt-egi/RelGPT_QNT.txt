@@ -1,5 +1,5 @@
 RELGPT — QNT EGI — TESTES AUTOMÁTICOS — 100% FICTÍCIO — NÃO ORDEM
-Gerado: 2026-11-07T20:20:32.731Z | Último candle 4h: 2026-11-07T19:59:59.999Z
+Gerado: 2026-11-07T23:44:46.663Z | Último candle 4h: 2026-11-07T19:59:59.999Z
 Ativo QNTUSDT | Binance Spot pública | candles fechados 4h e 1h
 Configuração CONGELADA: 3 confirmações + 2 candles 4h de descanso
 Corte prospectivo FIXO: 2026-10-28T19:59:59.999Z | 1793217599999
